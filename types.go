@@ -3,9 +3,9 @@ package evmc
 // TODO: omitempty settings
 // TODO: valid tag settings
 
-type WithTxs interface{ []string | []*Transaction }
+type withTxs interface{ []string | []*Transaction }
 
-type Block[T WithTxs] struct {
+type Block[T withTxs] struct {
 	ParentHash       string      `json:"parentHash"`
 	Sha3Uncles       string      `json:"sha3Uncles"`
 	Miner            string      `json:"miner"`
