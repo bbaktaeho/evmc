@@ -7,7 +7,15 @@ type Balance struct {
 	Value   decimal.Decimal `json:"value"`
 }
 
-type TokenOwner struct {
-	Token string `json:"token"`
-	Owner string `json:"owner"`
+type ContractCallParams struct {
+	To       string `json:"to"`
+	Data     string `json:"data"`
+	NumOrTag interface{}
+}
+
+type ContractCallResp struct {
+	To     string
+	Data   string
+	Result string
+	Error  error
 }
