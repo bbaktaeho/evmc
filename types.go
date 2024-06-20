@@ -1,42 +1,36 @@
 package evmc
 
-// TODO: omitempty settings
-// TODO: valid tag settings
+type incTxs interface{ []string | []*Transaction }
 
-type withTxs interface{ []string | []*Transaction }
+type Block[T incTxs] struct {
+	Number           string     `json:"number" validate:"required"`
+	Hash             string     `json:"hash" validate:"required"`
+	ParentHash       string     `json:"parentHash" validate:"required"`
+	Nonce            string     `json:"nonce" validate:"required"`
+	MixHash          string     `json:"mixHash" validate:"required"`
+	Sha3Uncles       string     `json:"sha3Uncles" validate:"required"`
+	LogsBloom        string     `json:"logsBloom" validate:"required"`
+	StateRoot        string     `json:"stateRoot" validate:"required"`
+	Miner            string     `json:"miner" validate:"required"`
+	Difficulty       string     `json:"difficulty" validate:"required"`
+	ExtraData        string     `json:"extraData" validate:"required"`
+	GasLimit         string     `json:"gasLimit" validate:"required"`
+	GasUsed          string     `json:"gasUsed" validate:"required"`
+	Timestamp        string     `json:"timestamp" validate:"required"`
+	TransactionsRoot string     `json:"transactionsRoot" validate:"required"`
+	ReceiptsRoot     string     `json:"receiptsRoot" validate:"required"`
+	Transactions     T          `json:"transactions" validate:"required"`
+	TotalDifficulty  string     `json:"totalDifficulty" validate:"required"`
+	Size             string     `json:"size"`
+	Uncles           []string   `json:"uncles"`
+	UncleBlocks      []Block[T] `json:"uncleBlocks,omitempty"`
 
-type Block[T withTxs] struct {
-	ParentHash       string      `json:"parentHash"`
-	Sha3Uncles       string      `json:"sha3Uncles"`
-	Miner            string      `json:"miner"`
-	StateRoot        string      `json:"stateRoot"`
-	TransactionsRoot string      `json:"transactionsRoot"`
-	ReceiptsRoot     string      `json:"receiptsRoot"`
-	LogsBloom        string      `json:"logsBloom"`
-	Difficulty       string      `json:"difficulty"`
-	Number           string      `json:"number"`
-	GasLimit         string      `json:"gasLimit"`
-	GasUsed          string      `json:"gasUsed"`
-	Timestamp        string      `json:"timestamp"`
-	ExtraData        string      `json:"extraData"`
-	MixHash          string      `json:"mixHash"`
-	Nonce            string      `json:"nonce"`
-	Hash             string      `json:"hash"`
-	Size             string      `json:"size"`
-	TotalDifficulty  string      `json:"totalDifficulty"`
-	Transactions     T           `json:"transactions"`
-	Uncles           []string    `json:"uncles"`
-	UncleBlocks      *[]Block[T] `json:"uncleBlocks,omitempty"`
-
-	BaseFeePerGas *string `json:"baseFeePerGas,omitempty"` // EIP-1559
-
-	WithdrawalsRoot *string       `json:"withdrawalsRoot,omitempty"` // EIP-4895
-	Withdrawals     *[]Withdrawal `json:"withdrawals,omitempty"`     // EIP-4895
-
-	BlobGasUsed   *string `json:"blobGasUsed,omitempty"`   // EIP-4844
-	ExcessBlobGas *string `json:"excessBlobGas,omitempty"` // EIP-4844
-
-	ParentBeaconBlockRoot *string `json:"parentBeaconBlockRoot,omitempty"` // EIP-4788
+	BaseFeePerGas         *string      `json:"baseFeePerGas,omitempty"`         // EIP-1559
+	WithdrawalsRoot       *string      `json:"withdrawalsRoot,omitempty"`       // EIP-4895
+	Withdrawals           []Withdrawal `json:"withdrawals,omitempty"`           // EIP-4895
+	BlobGasUsed           *string      `json:"blobGasUsed,omitempty"`           // EIP-4844
+	ExcessBlobGas         *string      `json:"excessBlobGas,omitempty"`         // EIP-4844
+	ParentBeaconBlockRoot *string      `json:"parentBeaconBlockRoot,omitempty"` // EIP-4788
 
 	*additionalArbitrumBlock // Arbitrum
 }
@@ -48,38 +42,36 @@ type additionalArbitrumBlock struct {
 }
 
 type Withdrawal struct {
-	Index          string `json:"index"`
-	ValidatorIndex string `json:"validatorIndex"`
-	Address        string `json:"address"`
-	Amount         string `json:"amount"`
+	Index          string `json:"index" validate:"required"`
+	ValidatorIndex string `json:"validatorIndex" validate:"required"`
+	Address        string `json:"address" validate:"required"`
+	Amount         string `json:"amount" validate:"required"`
 }
 
 type Transaction struct {
-	BlockHash        string  `json:"blockHash"`
-	BlockNumber      string  `json:"blockNumber"`
-	From             string  `json:"from"`
-	Gas              string  `json:"gas"`
-	GasPrice         string  `json:"gasPrice"`
-	Hash             string  `json:"hash"`
-	Input            string  `json:"input"`
-	Nonce            string  `json:"nonce"`
-	To               string  `json:"to"`
-	TransactionIndex string  `json:"transactionIndex"`
-	Value            string  `json:"value"`
-	Type             string  `json:"type"`
-	V                *string `json:"v"`
-	R                string  `json:"r"`
-	S                string  `json:"s"`
+	BlockHash        string  `json:"blockHash" validate:"required"`
+	BlockNumber      string  `json:"blockNumber" validate:"required"`
+	From             string  `json:"from" validate:"required"`
+	Gas              string  `json:"gas" validate:"required"`
+	GasPrice         string  `json:"gasPrice" validate:"required"`
+	Hash             string  `json:"hash" validate:"required"`
+	Input            string  `json:"input" validate:"required"`
+	Nonce            string  `json:"nonce" validate:"required"`
+	To               string  `json:"to" validate:"required"`
+	TransactionIndex string  `json:"transactionIndex" validate:"required"`
+	Value            string  `json:"value" validate:"required"`
+	Type             string  `json:"type" validate:"required"`
+	V                string  `json:"v" validate:"required"`
+	R                string  `json:"r" validate:"required"`
+	S                string  `json:"s" validate:"required"`
+	YParity          *string `json:"yParity,omitempty"`
 
-	ChainID *string `json:"chainId,omitempty"` // EIP-155
-
-	AccessList *[]Access `json:"accessList,omitempty"` // EIP-2930
-
-	MaxFeePerGas         *string `json:"maxFeePerGas,omitempty"`         // EIP-1559
-	MaxPriorityFeePerGas *string `json:"maxPriorityFeePerGas,omitempty"` // EIP-1559
-
-	MaxFeePerBlobGas    *string   `json:"maxFeePerBlobGas,omitempty"`    // EIP-4844
-	BlobVersionedHashes *[]string `json:"blobVersionedHashes,omitempty"` // EIP-4844
+	ChainID              *string   `json:"chainId,omitempty"`              // EIP-155
+	AccessList           []*Access `json:"accessList,omitempty"`           // EIP-2930
+	MaxFeePerGas         *string   `json:"maxFeePerGas,omitempty"`         // EIP-1559
+	MaxPriorityFeePerGas *string   `json:"maxPriorityFeePerGas,omitempty"` // EIP-1559
+	MaxFeePerBlobGas     *string   `json:"maxFeePerBlobGas,omitempty"`     // EIP-4844
+	BlobVersionedHashes  []string  `json:"blobVersionedHashes,omitempty"`  // EIP-4844
 
 	*additionalArbitrumTx // Arbitrum
 	*additionalOptimismTx // Optimism
@@ -116,26 +108,26 @@ type additionalOptimismTx struct {
 }
 
 type Access struct {
-	Address     string   `json:"address"`
-	StorageKeys []string `json:"storageKeys"`
+	Address     string   `json:"address" validate:"required"`
+	StorageKeys []string `json:"storageKeys" validate:"required"`
 }
 
 type Receipt struct {
-	Type              string `json:"type"`
-	Root              string `json:"root"`
-	Status            string `json:"status"`
-	CumulativeGasUsed string `json:"cumulativeGasUsed"`
-	LogsBloom         string `json:"logsBloom"`
-	Logs              []*Log `json:"logs"`
-	TransactionHash   string `json:"transactionHash"`
-	ContractAddress   string `json:"contractAddress"`
-	GasUsed           string `json:"gasUsed"`
-	BlockHash         string `json:"blockHash"`
-	BlockNumber       string `json:"blockNumber"`
-	TransactionIndex  string `json:"transactionIndex"`
-	EffectiveGasPrice string `json:"effectiveGasPrice"`
-	From              string `json:"from"`
-	To                string `json:"to"`
+	BlockHash         string  `json:"blockHash" validate:"required"`
+	BlockNumber       string  `json:"blockNumber" validate:"required"`
+	TransactionHash   string  `json:"transactionHash" validate:"required"`
+	TransactionIndex  string  `json:"transactionIndex" validate:"required"`
+	From              string  `json:"from" validate:"required"`
+	To                string  `json:"to" validate:"required"`
+	GasUsed           string  `json:"gasUsed" validate:"required"`
+	CumulativeGasUsed string  `json:"cumulativeGasUsed" validate:"required"`
+	ContractAddress   *string `json:"contractAddress,omitempty"`
+	Logs              []*Log  `json:"logs" validate:"required"`
+	Type              string  `json:"type" validate:"required"`
+	EffectiveGasPrice string  `json:"effectiveGasPrice" validate:"required"`
+	Root              *string `json:"root,omitempty"`
+	Status            *string `json:"status,omitempty"`
+	LogsBloom         string  `json:"logsBloom"`
 
 	BlobGasPrice *string `json:"blobGasPrice,omitempty"` // EIP-4844
 	BlobGasUsed  *string `json:"blobGasUsed,omitempty"`  // EIP-4844
@@ -162,72 +154,82 @@ type additionalOptimismReceipt struct {
 }
 
 type Log struct {
-	Address          string   `json:"address"`
-	Topics           []string `json:"topics"`
-	Data             string   `json:"data"`
-	BlockNumber      string   `json:"blockNumber"`
-	TransactionHash  string   `json:"transactionHash"`
-	TransactionIndex string   `json:"transactionIndex"`
-	BlockHash        string   `json:"blockHash"`
-	LogIndex         string   `json:"logIndex"`
-	Removed          bool     `json:"removed"`
+	Address          string   `json:"address" validate:"required"`
+	Topics           []string `json:"topics" validate:"required"`
+	Data             string   `json:"data" validate:"required"`
+	BlockNumber      string   `json:"blockNumber" validate:"required"`
+	TransactionHash  string   `json:"transactionHash" validate:"required"`
+	TransactionIndex string   `json:"transactionIndex" validate:"required"`
+	BlockHash        string   `json:"blockHash" validate:"required"`
+	LogIndex         string   `json:"logIndex" validate:"required"`
+	Removed          bool     `json:"removed" validate:"-"`
 }
 
 type callTracer interface {
-	*CallTracer | []*FlatCallTracer
+	*CallFrame | []*FlatCallFrame
 }
 
-type DebugTrace[T callTracer] struct {
-	TxHash string `json:"txHash"`
-	Result T      `json:"result"`
+type DebugCallTracer[T callTracer] struct {
+	TxHash string  `json:"txHash"`
+	Result T       `json:"result"`
+	Error  *string `json:"error,omitempty"`
 }
 
-type CallTracer struct {
-	From         string       `json:"from"`
-	Gas          string       `json:"gas"`
-	GasUsed      string       `json:"gasUsed"`
-	To           string       `json:"to,omitempty"`
-	Input        string       `json:"input"`
-	Calls        []CallTracer `json:"calls,omitempty"`
-	Output       string       `json:"output,omitempty"`
-	Type         string       `json:"type"`
-	Value        string       `json:"value,omitempty"`
-	Error        string       `json:"error,omitempty"`
-	RevertReason string       `json:"revertReason,omitempty"`
+type CallFrame struct {
+	From         string      `json:"from" validate:"required"`
+	Gas          string      `json:"gas" validate:"required"`
+	GasUsed      string      `json:"gasUsed" validate:"required"`
+	To           *string     `json:"to,omitempty"`
+	Input        *string     `json:"input"`
+	Output       *string     `json:"output,omitempty"`
+	Error        *string     `json:"error,omitempty"`
+	RevertReason *string     `json:"revertReason,omitempty"`
+	Calls        []CallFrame `json:"calls,omitempty"`
+	Logs         []CallLog   `json:"logs,omitempty"`
+	Value        *string     `json:"value,omitempty"`
+	Type         string      `json:"type"`
 }
 
-type FlatCallTracer struct {
+type CallLog struct {
+	Address  string   `json:"address" validate:"required"`
+	Topics   []string `json:"topics" validate:"required"`
+	Data     string   `json:"data" validate:"required"`
+	Position string   `json:"position" validate:"required"`
+}
+
+type FlatCallFrame struct {
 	Action struct {
-		Author         string `json:"author,omitempty"`
-		RewardType     string `json:"rewardType,omitempty"`
-		Address        string `json:"address,omitempty"`
-		Balance        string `json:"balance,omitempty"`
-		CreationMethod string `json:"creationMethod,omitempty"`
-		RefundAddress  string `json:"refundAddress,omitempty"`
-		CallType       string `json:"callType,omitempty"`
-		From           string `json:"from,omitempty"`
-		Gas            string `json:"gas,omitempty"`
-		Input          string `json:"input,omitempty"`
-		To             string `json:"to,omitempty"`
-		Init           string `json:"init,omitempty"`
-		Value          string `json:"value,omitempty"`
+		Author         *string `json:"author,omitempty"`
+		RewardType     *string `json:"rewardType,omitempty"`
+		Address        *string `json:"address,omitempty"`
+		Balance        *string `json:"balance,omitempty"`
+		CreationMethod *string `json:"creationMethod,omitempty"`
+		RefundAddress  *string `json:"refundAddress,omitempty"`
+		CallType       *string `json:"callType,omitempty"`
+		From           *string `json:"from,omitempty"`
+		Gas            *string `json:"gas,omitempty"`
+		Input          *string `json:"input,omitempty"`
+		To             *string `json:"to,omitempty"`
+		Init           *string `json:"init,omitempty"`
+		Value          *string `json:"value,omitempty"`
 	} `json:"action"`
-	BlockHash   string `json:"blockHash"`
-	BlockNumber uint64 `json:"blockNumber"`
-	Error       string `json:"error,omitempty"`
+	BlockHash   string  `json:"blockHash" validate:"required"`
+	BlockNumber uint64  `json:"blockNumber" validate:"required"`
+	Error       *string `json:"error,omitempty"`
 	Result      *struct {
-		Address string `json:"address,omitempty"`
-		Code    string `json:"code,omitempty"`
-		GasUsed string `json:"gasUsed,omitempty"`
-		Output  string `json:"output,omitempty"`
+		Address *string `json:"address,omitempty"`
+		Code    *string `json:"code,omitempty"`
+		GasUsed *string `json:"gasUsed,omitempty"`
+		Output  *string `json:"output,omitempty"`
 	} `json:"result,omitempty"`
-	Subtraces           uint64   `json:"subtraces"`
-	TraceAddress        []uint64 `json:"traceAddress"`
-	TransactionHash     string   `json:"transactionHash"`
-	TransactionPosition uint64   `json:"transactionPosition"`
-	Type                string   `json:"type"`
+	Subtraces           uint64   `json:"subtraces" validate:"required"`
+	TraceAddress        []uint64 `json:"traceAddress" validate:"required"`
+	TransactionHash     string   `json:"transactionHash" validate:"required"`
+	TransactionPosition uint64   `json:"transactionPosition" validate:"-"`
+	Type                string   `json:"type" validate:"required"`
 }
 
+// TODO: erigon(parity) trace types
 type Trace struct {
 	Action struct {
 		From          string `json:"from"`
