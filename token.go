@@ -1,12 +1,5 @@
 package evmc
 
-import (
-	"strings"
-
-	"github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/ethereum/go-ethereum/common/hexutil"
-)
-
 const (
 	tokenNameSig   = "0x06fdde03"
 	tokenSymbolSig = "0x95d89b41"
@@ -40,23 +33,3 @@ const (
 	erc1155SafeTransferFromSig      = "0xf242432a"
 	erc1155SafeBatchTransferFromSig = "0xbc197c81"
 )
-
-func parseString(result string) (string, error) {
-	data, err := hexutil.Decode(result)
-	if err != nil {
-		return "", err
-	}
-
-	abi.ABI.Unpack()
-
-	var out string
-	res, err := erc20abi.Unpack(method, data)
-	if err != nil {
-		out = string(data)
-	} else {
-		out = *abi.ConvertType(res[0], new(string)).(*string)
-	}
-
-	b := utils.RemoveInvalidUTF8Bytes([]byte(strings.ReplaceAll(out, "\x00", "")))
-	return string(b), nil
-}
