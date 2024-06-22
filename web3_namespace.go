@@ -2,10 +2,6 @@ package evmc
 
 import "context"
 
-const (
-	web3ClientVersion = "web3_clientVersion"
-)
-
 type web3Namespace struct {
 	c caller
 }

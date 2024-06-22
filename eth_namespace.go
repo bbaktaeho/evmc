@@ -6,24 +6,6 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
-const (
-	ethChainID                       = "eth_chainId"
-	ethGetBlockNumber                = "eth_blockNumber"
-	ethGetBlockByNumber              = "eth_getBlockByNumber"
-	ethCall                          = "eth_call"
-	ethGetCode                       = "eth_getCode"
-	ethBlockNumber                   = "eth_blockNumber"
-	ethGetBlockByHash                = "eth_getBlockByHash"
-	ethGetUncleByBlockNumberAndIndex = "eth_getUncleByBlockNumberAndIndex"
-	ethGetTransaction                = "eth_getTransactionByHash"
-	ethGetReceipt                    = "eth_getTransactionReceipt"
-	ethGetBalance                    = "eth_getBalance"
-	ethGetStorageAt                  = "eth_getStorageAt"
-	ethGetBlockReceipts              = "eth_getBlockReceipts"
-	ethGetLogs                       = "eth_getLogs"
-	ethGetTransactionReceiptsByBlock = "eth_getTransactionReceiptsByBlock" // bor
-)
-
 type ethNamespace struct {
 	c caller
 }
