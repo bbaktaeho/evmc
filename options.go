@@ -1,24 +1,31 @@
 package evmc
 
+import "time"
+
 const (
-	defaultConnPool int = 10
-	// defaultIdleConnTimeout time.Duration = 30 * time.Second
+	defaultConnPool        int           = 10
+	defaultReqTimeout      time.Duration = 1 * time.Minute
+	defaultIdleConnTimeout time.Duration = 2 * time.Minute
 
 	defaultMaxBatchItems int = 100
 	defaultMaxBatchSize  int = 30 * 1024 * 1024
 )
 
 type options struct {
-	connPool      int
-	maxBatchItems int
-	maxBatchSize  int
+	connPool        int
+	reqTimeout      time.Duration
+	idleConnTimeout time.Duration
+	maxBatchItems   int
+	maxBatchSize    int
 }
 
 func newOps() *options {
 	return &options{
-		connPool:      defaultConnPool,
-		maxBatchItems: defaultMaxBatchItems,
-		maxBatchSize:  defaultMaxBatchSize,
+		connPool:        defaultConnPool,
+		reqTimeout:      defaultReqTimeout,
+		idleConnTimeout: defaultIdleConnTimeout,
+		maxBatchItems:   defaultMaxBatchItems,
+		maxBatchSize:    defaultMaxBatchSize,
 	}
 }
 
@@ -35,6 +42,12 @@ type Options interface {
 func WithConnPool(pool int) Options {
 	return optionFunc(func(o *options) {
 		o.connPool = pool
+	})
+}
+
+func WithReqTimeout(timeout time.Duration) Options {
+	return optionFunc(func(o *options) {
+		o.reqTimeout = timeout
 	})
 }
 

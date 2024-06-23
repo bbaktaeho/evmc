@@ -2,7 +2,9 @@ package evmc
 
 import (
 	"context"
+	"errors"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/ethereum/go-ethereum/rpc"
@@ -33,16 +35,25 @@ type Evmc struct {
 	erc20 *erc20Contract
 }
 
-func httpTransport(o *options) *http.Transport {
+func httpClient(o *options) *http.Client {
 	transport := http.DefaultTransport.(*http.Transport)
 	transport.MaxIdleConns = o.connPool
 	transport.MaxIdleConnsPerHost = o.connPool
 	transport.MaxConnsPerHost = o.connPool
+	transport.IdleConnTimeout = o.idleConnTimeout
 	transport.DisableKeepAlives = false
-	return transport
+	return &http.Client{Transport: transport, Timeout: o.reqTimeout}
 }
 
-func New(url string, opts ...Options) (*Evmc, error) {
+func New(httpURL string, opts ...Options) (*Evmc, error) {
+	u, err := url.Parse(httpURL)
+	if err != nil {
+		return nil, err
+	}
+	if u.Scheme != "http" && u.Scheme != "https" {
+		return nil, errors.New("invalid http scheme")
+	}
+
 	ctx := context.Background()
 	o := newOps()
 	for _, opt := range opts {
@@ -51,8 +62,8 @@ func New(url string, opts ...Options) (*Evmc, error) {
 
 	rpcClient, err := rpc.DialOptions(
 		ctx,
-		url,
-		rpc.WithHTTPClient(&http.Client{Transport: httpTransport(o)}),
+		httpURL,
+		rpc.WithHTTPClient(httpClient(o)),
 		rpc.WithBatchItemLimit(o.maxBatchItems),
 		rpc.WithBatchResponseSizeLimit(o.maxBatchSize),
 	)
@@ -66,7 +77,7 @@ func New(url string, opts ...Options) (*Evmc, error) {
 	evmc.debug = &debugNamespace{c: evmc}
 	evmc.erc20 = &erc20Contract{c: evmc}
 
-	chainID, err := evmc.eth.GetChainID()
+	chainID, err := evmc.eth.ChainID()
 	if err != nil {
 		return nil, err
 	}
