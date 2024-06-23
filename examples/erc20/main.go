@@ -1,8 +1,6 @@
 package main
 
 import (
-	"context"
-
 	"github.com/bbaktaeho/evmc"
 )
 
@@ -13,10 +11,21 @@ func main() {
 		panic(err)
 	}
 
-	ctx := context.Background()
-	name, err := client.ERC20().Name(ctx, "0xdac17f958d2ee523a2206206994597c13d831ec7", nil)
+	name, err := client.ERC20().Name("0xdac17f958d2ee523a2206206994597c13d831ec7", nil)
 	if err != nil {
 		panic(err)
 	}
 	println(name)
+
+	symbol, err := client.ERC20().Symbol("0xdac17f958d2ee523a2206206994597c13d831ec7", nil)
+	if err != nil {
+		panic(err)
+	}
+	println(symbol)
+
+	totalSupply, err := client.ERC20().TotalSupply("0xdac17f958d2ee523a2206206994597c13d831ec7", nil)
+	if err != nil {
+		panic(err)
+	}
+	println(totalSupply.String())
 }

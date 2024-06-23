@@ -14,7 +14,7 @@ func main() {
 	nodeName, nodeVersion := client.NodeClient()
 	println(nodeName, nodeVersion)
 
-	chainID, err = client.Eth().GetChainID()
+	chainID, err = client.Eth().ChainID()
 	if err != nil {
 		panic(err)
 	}
