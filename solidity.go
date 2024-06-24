@@ -2,6 +2,7 @@ package evmc
 
 import (
 	"math/big"
+	"strings"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -9,21 +10,16 @@ import (
 )
 
 var (
-	solUint256, _    = abi.NewType("uint256", "", nil)
-	solUint32, _     = abi.NewType("uint32", "", nil)
-	solUint16, _     = abi.NewType("uint16", "", nil)
+	solUint, _       = abi.NewType("uint256", "", nil)
 	solString, _     = abi.NewType("string", "", nil)
 	solBool, _       = abi.NewType("bool", "", nil)
-	solBytes, _      = abi.NewType("bytes", "", nil)
 	solBytes32, _    = abi.NewType("bytes32", "", nil)
+	solBytes, _      = abi.NewType("bytes", "", nil)
 	solAddress, _    = abi.NewType("address", "", nil)
 	solUint64Arr, _  = abi.NewType("uint64[]", "", nil)
 	solAddressArr, _ = abi.NewType("address[]", "", nil)
-	solInt8, _       = abi.NewType("int8", "", nil)
 
-	solUint256Args    = abi.Arguments{{Type: solUint256}}
-	solUint32Args     = abi.Arguments{{Type: solUint32}}
-	solUint16Args     = abi.Arguments{{Type: solUint16}}
+	solUint256Args    = abi.Arguments{{Type: solUint}}
 	solStringArgs     = abi.Arguments{{Type: solString}}
 	solBoolArgs       = abi.Arguments{{Type: solBool}}
 	solBytesArgs      = abi.Arguments{{Type: solBytes}}
@@ -31,10 +27,9 @@ var (
 	solAddressArgs    = abi.Arguments{{Type: solAddress}}
 	solUint64ArrArgs  = abi.Arguments{{Type: solUint64Arr}}
 	solAddressArrArgs = abi.Arguments{{Type: solAddressArr}}
-	solInt8Args       = abi.Arguments{{Type: solInt8}}
 )
 
-func parseSolStringToStr(solReturn string) (string, error) {
+func parseSolStringToString(solReturn string) (string, error) {
 	b, err := hexutil.Decode(solReturn)
 	if err != nil {
 		return "", err
@@ -46,7 +41,7 @@ func parseSolStringToStr(solReturn string) (string, error) {
 	return *abi.ConvertType(unpacked[0], new(string)).(*string), nil
 }
 
-func parseSolBytesToStr(solReturn string) (string, error) {
+func parseSolBytesToString(solReturn string) (string, error) {
 	b, err := hexutil.Decode(solReturn)
 	if err != nil {
 		return "", err
@@ -55,10 +50,14 @@ func parseSolBytesToStr(solReturn string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return *abi.ConvertType(unpacked[0], new(string)).(*string), nil
+	preRes := *abi.ConvertType(unpacked[0], new([]byte)).(*[]byte)
+	return string(preRes), nil
 }
 
-func parseSolBytes32ToStr(solReturn string) (string, error) {
+func parseSolFixedBytesToString(solReturn string) (string, error) {
+	if len(solReturn) != 66 {
+		solReturn += strings.Repeat("0", 66-len(solReturn))
+	}
 	b, err := hexutil.Decode(solReturn)
 	if err != nil {
 		return "", err
@@ -71,7 +70,7 @@ func parseSolBytes32ToStr(solReturn string) (string, error) {
 	return string(preRes[:]), nil
 }
 
-func parseSolUint256ToDecimal(solReturn string) (decimal.Decimal, error) {
+func parseSolUintToDecimal(solReturn string) (decimal.Decimal, error) {
 	b, err := hexutil.Decode(solReturn)
 	if err != nil {
 		return decimal.Zero, err
