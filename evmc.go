@@ -10,6 +10,8 @@ import (
 	"github.com/ethereum/go-ethereum/rpc"
 )
 
+// TODO: websocket RPC
+
 type caller interface {
 	call(ctx context.Context, result interface{}, method procedure, params ...interface{}) error
 	// batchCall(ctx context.Context, elements []rpc.BatchElem) error
@@ -32,7 +34,9 @@ type Evmc struct {
 	// trace *traceNamespace
 	// ots   *otsNamespace
 
-	erc20 *erc20Contract
+	erc20   *erc20Contract
+	erc721  *erc721Contract
+	erc1155 *erc1155Contract
 }
 
 func httpClient(o *options) *http.Client {
@@ -123,6 +127,14 @@ func (e *Evmc) Debug() *debugNamespace {
 
 func (e *Evmc) ERC20() *erc20Contract {
 	return e.erc20
+}
+
+func (e *Evmc) ERC721() *erc721Contract {
+	return e.erc721
+}
+
+func (e *Evmc) ERC1155() *erc1155Contract {
+	return e.erc1155
 }
 
 // func (e *Evmc) Ots() {}
