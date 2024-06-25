@@ -7,10 +7,16 @@ const (
 	ZeroHash    = "0x0000000000000000000000000000000000000000000000000000000000000000"
 )
 
+type ClientName string
+
 const (
-	Geth   = "geth"
-	Erigon = "erigon"
-	Bor    = "bor"
-	Besu   = "besu"
-	Nitro  = "nitro"
+	Geth   ClientName = "geth"
+	Erigon ClientName = "erigon"
+	Bor    ClientName = "bor"
+	Besu   ClientName = "besu"
+	Nitro  ClientName = "nitro"
 )
+
+func (c ClientName) String() string {
+	return string(c)
+}

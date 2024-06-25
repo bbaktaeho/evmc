@@ -13,6 +13,9 @@ import (
 // TODO: websocket RPC
 
 type caller interface {
+	ChainID() uint64
+	NodeClient() (name, version string)
+
 	call(ctx context.Context, result interface{}, method procedure, params ...interface{}) error
 	// batchCall(ctx context.Context, elements []rpc.BatchElem) error
 }
@@ -25,7 +28,7 @@ type Evmc struct {
 	c *rpc.Client
 
 	chainID     uint64
-	nodeName    string
+	nodeName    ClientName
 	nodeVersion string
 
 	eth   *ethNamespace
@@ -92,7 +95,7 @@ func New(httpURL string, opts ...Options) (*Evmc, error) {
 		return nil, err
 	}
 	cvarr := strings.Split(cv, "/")
-	evmc.nodeName = cvarr[0]
+	evmc.nodeName = ClientName(cvarr[0])
 	evmc.nodeVersion = cvarr[1]
 
 	return evmc, nil
@@ -103,7 +106,7 @@ func (e *Evmc) ChainID() uint64 {
 }
 
 func (e *Evmc) NodeClient() (name, version string) {
-	return e.nodeName, e.nodeVersion
+	return e.nodeName.String(), e.nodeVersion
 }
 
 func (e *Evmc) Web3() *web3Namespace {

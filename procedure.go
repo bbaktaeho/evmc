@@ -12,6 +12,9 @@ type procedure string
 const (
 	web3ClientVersion procedure = "web3_clientVersion"
 
+	ethSyncing                       procedure = "eth_syncing"
+	ethGasPrice                      procedure = "eth_gasPrice"
+	ethFeeHistory                    procedure = "eth_feeHistory"
 	ethCall                          procedure = "eth_call"
 	ethChainID                       procedure = "eth_chainId"
 	ethGetCode                       procedure = "eth_getCode"
@@ -23,8 +26,9 @@ const (
 	ethGetReceipt                    procedure = "eth_getTransactionReceipt"
 	ethGetBalance                    procedure = "eth_getBalance"
 	ethGetStorageAt                  procedure = "eth_getStorageAt"
-	ethGetBlockReceipts              procedure = "eth_getBlockReceipts"
 	ethGetLogs                       procedure = "eth_getLogs"
+	ethGetTransactionCount           procedure = "eth_getTransactionCount"
+	ethGetBlockReceipts              procedure = "eth_getBlockReceipts"
 	ethGetTransactionReceiptsByBlock procedure = "eth_getTransactionReceiptsByBlock" // bor
 
 	debugTraceBlockByNumber procedure = "debug_traceBlockByNumber"

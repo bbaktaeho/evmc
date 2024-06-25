@@ -317,3 +317,66 @@ func (e *ethNamespace) getLogs(ctx context.Context, filter *LogFilter) ([]*Log, 
 	}
 	return *logs, nil
 }
+
+func (e *ethNamespace) GetTransactionCount(address string, numOrTag interface{}) (uint64, error) {
+	return e.getTransactionCount(context.Background(), address, numOrTag)
+}
+
+func (e *ethNamespace) GetTransactionCountWithContext(
+	ctx context.Context,
+	address string,
+	numOrTag interface{},
+) (uint64, error) {
+	return e.getTransactionCount(ctx, address, numOrTag)
+}
+
+func (e *ethNamespace) getTransactionCount(ctx context.Context, address string, numOrTag interface{}) (uint64, error) {
+	result := new(string)
+	parsedNumOrTag, err := parseNumOrTag(numOrTag)
+	if err != nil {
+		return 0, err
+	}
+	if err := e.c.call(ctx, result, ethGetTransactionCount, address, parsedNumOrTag); err != nil {
+		return 0, err
+	}
+	return hexutil.MustDecodeUint64(*result), nil
+}
+
+func (e *ethNamespace) GetBlockReceipts(number uint64) ([]*Receipt, error) {
+	return e.getBlockReceipts(context.Background(), number)
+}
+
+func (e *ethNamespace) GetBlockReceiptsWithContext(ctx context.Context, number uint64) ([]*Receipt, error) {
+	return e.getBlockReceipts(ctx, number)
+}
+
+func (e *ethNamespace) getBlockReceipts(ctx context.Context, number uint64) ([]*Receipt, error) {
+	var (
+		result        = new([]*Receipt)
+		method        = ethGetBlockReceipts
+		clientName, _ = e.c.NodeClient()
+	)
+	if ClientName(clientName) == Bor {
+		method = ethGetTransactionReceiptsByBlock
+	}
+	if err := e.c.call(ctx, result, method, hexutil.EncodeUint64(number)); err != nil {
+		return nil, err
+	}
+	return *result, nil
+}
+
+func (e *ethNamespace) GasPrice() (decimal.Decimal, error) {
+	return e.gasPrice(context.Background())
+}
+
+func (e *ethNamespace) GasPriceWithContext(ctx context.Context) (decimal.Decimal, error) {
+	return e.gasPrice(ctx)
+}
+
+func (e *ethNamespace) gasPrice(ctx context.Context) (decimal.Decimal, error) {
+	result := new(string)
+	if err := e.c.call(ctx, result, ethGasPrice); err != nil {
+		return decimal.Zero, err
+	}
+	return decimal.NewFromBigInt(hexutil.MustDecodeBig(*result), 0), nil
+}
