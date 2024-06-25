@@ -165,6 +165,14 @@ type Log struct {
 	Removed          bool     `json:"removed" validate:"-"`
 }
 
+type LogFilter struct {
+	BlockHash *string  `json:"blockHash,omitempty"`
+	FromBlock *uint64  `json:"fromBlock,omitempty"`
+	ToBlock   *uint64  `json:"toBlock,omitempty"`
+	Address   *string  `json:"address,omitempty"`
+	Topics    []string `json:"topics,omitempty"`
+}
+
 type callTracer interface {
 	*CallFrame | []*FlatCallFrame
 }

@@ -4,10 +4,12 @@ import (
 	"context"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/shopspring/decimal"
 )
 
 // TODO: get uncle block
 // TODO: batch call
+// TODO: describe custom functions
 
 type ethNamespace struct {
 	c caller
@@ -231,4 +233,87 @@ func (e *ethNamespace) getReceipt(ctx context.Context, hash string) (*Receipt, e
 		return nil, err
 	}
 	return receipt, nil
+}
+
+func (e *ethNamespace) GetBalance(address string, numOrTag interface{}) (decimal.Decimal, error) {
+	return e.getBalance(context.Background(), address, numOrTag)
+}
+
+func (e *ethNamespace) GetBalanceWithContext(ctx context.Context, address string, numOrTag interface{}) (decimal.Decimal, error) {
+	return e.getBalance(ctx, address, numOrTag)
+}
+
+func (e *ethNamespace) getBalance(ctx context.Context, address string, numOrTag interface{}) (decimal.Decimal, error) {
+	result := new(string)
+	parsedNumOrTag, err := parseNumOrTag(numOrTag)
+	if err != nil {
+		return decimal.Zero, err
+	}
+	if err := e.c.call(ctx, result, ethGetBalance, address, parsedNumOrTag); err != nil {
+		return decimal.Zero, err
+	}
+	if *result == "" {
+		*result = "0x0"
+	}
+	return decimal.NewFromBigInt(hexutil.MustDecodeBig(*result), 0), nil
+}
+
+func (e *ethNamespace) GetLogs(filter *LogFilter) ([]*Log, error) {
+	return e.getLogs(context.Background(), filter)
+}
+
+func (e *ethNamespace) GetLogsWithContext(ctx context.Context, filter *LogFilter) ([]*Log, error) {
+	return e.getLogs(ctx, filter)
+}
+
+func (e *ethNamespace) GetLogsByBlockNumber(number uint64) ([]*Log, error) {
+	return e.getLogsByBlockNumber(context.Background(), number)
+}
+
+func (e *ethNamespace) GetLogsByBlockNumberWithContext(ctx context.Context, number uint64) ([]*Log, error) {
+	return e.getLogsByBlockNumber(ctx, number)
+}
+
+func (e *ethNamespace) getLogsByBlockNumber(ctx context.Context, number uint64) ([]*Log, error) {
+	filter := &LogFilter{
+		FromBlock: &number,
+		ToBlock:   &number,
+	}
+	return e.getLogs(ctx, filter)
+}
+
+func (e *ethNamespace) GetLogsByBlockHash(hash string) ([]*Log, error) {
+	return e.getLogsByBlockHash(context.Background(), hash)
+}
+
+func (e *ethNamespace) GetLogsByBlockHashWithContext(ctx context.Context, hash string) ([]*Log, error) {
+	return e.getLogsByBlockHash(ctx, hash)
+}
+
+func (e *ethNamespace) getLogsByBlockHash(ctx context.Context, hash string) ([]*Log, error) {
+	filter := &LogFilter{
+		BlockHash: &hash,
+	}
+	return e.getLogs(ctx, filter)
+}
+
+func (e *ethNamespace) getLogs(ctx context.Context, filter *LogFilter) ([]*Log, error) {
+	logs := new([]*Log)
+	params := make(map[string]interface{})
+	if filter.BlockHash != nil {
+		params["blockHash"] = *filter.BlockHash
+	} else {
+		params["fromBlock"] = hexutil.EncodeUint64(*filter.FromBlock)
+		params["toBlock"] = hexutil.EncodeUint64(*filter.ToBlock)
+	}
+	if filter.Address != nil {
+		params["address"] = *filter.Address
+	}
+	if filter.Topics != nil {
+		params["topics"] = filter.Topics
+	}
+	if err := e.c.call(ctx, logs, ethGetLogs, filter); err != nil {
+		return nil, err
+	}
+	return *logs, nil
 }
