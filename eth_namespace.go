@@ -2,6 +2,7 @@ package evmc
 
 import (
 	"context"
+	"errors"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/shopspring/decimal"
@@ -112,6 +113,38 @@ func (e *ethNamespace) getCode(
 	return *result, nil
 }
 
+func (e *ethNamespace) GetBlockByTag(tag blockTag) (*Block[[]string], error) {
+	return e.getBlockByTag(context.Background(), tag)
+}
+
+func (e *ethNamespace) GetBlockByTagWithContext(ctx context.Context, tag blockTag) (*Block[[]string], error) {
+	return e.getBlockByTag(ctx, tag)
+}
+
+func (e *ethNamespace) getBlockByTag(ctx context.Context, tag blockTag) (*Block[[]string], error) {
+	block := new(Block[[]string])
+	if err := e.getBlockByNumber(ctx, block, tag, false); err != nil {
+		return nil, err
+	}
+	return block, nil
+}
+
+func (e *ethNamespace) GetBlockByTagIncTx(tag blockTag) (*Block[[]*Transaction], error) {
+	return e.getBlockByTagIncTx(context.Background(), tag)
+}
+
+func (e *ethNamespace) GetBlockByTagIncTxWithContext(ctx context.Context, tag blockTag) (*Block[[]*Transaction], error) {
+	return e.getBlockByTagIncTx(ctx, tag)
+}
+
+func (e *ethNamespace) getBlockByTagIncTx(ctx context.Context, tag blockTag) (*Block[[]*Transaction], error) {
+	block := new(Block[[]*Transaction])
+	if err := e.getBlockByNumber(ctx, block, tag, true); err != nil {
+		return nil, err
+	}
+	return block, nil
+}
+
 func (e *ethNamespace) GetBlockByNumber(number uint64) (*Block[[]string], error) {
 	block := new(Block[[]string])
 	if err := e.getBlockByNumber(context.Background(), block, number, false); err != nil {
@@ -150,10 +183,14 @@ func (e *ethNamespace) getBlockByNumberIncTx(ctx context.Context, number uint64)
 func (e *ethNamespace) getBlockByNumber(
 	ctx context.Context,
 	result interface{},
-	number uint64,
+	number interface{},
 	incTx bool,
 ) error {
-	params := []interface{}{hexutil.EncodeUint64(number), incTx}
+	hexNum, err := parseNumOrTag(number)
+	if err != nil {
+		return err
+	}
+	params := []interface{}{hexNum, incTx}
 	if err := e.c.call(ctx, result, ethGetBlockByNumber, params...); err != nil {
 		return err
 	}
@@ -318,6 +355,7 @@ func (e *ethNamespace) getLogs(ctx context.Context, filter *LogFilter) ([]*Log, 
 	return *logs, nil
 }
 
+// TODO: tag
 func (e *ethNamespace) GetTransactionCount(address string, numOrTag interface{}) (uint64, error) {
 	return e.getTransactionCount(context.Background(), address, numOrTag)
 }
@@ -379,4 +417,67 @@ func (e *ethNamespace) gasPrice(ctx context.Context) (decimal.Decimal, error) {
 		return decimal.Zero, err
 	}
 	return decimal.NewFromBigInt(hexutil.MustDecodeBig(*result), 0), nil
+}
+
+func (e *ethNamespace) MaxPriorityFeePerGas() (decimal.Decimal, error) {
+	return e.maxPriorityFeePerGas(context.Background())
+}
+
+func (e *ethNamespace) MaxPriorityFeePerGasWithContext(ctx context.Context) (decimal.Decimal, error) {
+	return e.maxPriorityFeePerGas(ctx)
+}
+
+func (e *ethNamespace) maxPriorityFeePerGas(ctx context.Context) (decimal.Decimal, error) {
+	result := new(string)
+	if err := e.c.call(ctx, result, ethMaxPriorityFeePerGas); err != nil {
+		return decimal.Zero, err
+	}
+	return decimal.NewFromBigInt(hexutil.MustDecodeBig(*result), 0), nil
+}
+
+func (e *ethNamespace) SendTransaction(sendingTx *SendingTx, wallet *Wallet) (string, error) {
+	return e.sendTransaction(context.Background(), sendingTx, wallet)
+}
+
+func (e *ethNamespace) SendTransactionWithContext(
+	ctx context.Context,
+	sendingTx *SendingTx,
+	wallet *Wallet,
+) (string, error) {
+	return e.sendTransaction(ctx, sendingTx, wallet)
+}
+
+func (e *ethNamespace) sendTransaction(
+	ctx context.Context,
+	sendingTx *SendingTx,
+	wallet *Wallet,
+) (string, error) {
+	hash, rawTx, err := wallet.SignTx(sendingTx, e.c.ChainID())
+	if err != nil {
+		return "", err
+	}
+	txHash, err := e.sendRawTransaction(ctx, rawTx)
+	if err != nil {
+		return "", err
+	}
+	if hash != txHash {
+		return "", errors.New("transaction hash mismatch")
+	}
+	return txHash, nil
+}
+
+func (e *ethNamespace) SendRawTransaction(rawTx string) (string, error) {
+	return e.sendRawTransaction(context.Background(), rawTx)
+}
+
+func (e *ethNamespace) SendRawTransactionWithContext(ctx context.Context, rawTx string) (string, error) {
+	return e.sendRawTransaction(ctx, rawTx)
+}
+
+func (e *ethNamespace) sendRawTransaction(ctx context.Context, rawTx string) (string, error) {
+	result := new(string)
+	if err := e.c.call(ctx, result, ethSendRawTransaction, rawTx); err != nil {
+		return "", err
+	}
+	return *result, nil
 }

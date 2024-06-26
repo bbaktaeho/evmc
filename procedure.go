@@ -12,6 +12,8 @@ type procedure string
 const (
 	web3ClientVersion procedure = "web3_clientVersion"
 
+	ethSendRawTransaction            procedure = "eth_sendRawTransaction"
+	ethMaxPriorityFeePerGas          procedure = "eth_maxPriorityFeePerGas"
 	ethSyncing                       procedure = "eth_syncing"
 	ethGasPrice                      procedure = "eth_gasPrice"
 	ethFeeHistory                    procedure = "eth_feeHistory"
@@ -51,6 +53,7 @@ const (
 	Latest    blockTag = "latest"
 	Safe      blockTag = "safe"
 	Finalized blockTag = "finalized"
+	Pending   blockTag = "pending"
 )
 
 func (bt blockTag) String() string {
