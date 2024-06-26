@@ -1,5 +1,12 @@
 package evmc
 
+import (
+	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/shopspring/decimal"
+)
+
+// TODO evmctypes package
+
 type incTxs interface{ []string | []*Transaction }
 
 type Block[T incTxs] struct {
@@ -33,6 +40,13 @@ type Block[T incTxs] struct {
 	ParentBeaconBlockRoot *string      `json:"parentBeaconBlockRoot,omitempty"` // EIP-4788
 
 	*additionalArbitrumBlock // Arbitrum
+}
+
+func (b *Block[incTxs]) NextBaseFee() decimal.Decimal {
+	if b.BaseFeePerGas == nil {
+		return decimal.Zero
+	}
+	return decimal.NewFromBigInt(hexutil.MustDecodeBig(*b.BaseFeePerGas), 0).Mul(decimal.NewFromInt(2))
 }
 
 type additionalArbitrumBlock struct {
