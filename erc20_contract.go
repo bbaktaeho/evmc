@@ -4,8 +4,19 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/bbaktaeho/evmc/token"
 	"github.com/shopspring/decimal"
+)
+
+const (
+	erc20NameSig         = "0x06fdde03"
+	erc20SymbolSig       = "0x95d89b41"
+	erc20TotalSupplySig  = "0x18160ddd"
+	erc20DecimalsSig     = "0x313ce567"
+	erc20BalanceOfSig    = "0x70a08231"
+	erc20TransferSig     = "0xa9059cbb"
+	erc20TransferFromSig = "0x23b872dd"
+	erc20ApproveSig      = "0x095ea7b3"
+	erc20AllowanceSig    = "0xdd62ed3e"
 )
 
 type erc20Contract struct {
@@ -35,7 +46,7 @@ func (e *erc20Contract) name(
 		ctx,
 		result,
 		tokenAddress,
-		token.TokenNameSig,
+		erc20NameSig,
 		parseBT,
 	); err != nil {
 		return "", err
@@ -70,7 +81,7 @@ func (e *erc20Contract) symbol(
 		ctx,
 		result,
 		tokenAddress,
-		token.TokenSymbolSig,
+		erc20SymbolSig,
 		parsedBT,
 	); err != nil {
 		return "", err
@@ -105,7 +116,7 @@ func (e *erc20Contract) totalSupply(
 		ctx,
 		result,
 		tokenAddress,
-		token.ERC20TotalSupplySig,
+		erc20TotalSupplySig,
 		parsedBT,
 	); err != nil {
 		return decimal.Zero, err
@@ -136,7 +147,7 @@ func (e *erc20Contract) decimals(
 		ctx,
 		result,
 		tokenAddress,
-		token.ERC20DecimalsSig,
+		erc20DecimalsSig,
 		parsedBT,
 	); err != nil {
 		return decimal.Zero, err
@@ -178,7 +189,7 @@ func (e *erc20Contract) balanceOf(
 		ctx,
 		result,
 		tokenAddress,
-		fmt.Sprintf("%s%064s", token.ERC20BalanceOfSig, owner),
+		fmt.Sprintf("%s%064s", erc20BalanceOfSig, owner),
 		parsedBT,
 	); err != nil {
 		return decimal.Zero, err
@@ -224,7 +235,7 @@ func (e *erc20Contract) allowance(
 		ctx,
 		result,
 		tokenAddress,
-		fmt.Sprintf("%s%064s%064s", token.ERC20AllowanceSig, owner, spender),
+		fmt.Sprintf("%s%064s%064s", erc20AllowanceSig, owner, spender),
 		parsedBT,
 	); err != nil {
 		return decimal.Zero, err
