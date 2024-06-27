@@ -12,34 +12,31 @@ type erc20Contract struct {
 	c contractCaller
 }
 
-func (e *erc20Contract) Name(tokenAddress string, numOrTag interface{}) (string, error) {
-	return e.name(context.Background(), tokenAddress, numOrTag)
+func (e *erc20Contract) Name(tokenAddress string, blockAndTag BlockAndTag) (string, error) {
+	return e.name(context.Background(), tokenAddress, blockAndTag)
 }
 
 func (e *erc20Contract) NameWithContext(
 	ctx context.Context,
 	tokenAddress string,
-	numOrTag interface{},
+	blockAndTag BlockAndTag,
 ) (string, error) {
-	return e.name(ctx, tokenAddress, numOrTag)
+	return e.name(ctx, tokenAddress, blockAndTag)
 }
 
 func (e *erc20Contract) name(
 	ctx context.Context,
 	tokenAddress string,
-	numOrTag interface{},
+	blockAndTag BlockAndTag,
 ) (string, error) {
 	result := new(string)
-	parsedNumOrTag, err := parseNumOrTag(numOrTag)
-	if err != nil {
-		return "", err
-	}
+	parseBT := parseBlockAndTag(blockAndTag)
 	if err := e.c.contractCall(
 		ctx,
 		result,
 		tokenAddress,
 		token.TokenNameSig,
-		parsedNumOrTag,
+		parseBT,
 	); err != nil {
 		return "", err
 	}
@@ -50,34 +47,31 @@ func (e *erc20Contract) name(
 	return name, nil
 }
 
-func (e *erc20Contract) Symbol(tokenAddress string, numOrTag interface{}) (string, error) {
-	return e.symbol(context.Background(), tokenAddress, numOrTag)
+func (e *erc20Contract) Symbol(tokenAddress string, blockAndTag BlockAndTag) (string, error) {
+	return e.symbol(context.Background(), tokenAddress, blockAndTag)
 }
 
 func (e *erc20Contract) SymbolWithContext(
 	ctx context.Context,
 	tokenAddress string,
-	numOrTag interface{},
+	blockAndTag BlockAndTag,
 ) (string, error) {
-	return e.symbol(ctx, tokenAddress, numOrTag)
+	return e.symbol(ctx, tokenAddress, blockAndTag)
 }
 
 func (e *erc20Contract) symbol(
 	ctx context.Context,
 	tokenAddress string,
-	numOrTag interface{},
+	blockAndTag BlockAndTag,
 ) (string, error) {
 	result := new(string)
-	parsedNumOrTag, err := parseNumOrTag(numOrTag)
-	if err != nil {
-		return "", err
-	}
+	parsedBT := parseBlockAndTag(blockAndTag)
 	if err := e.c.contractCall(
 		ctx,
 		result,
 		tokenAddress,
 		token.TokenSymbolSig,
-		parsedNumOrTag,
+		parsedBT,
 	); err != nil {
 		return "", err
 	}
@@ -88,68 +82,62 @@ func (e *erc20Contract) symbol(
 	return symbol, nil
 }
 
-func (e *erc20Contract) TotalSupply(tokenAddress string, numOrTag interface{}) (decimal.Decimal, error) {
-	return e.totalSupply(context.Background(), tokenAddress, numOrTag)
+func (e *erc20Contract) TotalSupply(tokenAddress string, blockAndTag BlockAndTag) (decimal.Decimal, error) {
+	return e.totalSupply(context.Background(), tokenAddress, blockAndTag)
 }
 
 func (e *erc20Contract) TotalSupplyWithContext(
 	ctx context.Context,
 	tokenAddress string,
-	numOrTag interface{},
+	blockAndTag BlockAndTag,
 ) (decimal.Decimal, error) {
-	return e.totalSupply(ctx, tokenAddress, numOrTag)
+	return e.totalSupply(ctx, tokenAddress, blockAndTag)
 }
 
 func (e *erc20Contract) totalSupply(
 	ctx context.Context,
 	tokenAddress string,
-	numOrTag interface{},
+	blockAndTag BlockAndTag,
 ) (decimal.Decimal, error) {
 	result := new(string)
-	parsedNumOrTag, err := parseNumOrTag(numOrTag)
-	if err != nil {
-		return decimal.Zero, err
-	}
+	parsedBT := parseBlockAndTag(blockAndTag)
 	if err := e.c.contractCall(
 		ctx,
 		result,
 		tokenAddress,
 		token.ERC20TotalSupplySig,
-		parsedNumOrTag,
+		parsedBT,
 	); err != nil {
 		return decimal.Zero, err
 	}
 	return parseSolUintToDecimal(*result)
 }
 
-func (e *erc20Contract) Decimals(tokenAddress string, numOrTag interface{}) (decimal.Decimal, error) {
-	return e.decimals(context.Background(), tokenAddress, numOrTag)
+func (e *erc20Contract) Decimals(tokenAddress string, blockAndTag BlockAndTag) (decimal.Decimal, error) {
+	return e.decimals(context.Background(), tokenAddress, blockAndTag)
 }
 
 func (e *erc20Contract) DecimalsWithContext(
 	ctx context.Context,
 	tokenAddress string,
-	numOrTag interface{},
+	blockAndTag BlockAndTag,
 ) (decimal.Decimal, error) {
-	return e.decimals(ctx, tokenAddress, numOrTag)
+	return e.decimals(ctx, tokenAddress, blockAndTag)
 }
 
 func (e *erc20Contract) decimals(
 	ctx context.Context,
 	tokenAddress string,
-	numOrTag interface{},
+	blockAndTag BlockAndTag,
 ) (decimal.Decimal, error) {
 	result := new(string)
-	parsedNumOrTag, err := parseNumOrTag(numOrTag)
-	if err != nil {
-		return decimal.Zero, err
-	}
+	parsedBT := parseBlockAndTag(blockAndTag)
 	if err := e.c.contractCall(
 		ctx,
 		result,
 		tokenAddress,
 		token.ERC20DecimalsSig,
-		parsedNumOrTag,
+		parsedBT,
 	); err != nil {
 		return decimal.Zero, err
 	}
@@ -162,39 +150,36 @@ func (e *erc20Contract) Transfer() {}
 
 func (e *erc20Contract) TransferFrom() {}
 
-func (e *erc20Contract) BalanceOf(tokenAddress string, owner string, numOrTag interface{}) (decimal.Decimal, error) {
-	return e.balanceOf(context.Background(), tokenAddress, owner, numOrTag)
+func (e *erc20Contract) BalanceOf(tokenAddress string, owner string, blockAndTag BlockAndTag) (decimal.Decimal, error) {
+	return e.balanceOf(context.Background(), tokenAddress, owner, blockAndTag)
 }
 
 func (e *erc20Contract) BalanceOfWithContext(
 	ctx context.Context,
 	tokenAddress string,
 	owner string,
-	numOrTag interface{},
+	blockAndTag BlockAndTag,
 ) (decimal.Decimal, error) {
-	return e.balanceOf(ctx, tokenAddress, owner, numOrTag)
+	return e.balanceOf(ctx, tokenAddress, owner, blockAndTag)
 }
 
 func (e *erc20Contract) balanceOf(
 	ctx context.Context,
 	tokenAddress string,
 	owner string,
-	numOrTag interface{},
+	blockAndTag BlockAndTag,
 ) (decimal.Decimal, error) {
 	if owner[:2] == "0x" {
 		owner = owner[2:]
 	}
 	result := new(string)
-	parsedNumOrTag, err := parseNumOrTag(numOrTag)
-	if err != nil {
-		return decimal.Zero, err
-	}
+	parsedBT := parseBlockAndTag(blockAndTag)
 	if err := e.c.contractCall(
 		ctx,
 		result,
 		tokenAddress,
 		fmt.Sprintf("%s%064s", token.ERC20BalanceOfSig, owner),
-		parsedNumOrTag,
+		parsedBT,
 	); err != nil {
 		return decimal.Zero, err
 	}
@@ -205,9 +190,9 @@ func (e *erc20Contract) Allowance(
 	tokenAddress string,
 	owner string,
 	spender string,
-	numOrTag interface{},
+	blockAndTag BlockAndTag,
 ) (decimal.Decimal, error) {
-	return e.allowance(context.Background(), tokenAddress, owner, spender, numOrTag)
+	return e.allowance(context.Background(), tokenAddress, owner, spender, blockAndTag)
 }
 
 func (e *erc20Contract) AllowanceWithContext(
@@ -215,9 +200,9 @@ func (e *erc20Contract) AllowanceWithContext(
 	tokenAddress string,
 	owner string,
 	spender string,
-	numOrTag interface{},
+	blockAndTag BlockAndTag,
 ) (decimal.Decimal, error) {
-	return e.allowance(ctx, tokenAddress, owner, spender, numOrTag)
+	return e.allowance(ctx, tokenAddress, owner, spender, blockAndTag)
 }
 
 func (e *erc20Contract) allowance(
@@ -225,7 +210,7 @@ func (e *erc20Contract) allowance(
 	tokenAddress string,
 	owner string,
 	spender string,
-	numOrTag interface{},
+	blockAndTag BlockAndTag,
 ) (decimal.Decimal, error) {
 	if owner[:2] == "0x" {
 		owner = owner[2:]
@@ -234,16 +219,13 @@ func (e *erc20Contract) allowance(
 		spender = spender[2:]
 	}
 	result := new(string)
-	parsedNumOrTag, err := parseNumOrTag(numOrTag)
-	if err != nil {
-		return decimal.Zero, err
-	}
+	parsedBT := parseBlockAndTag(blockAndTag)
 	if err := e.c.contractCall(
 		ctx,
 		result,
 		tokenAddress,
 		fmt.Sprintf("%s%064s%064s", token.ERC20AllowanceSig, owner, spender),
-		parsedNumOrTag,
+		parsedBT,
 	); err != nil {
 		return decimal.Zero, err
 	}
