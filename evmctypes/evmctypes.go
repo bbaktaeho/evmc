@@ -1,4 +1,4 @@
-package evmc
+package evmctypes
 
 import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
