@@ -4,105 +4,107 @@ import (
 	"fmt"
 
 	"github.com/bbaktaeho/evmc"
+	"github.com/bbaktaeho/evmc/evmctypes"
 )
 
-func main() {
-	// set url to connect to blockchain node
-	client, err := evmc.New("https://ethereum-mainnet.nodit.io")
+func nodeInfoExample(client *evmc.Evmc) {
+	chainID, err := client.Eth().ChainID()
 	if err != nil {
 		panic(err)
 	}
-
-	chainID := client.ChainID()
-	fmt.Println(chainID)
-	nodeName, nodeVersion := client.NodeClient()
-	fmt.Println(nodeName, nodeVersion)
-
-	chainID, err = client.Eth().ChainID()
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println(chainID)
+	fmt.Println("chain id:", chainID)
 
 	cv, err := client.Web3().ClientVersion()
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(cv)
+	fmt.Println("client version:", cv)
 
-	storage, err := client.Eth().GetStorageAt("0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2", "0x0", nil)
+	// caching
+	chainID = client.ChainID()
+	nodeName, nodeVersion := client.NodeClient()
+	fmt.Println("chain id:", chainID, "name:", nodeName, "version:", nodeVersion)
+}
+
+func blockAndTagExample(client *evmc.Evmc) {
+	Latestblock, err := client.Eth().GetBlockByTag(evmc.Latest)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(storage)
-
-	latestBlockNumber, err := client.Eth().GetBlockNumber()
+	safeBlock, err := client.Eth().GetBlockByTag(evmc.Safe)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(latestBlockNumber)
-
-	bytecode, err := client.Eth().GetCode("0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2", nil)
+	finalizedBlock, err := client.Eth().GetBlockByTag(evmc.Finalized)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(bytecode)
-
-	block, err := client.Eth().GetBlockByNumber(latestBlockNumber)
+	ealiestBlock, err := client.Eth().GetBlockByTag(evmc.Earliest)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(block.Number, block.Hash, len(block.Transactions))
+	fmt.Println("block:", Latestblock.Number, safeBlock.Number, finalizedBlock.Number, ealiestBlock.Number)
 
-	blockIncTx, err := client.Eth().GetBlockByNumberIncTx(latestBlockNumber)
+	pendingBalance, err := client.Eth().GetBalance(evmc.ZeroAddress, evmc.Pending)
 	if err != nil {
 		panic(err)
 	}
-	for _, tx := range blockIncTx.Transactions {
-		fmt.Println(tx.Hash, tx.From, tx.To, tx.Value)
-	}
-
-	block, err = client.Eth().GetBlockByHash(block.Hash)
+	latestBalance, err := client.Eth().GetBalance(evmc.ZeroAddress, evmc.Latest)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(block.Number, block.Hash, len(block.Transactions))
-
-	blockIncTx, err = client.Eth().GetBlockByHashIncTx(block.Hash)
+	archiveBalance, err := client.Eth().GetBalance(evmc.ZeroAddress, evmc.FormatNumber(18000000))
 	if err != nil {
 		panic(err)
 	}
-	for _, tx := range blockIncTx.Transactions {
-		fmt.Println(tx.Hash, tx.From, tx.To, tx.Value)
-	}
+	fmt.Println("balance:", pendingBalance, latestBalance, archiveBalance)
 
-	logs, err := client.Eth().GetLogsByBlockNumber(20141602)
+	pendingStorage, err := client.Eth().GetStorageAt("0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2", "0x0", evmc.Pending)
 	if err != nil {
 		panic(err)
 	}
-	for _, log := range logs {
-		fmt.Println(log.Address, log.BlockHash, log.Data, log.LogIndex, len(log.Topics))
-	}
-
-	logs, err = client.Eth().GetLogsByBlockHash("0x5a5310472efc52cc3a7afa2460be8438e88d32d7d59fb06da6bb887a146a2001")
+	latestStorage, err := client.Eth().GetStorageAt("0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2", "0x0", evmc.Latest)
 	if err != nil {
 		panic(err)
 	}
-	for _, log := range logs {
-		fmt.Println(log.Address, log.BlockHash, log.Data, log.LogIndex, len(log.Topics))
-	}
-
-	receipts, err := client.Eth().GetBlockReceipts(20141602)
+	archibeStorage, err := client.Eth().GetStorageAt("0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2", "0x0", evmc.FormatNumber(18000000))
 	if err != nil {
 		panic(err)
 	}
-	for _, receipt := range receipts {
-		fmt.Println(receipt.BlockHash, receipt.TransactionHash, receipt.Status, receipt.CumulativeGasUsed)
-	}
+	fmt.Println("storage:", pendingStorage, latestStorage, archibeStorage)
+}
 
-	gasPrice, err := client.Eth().GasPrice()
+func transactionAndReceiptExample(client *evmc.Evmc) {
+	transaction, err := client.Eth().GetTransaction("0x0bf219063db8f75ba381c6b67d7f0f40e0e1d2b40f92725324b11e4ad72a5dab")
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(gasPrice)
+	fmt.Println("transaction:", transaction.From, transaction.To, transaction.Value, transaction.Nonce)
+
+	receipt, err := client.Eth().GetTransactionReceipt("0x0bf219063db8f75ba381c6b67d7f0f40e0e1d2b40f92725324b11e4ad72a5dab")
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("receipt:", receipt.BlockNumber, receipt.TransactionHash, receipt.Status, receipt.CumulativeGasUsed)
+
+	fromBlock, toBlock := uint64(18000000), uint64(18000001)
+	logs, err := client.Eth().GetLogs(&evmctypes.LogFilter{FromBlock: &fromBlock, ToBlock: &toBlock})
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("logs:", len(logs))
+}
+
+func receiptExample(client *evmc.Evmc) {}
+
+func main() {
+	// set url to connect to blockchain node
+	client, err := evmc.New("http://localhost:8545")
+	if err != nil {
+		panic(err)
+	}
+
+	nodeInfoExample(client)
+	blockAndTagExample(client)
+	transactionAndReceiptExample(client)
 }
