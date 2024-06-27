@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/bbaktaeho/evmc/evmctypes"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/shopspring/decimal"
 )
@@ -36,37 +37,34 @@ func (e *ethNamespace) chainID(ctx context.Context) (uint64, error) {
 	return id, nil
 }
 
-func (e *ethNamespace) GetStorageAt(address, position string, numOrTag interface{}) (string, error) {
-	return e.getStorageAt(context.Background(), address, position, numOrTag)
+func (e *ethNamespace) GetStorageAt(address, position string, blockAndTag BlockAndTag) (string, error) {
+	return e.getStorageAt(context.Background(), address, position, blockAndTag)
 }
 
 func (e *ethNamespace) GetStorageAtWithContext(
 	ctx context.Context,
 	address string,
 	position string,
-	numOrTag interface{},
+	blockAndTag BlockAndTag,
 ) (string, error) {
-	return e.getStorageAt(ctx, address, position, numOrTag)
+	return e.getStorageAt(ctx, address, position, blockAndTag)
 }
 
 func (e *ethNamespace) getStorageAt(
 	ctx context.Context,
 	address string,
 	position string,
-	numOrTag interface{},
+	numOrTag BlockAndTag,
 ) (string, error) {
 	result := new(string)
-	parsedNumOrTag, err := parseNumOrTag(numOrTag)
-	if err != nil {
-		return "", err
-	}
+	parsedBT := parseBlockAndTag(numOrTag)
 	if err := e.c.call(
 		ctx,
 		result,
 		ethGetStorageAt,
 		address,
 		position,
-		parsedNumOrTag,
+		parsedBT,
 	); err != nil {
 		return "", err
 	}
@@ -89,92 +87,89 @@ func (e *ethNamespace) getBlockNumber(ctx context.Context) (uint64, error) {
 	return hexutil.MustDecodeUint64(*result), nil
 }
 
-func (e *ethNamespace) GetCode(address string, numOrTag interface{}) (string, error) {
-	return e.getCode(context.Background(), address, numOrTag)
+func (e *ethNamespace) GetCode(address string, blockAndTag BlockAndTag) (string, error) {
+	return e.getCode(context.Background(), address, blockAndTag)
 }
 
-func (e *ethNamespace) GetCodeWithContext(ctx context.Context, address string, numOrTag interface{}) (string, error) {
-	return e.getCode(ctx, address, numOrTag)
+func (e *ethNamespace) GetCodeWithContext(ctx context.Context, address string, blockAndTag BlockAndTag) (string, error) {
+	return e.getCode(ctx, address, blockAndTag)
 }
 
 func (e *ethNamespace) getCode(
 	ctx context.Context,
 	address string,
-	numOrTag interface{},
+	blockAndTag BlockAndTag,
 ) (string, error) {
 	result := new(string)
-	parsedNumOrTag, err := parseNumOrTag(numOrTag)
-	if err != nil {
-		return "", err
-	}
-	if err := e.c.call(ctx, result, ethGetCode, address, parsedNumOrTag); err != nil {
+	parsedBT := parseBlockAndTag(blockAndTag)
+	if err := e.c.call(ctx, result, ethGetCode, address, parsedBT); err != nil {
 		return "", err
 	}
 	return *result, nil
 }
 
-func (e *ethNamespace) GetBlockByTag(tag blockTag) (*Block[[]string], error) {
+func (e *ethNamespace) GetBlockByTag(tag BlockAndTag) (*evmctypes.Block[[]string], error) {
 	return e.getBlockByTag(context.Background(), tag)
 }
 
-func (e *ethNamespace) GetBlockByTagWithContext(ctx context.Context, tag blockTag) (*Block[[]string], error) {
+func (e *ethNamespace) GetBlockByTagWithContext(ctx context.Context, tag BlockAndTag) (*evmctypes.Block[[]string], error) {
 	return e.getBlockByTag(ctx, tag)
 }
 
-func (e *ethNamespace) getBlockByTag(ctx context.Context, tag blockTag) (*Block[[]string], error) {
-	block := new(Block[[]string])
+func (e *ethNamespace) getBlockByTag(ctx context.Context, tag BlockAndTag) (*evmctypes.Block[[]string], error) {
+	block := new(evmctypes.Block[[]string])
 	if err := e.getBlockByNumber(ctx, block, tag, false); err != nil {
 		return nil, err
 	}
 	return block, nil
 }
 
-func (e *ethNamespace) GetBlockByTagIncTx(tag blockTag) (*Block[[]*Transaction], error) {
+func (e *ethNamespace) GetBlockByTagIncTx(tag BlockAndTag) (*evmctypes.Block[[]*evmctypes.Transaction], error) {
 	return e.getBlockByTagIncTx(context.Background(), tag)
 }
 
-func (e *ethNamespace) GetBlockByTagIncTxWithContext(ctx context.Context, tag blockTag) (*Block[[]*Transaction], error) {
+func (e *ethNamespace) GetBlockByTagIncTxWithContext(ctx context.Context, tag BlockAndTag) (*evmctypes.Block[[]*evmctypes.Transaction], error) {
 	return e.getBlockByTagIncTx(ctx, tag)
 }
 
-func (e *ethNamespace) getBlockByTagIncTx(ctx context.Context, tag blockTag) (*Block[[]*Transaction], error) {
-	block := new(Block[[]*Transaction])
+func (e *ethNamespace) getBlockByTagIncTx(ctx context.Context, tag BlockAndTag) (*evmctypes.Block[[]*evmctypes.Transaction], error) {
+	block := new(evmctypes.Block[[]*evmctypes.Transaction])
 	if err := e.getBlockByNumber(ctx, block, tag, true); err != nil {
 		return nil, err
 	}
 	return block, nil
 }
 
-func (e *ethNamespace) GetBlockByNumber(number uint64) (*Block[[]string], error) {
-	block := new(Block[[]string])
-	if err := e.getBlockByNumber(context.Background(), block, number, false); err != nil {
-		return nil, err
-	}
-	return block, nil
+func (e *ethNamespace) GetBlockByNumber(number uint64) (*evmctypes.Block[[]string], error) {
+	return e.getBlock(context.Background(), number)
 }
 
-func (e *ethNamespace) GetBlockByNumberWithContext(ctx context.Context, number uint64) (*Block[[]string], error) {
-	block := new(Block[[]string])
-	if err := e.getBlockByNumber(ctx, block, number, false); err != nil {
-		return nil, err
-	}
-	return block, nil
+func (e *ethNamespace) GetBlockByNumberWithContext(ctx context.Context, number uint64) (*evmctypes.Block[[]string], error) {
+	return e.getBlock(ctx, number)
 }
 
-func (e *ethNamespace) GetBlockByNumberIncTx(number uint64) (*Block[[]*Transaction], error) {
+func (e *ethNamespace) getBlock(ctx context.Context, number uint64) (*evmctypes.Block[[]string], error) {
+	result := new(evmctypes.Block[[]string])
+	if err := e.getBlockByNumber(ctx, result, FormatNumber(number), false); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (e *ethNamespace) GetBlockByNumberIncTx(number uint64) (*evmctypes.Block[[]*evmctypes.Transaction], error) {
 	return e.getBlockByNumberIncTx(context.Background(), number)
 }
 
 func (e *ethNamespace) GetBlockByNumberIncTxWithContext(
 	ctx context.Context,
 	number uint64,
-) (*Block[[]*Transaction], error) {
+) (*evmctypes.Block[[]*evmctypes.Transaction], error) {
 	return e.getBlockByNumberIncTx(ctx, number)
 }
 
-func (e *ethNamespace) getBlockByNumberIncTx(ctx context.Context, number uint64) (*Block[[]*Transaction], error) {
-	block := new(Block[[]*Transaction])
-	if err := e.getBlockByNumber(ctx, block, number, true); err != nil {
+func (e *ethNamespace) getBlockByNumberIncTx(ctx context.Context, number uint64) (*evmctypes.Block[[]*evmctypes.Transaction], error) {
+	block := new(evmctypes.Block[[]*evmctypes.Transaction])
+	if err := e.getBlockByNumber(ctx, block, FormatNumber(number), true); err != nil {
 		return nil, err
 	}
 	return block, nil
@@ -183,49 +178,49 @@ func (e *ethNamespace) getBlockByNumberIncTx(ctx context.Context, number uint64)
 func (e *ethNamespace) getBlockByNumber(
 	ctx context.Context,
 	result interface{},
-	number interface{},
+	number BlockAndTag,
 	incTx bool,
 ) error {
-	hexNum, err := parseNumOrTag(number)
-	if err != nil {
-		return err
+	if number == Pending {
+		return ErrPendingBlockNotSupported
 	}
-	params := []interface{}{hexNum, incTx}
+	parsedBT := parseBlockAndTag(number)
+	params := []interface{}{parsedBT, incTx}
 	if err := e.c.call(ctx, result, ethGetBlockByNumber, params...); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (e *ethNamespace) GetBlockByHash(hash string) (*Block[[]string], error) {
-	block := new(Block[[]string])
+func (e *ethNamespace) GetBlockByHash(hash string) (*evmctypes.Block[[]string], error) {
+	block := new(evmctypes.Block[[]string])
 	if err := e.getBlockByHash(context.Background(), block, hash, false); err != nil {
 		return nil, err
 	}
 	return block, nil
 }
 
-func (e *ethNamespace) GetBlockByHashWithContext(ctx context.Context, hash string) (*Block[[]string], error) {
-	block := new(Block[[]string])
+func (e *ethNamespace) GetBlockByHashWithContext(ctx context.Context, hash string) (*evmctypes.Block[[]string], error) {
+	block := new(evmctypes.Block[[]string])
 	if err := e.getBlockByHash(ctx, block, hash, false); err != nil {
 		return nil, err
 	}
 	return block, nil
 }
 
-func (e *ethNamespace) GetBlockByHashIncTx(hash string) (*Block[[]*Transaction], error) {
+func (e *ethNamespace) GetBlockByHashIncTx(hash string) (*evmctypes.Block[[]*evmctypes.Transaction], error) {
 	return e.getBlockByHashIncTx(context.Background(), hash)
 }
 
 func (e *ethNamespace) GetBlockByHashIncTxWithContext(
 	ctx context.Context,
 	hash string,
-) (*Block[[]*Transaction], error) {
+) (*evmctypes.Block[[]*evmctypes.Transaction], error) {
 	return e.getBlockByHashIncTx(ctx, hash)
 }
 
-func (e *ethNamespace) getBlockByHashIncTx(ctx context.Context, hash string) (*Block[[]*Transaction], error) {
-	block := new(Block[[]*Transaction])
+func (e *ethNamespace) getBlockByHashIncTx(ctx context.Context, hash string) (*evmctypes.Block[[]*evmctypes.Transaction], error) {
+	block := new(evmctypes.Block[[]*evmctypes.Transaction])
 	if err := e.getBlockByHash(ctx, block, hash, true); err != nil {
 		return nil, err
 	}
@@ -240,53 +235,50 @@ func (e *ethNamespace) getBlockByHash(ctx context.Context, result interface{}, h
 	return nil
 }
 
-func (e *ethNamespace) GetTransaction(hash string) (*Transaction, error) {
+func (e *ethNamespace) GetTransaction(hash string) (*evmctypes.Transaction, error) {
 	return e.getTransaction(context.Background(), hash)
 }
 
-func (e *ethNamespace) GetTransactionWithContext(ctx context.Context, hash string) (*Transaction, error) {
+func (e *ethNamespace) GetTransactionWithContext(ctx context.Context, hash string) (*evmctypes.Transaction, error) {
 	return e.getTransaction(ctx, hash)
 }
 
-func (e *ethNamespace) getTransaction(ctx context.Context, hash string) (*Transaction, error) {
-	tx := new(Transaction)
+func (e *ethNamespace) getTransaction(ctx context.Context, hash string) (*evmctypes.Transaction, error) {
+	tx := new(evmctypes.Transaction)
 	if err := e.c.call(ctx, tx, ethGetTransaction, hash); err != nil {
 		return nil, err
 	}
 	return tx, nil
 }
 
-func (e *ethNamespace) GetReceipt(hash string) (*Receipt, error) {
-	return e.getReceipt(context.Background(), hash)
+func (e *ethNamespace) GetTransactionReceipt(hash string) (*evmctypes.Receipt, error) {
+	return e.getTransactionReceipt(context.Background(), hash)
 }
 
-func (e *ethNamespace) GetReceiptWithContext(ctx context.Context, hash string) (*Receipt, error) {
-	return e.getReceipt(ctx, hash)
+func (e *ethNamespace) GetTransactionReceiptWithContext(ctx context.Context, hash string) (*evmctypes.Receipt, error) {
+	return e.getTransactionReceipt(ctx, hash)
 }
 
-func (e *ethNamespace) getReceipt(ctx context.Context, hash string) (*Receipt, error) {
-	receipt := new(Receipt)
+func (e *ethNamespace) getTransactionReceipt(ctx context.Context, hash string) (*evmctypes.Receipt, error) {
+	receipt := new(evmctypes.Receipt)
 	if err := e.c.call(ctx, receipt, ethGetReceipt, hash); err != nil {
 		return nil, err
 	}
 	return receipt, nil
 }
 
-func (e *ethNamespace) GetBalance(address string, numOrTag interface{}) (decimal.Decimal, error) {
-	return e.getBalance(context.Background(), address, numOrTag)
+func (e *ethNamespace) GetBalance(address string, blockAndTag BlockAndTag) (decimal.Decimal, error) {
+	return e.getBalance(context.Background(), address, blockAndTag)
 }
 
-func (e *ethNamespace) GetBalanceWithContext(ctx context.Context, address string, numOrTag interface{}) (decimal.Decimal, error) {
-	return e.getBalance(ctx, address, numOrTag)
+func (e *ethNamespace) GetBalanceWithContext(ctx context.Context, address string, blockAndTag BlockAndTag) (decimal.Decimal, error) {
+	return e.getBalance(ctx, address, blockAndTag)
 }
 
-func (e *ethNamespace) getBalance(ctx context.Context, address string, numOrTag interface{}) (decimal.Decimal, error) {
+func (e *ethNamespace) getBalance(ctx context.Context, address string, blockAndTag BlockAndTag) (decimal.Decimal, error) {
 	result := new(string)
-	parsedNumOrTag, err := parseNumOrTag(numOrTag)
-	if err != nil {
-		return decimal.Zero, err
-	}
-	if err := e.c.call(ctx, result, ethGetBalance, address, parsedNumOrTag); err != nil {
+	parsedBT := parseBlockAndTag(blockAndTag)
+	if err := e.c.call(ctx, result, ethGetBalance, address, parsedBT); err != nil {
 		return decimal.Zero, err
 	}
 	if *result == "" {
@@ -295,47 +287,47 @@ func (e *ethNamespace) getBalance(ctx context.Context, address string, numOrTag 
 	return decimal.NewFromBigInt(hexutil.MustDecodeBig(*result), 0), nil
 }
 
-func (e *ethNamespace) GetLogs(filter *LogFilter) ([]*Log, error) {
+func (e *ethNamespace) GetLogs(filter *evmctypes.LogFilter) ([]*evmctypes.Log, error) {
 	return e.getLogs(context.Background(), filter)
 }
 
-func (e *ethNamespace) GetLogsWithContext(ctx context.Context, filter *LogFilter) ([]*Log, error) {
+func (e *ethNamespace) GetLogsWithContext(ctx context.Context, filter *evmctypes.LogFilter) ([]*evmctypes.Log, error) {
 	return e.getLogs(ctx, filter)
 }
 
-func (e *ethNamespace) GetLogsByBlockNumber(number uint64) ([]*Log, error) {
+func (e *ethNamespace) GetLogsByBlockNumber(number uint64) ([]*evmctypes.Log, error) {
 	return e.getLogsByBlockNumber(context.Background(), number)
 }
 
-func (e *ethNamespace) GetLogsByBlockNumberWithContext(ctx context.Context, number uint64) ([]*Log, error) {
+func (e *ethNamespace) GetLogsByBlockNumberWithContext(ctx context.Context, number uint64) ([]*evmctypes.Log, error) {
 	return e.getLogsByBlockNumber(ctx, number)
 }
 
-func (e *ethNamespace) getLogsByBlockNumber(ctx context.Context, number uint64) ([]*Log, error) {
-	filter := &LogFilter{
+func (e *ethNamespace) getLogsByBlockNumber(ctx context.Context, number uint64) ([]*evmctypes.Log, error) {
+	filter := &evmctypes.LogFilter{
 		FromBlock: &number,
 		ToBlock:   &number,
 	}
 	return e.getLogs(ctx, filter)
 }
 
-func (e *ethNamespace) GetLogsByBlockHash(hash string) ([]*Log, error) {
+func (e *ethNamespace) GetLogsByBlockHash(hash string) ([]*evmctypes.Log, error) {
 	return e.getLogsByBlockHash(context.Background(), hash)
 }
 
-func (e *ethNamespace) GetLogsByBlockHashWithContext(ctx context.Context, hash string) ([]*Log, error) {
+func (e *ethNamespace) GetLogsByBlockHashWithContext(ctx context.Context, hash string) ([]*evmctypes.Log, error) {
 	return e.getLogsByBlockHash(ctx, hash)
 }
 
-func (e *ethNamespace) getLogsByBlockHash(ctx context.Context, hash string) ([]*Log, error) {
-	filter := &LogFilter{
+func (e *ethNamespace) getLogsByBlockHash(ctx context.Context, hash string) ([]*evmctypes.Log, error) {
+	filter := &evmctypes.LogFilter{
 		BlockHash: &hash,
 	}
 	return e.getLogs(ctx, filter)
 }
 
-func (e *ethNamespace) getLogs(ctx context.Context, filter *LogFilter) ([]*Log, error) {
-	logs := new([]*Log)
+func (e *ethNamespace) getLogs(ctx context.Context, filter *evmctypes.LogFilter) ([]*evmctypes.Log, error) {
+	logs := new([]*evmctypes.Log)
 	params := make(map[string]interface{})
 	if filter.BlockHash != nil {
 		params["blockHash"] = *filter.BlockHash
@@ -355,42 +347,38 @@ func (e *ethNamespace) getLogs(ctx context.Context, filter *LogFilter) ([]*Log, 
 	return *logs, nil
 }
 
-// TODO: tag
-func (e *ethNamespace) GetTransactionCount(address string, numOrTag interface{}) (uint64, error) {
-	return e.getTransactionCount(context.Background(), address, numOrTag)
+func (e *ethNamespace) GetTransactionCount(address string, blockAndTag BlockAndTag) (uint64, error) {
+	return e.getTransactionCount(context.Background(), address, blockAndTag)
 }
 
 func (e *ethNamespace) GetTransactionCountWithContext(
 	ctx context.Context,
 	address string,
-	numOrTag interface{},
+	blockAndTag BlockAndTag,
 ) (uint64, error) {
-	return e.getTransactionCount(ctx, address, numOrTag)
+	return e.getTransactionCount(ctx, address, blockAndTag)
 }
 
-func (e *ethNamespace) getTransactionCount(ctx context.Context, address string, numOrTag interface{}) (uint64, error) {
+func (e *ethNamespace) getTransactionCount(ctx context.Context, address string, blockAndTag BlockAndTag) (uint64, error) {
 	result := new(string)
-	parsedNumOrTag, err := parseNumOrTag(numOrTag)
-	if err != nil {
-		return 0, err
-	}
-	if err := e.c.call(ctx, result, ethGetTransactionCount, address, parsedNumOrTag); err != nil {
+	parsedBT := parseBlockAndTag(blockAndTag)
+	if err := e.c.call(ctx, result, ethGetTransactionCount, address, parsedBT); err != nil {
 		return 0, err
 	}
 	return hexutil.MustDecodeUint64(*result), nil
 }
 
-func (e *ethNamespace) GetBlockReceipts(number uint64) ([]*Receipt, error) {
+func (e *ethNamespace) GetBlockReceipts(number uint64) ([]*evmctypes.Receipt, error) {
 	return e.getBlockReceipts(context.Background(), number)
 }
 
-func (e *ethNamespace) GetBlockReceiptsWithContext(ctx context.Context, number uint64) ([]*Receipt, error) {
+func (e *ethNamespace) GetBlockReceiptsWithContext(ctx context.Context, number uint64) ([]*evmctypes.Receipt, error) {
 	return e.getBlockReceipts(ctx, number)
 }
 
-func (e *ethNamespace) getBlockReceipts(ctx context.Context, number uint64) ([]*Receipt, error) {
+func (e *ethNamespace) getBlockReceipts(ctx context.Context, number uint64) ([]*evmctypes.Receipt, error) {
 	var (
-		result        = new([]*Receipt)
+		result        = new([]*evmctypes.Receipt)
 		method        = ethGetBlockReceipts
 		clientName, _ = e.c.NodeClient()
 	)

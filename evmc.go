@@ -11,6 +11,7 @@ import (
 )
 
 // TODO: websocket RPC
+// TODO: backoff retry
 
 type caller interface {
 	ChainID() uint64
@@ -22,6 +23,10 @@ type caller interface {
 
 type contractCaller interface {
 	contractCall(ctx context.Context, result interface{}, contract string, data string, parsedNumOrTag string) error
+}
+
+type nodeSetter interface {
+	setNode(cv string)
 }
 
 type Evmc struct {
@@ -80,7 +85,7 @@ func New(httpURL string, opts ...Options) (*Evmc, error) {
 
 	evmc := &Evmc{c: rpcClient}
 	evmc.eth = &ethNamespace{c: evmc}
-	evmc.web3 = &web3Namespace{c: evmc}
+	evmc.web3 = &web3Namespace{c: evmc, n: evmc}
 	evmc.debug = &debugNamespace{c: evmc}
 	evmc.erc20 = &erc20Contract{c: evmc}
 
@@ -172,4 +177,10 @@ func (e *Evmc) call(
 		return err
 	}
 	return nil
+}
+
+func (e *Evmc) setNode(cv string) {
+	cvarr := strings.Split(cv, "/")
+	e.nodeName = ClientName(cvarr[0])
+	e.nodeVersion = cvarr[1]
 }

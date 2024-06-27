@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/bbaktaeho/evmc"
@@ -9,52 +10,52 @@ import (
 
 func main() {
 	// set url to connect to blockchain node
-	client, err := evmc.New("https://ethereum-mainnet.nodit.io")
+	client, err := evmc.New("http://localhost:8545")
 	if err != nil {
 		panic(err)
 	}
 
-	name, err := client.ERC20().Name("0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2", nil)
+	name, err := client.ERC20().Name("0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2", evmc.Latest)
 	if err != nil {
 		panic(err)
 	}
-	println(name)
+	fmt.Println(name)
 
-	symbol, err := client.ERC20().Symbol("0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2", nil)
+	symbol, err := client.ERC20().Symbol("0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2", evmc.Latest)
 	if err != nil {
 		panic(err)
 	}
-	println(symbol)
+	fmt.Println(symbol)
 
-	totalSupply, err := client.ERC20().TotalSupply("0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2", nil)
+	totalSupply, err := client.ERC20().TotalSupply("0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2", evmc.Latest)
 	if err != nil {
 		panic(err)
 	}
-	println(totalSupply.String())
+	fmt.Println(totalSupply.String())
 
-	decimals, err := client.ERC20().Decimals("0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2", nil)
+	decimals, err := client.ERC20().Decimals("0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2", evmc.Latest)
 	if err != nil {
 		panic(err)
 	}
-	println(decimals.String())
+	fmt.Println(decimals.String())
 
-	balance, err := client.ERC20().BalanceOf("0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2", "0x0a3f6849f78076aefaDf113F5BED87720274dDC0", nil)
+	balance, err := client.ERC20().BalanceOf("0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2", "0x0a3f6849f78076aefaDf113F5BED87720274dDC0", evmc.Latest)
 	if err != nil {
 		panic(err)
 	}
-	println(balance.String())
+	fmt.Println(balance.String())
 
-	allowance, err := client.ERC20().Allowance("0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2", "0x0a3f6849f78076aefaDf113F5BED87720274dDC0", "0x0a3f6849f78076aefaDf113F5BED87720274dDC0", nil)
+	allowance, err := client.ERC20().Allowance("0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2", "0x0a3f6849f78076aefaDf113F5BED87720274dDC0", "0x0a3f6849f78076aefaDf113F5BED87720274dDC0", evmc.Latest)
 	if err != nil {
 		panic(err)
 	}
-	println(allowance.String())
+	fmt.Println(allowance.String())
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Nanosecond)
 	defer cancel()
-	_, err = client.ERC20().NameWithContext(ctx, "0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2", nil)
+	_, err = client.ERC20().NameWithContext(ctx, "0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2", evmc.Latest)
 	if err != nil {
 		// context deadline exceeded
-		println(err.Error())
+		fmt.Println(err.Error())
 	}
 }

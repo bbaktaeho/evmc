@@ -1,12 +1,5 @@
 package evmc
 
-import (
-	"errors"
-	"reflect"
-
-	"github.com/ethereum/go-ethereum/common/hexutil"
-)
-
 type procedure string
 
 const (
@@ -45,38 +38,4 @@ const (
 
 func (p procedure) String() string {
 	return string(p)
-}
-
-type blockTag string
-
-const (
-	Latest    blockTag = "latest"
-	Safe      blockTag = "safe"
-	Finalized blockTag = "finalized"
-	Pending   blockTag = "pending"
-)
-
-func (bt blockTag) String() string {
-	return string(bt)
-}
-
-// TODO: error message
-func parseNumOrTag(numOrTag interface{}) (string, error) {
-	if numOrTag == nil {
-		return Latest.String(), nil
-	}
-	switch reflect.TypeOf(numOrTag).Kind() {
-	case reflect.Int:
-		return hexutil.EncodeUint64(uint64(numOrTag.(int))), nil
-	case reflect.Uint, reflect.Uint64:
-		return hexutil.EncodeUint64((numOrTag.(uint64))), nil
-	case reflect.String:
-		tag, ok := numOrTag.(blockTag)
-		if !ok {
-			return "", errors.New("invalid block tag type")
-		}
-		return tag.String(), nil
-	default:
-		return "", errors.New("invalid block tag type")
-	}
 }
