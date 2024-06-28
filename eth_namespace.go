@@ -71,15 +71,15 @@ func (e *ethNamespace) getStorageAt(
 	return *result, nil
 }
 
-func (e *ethNamespace) GetBlockNumber() (uint64, error) {
-	return e.getBlockNumber(context.Background())
+func (e *ethNamespace) BlockNumber() (uint64, error) {
+	return e.blockNumber(context.Background())
 }
 
-func (e *ethNamespace) GetBlockNumberWithContext(ctx context.Context) (uint64, error) {
-	return e.getBlockNumber(ctx)
+func (e *ethNamespace) BlockNumberWithContext(ctx context.Context) (uint64, error) {
+	return e.blockNumber(ctx)
 }
 
-func (e *ethNamespace) getBlockNumber(ctx context.Context) (uint64, error) {
+func (e *ethNamespace) blockNumber(ctx context.Context) (uint64, error) {
 	result := new(string)
 	if err := e.c.call(ctx, result, ethBlockNumber); err != nil {
 		return 0, err
