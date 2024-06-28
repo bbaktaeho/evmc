@@ -1,6 +1,11 @@
-# evmc
+# evmc (WIP)
 
-### install
+evmc is an abbreviation of Ethereum Virtual Machine Client, and I wanted to express it as simply as a Go. But evmc is not simple.
+
+I'm trying to create a more user-friendly client using the rpc package of go-thereum(geth).
+It also supports namespace for data analysis such as debug and trace and provides features for standard tokens.
+
+### Install
 
 - go version
 
@@ -15,6 +20,8 @@
 ### Usage
 
 ```go
+package main
+
 import "github.com/bbaktaeho/evmc"
 
 func main() {
