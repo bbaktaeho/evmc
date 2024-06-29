@@ -5,80 +5,87 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-// TODO evmctypes package
-
-type incTxs interface{ []string | []*Transaction }
-
-type Block[T incTxs] struct {
-	Number           string     `json:"number" validate:"required"`
-	Hash             string     `json:"hash" validate:"required"`
-	ParentHash       string     `json:"parentHash" validate:"required"`
-	Nonce            string     `json:"nonce" validate:"required"`
-	MixHash          string     `json:"mixHash" validate:"required"`
-	Sha3Uncles       string     `json:"sha3Uncles" validate:"required"`
-	LogsBloom        string     `json:"logsBloom" validate:"required"`
-	StateRoot        string     `json:"stateRoot" validate:"required"`
-	Miner            string     `json:"miner" validate:"required"`
-	Difficulty       string     `json:"difficulty" validate:"required"`
-	ExtraData        string     `json:"extraData" validate:"required"`
-	GasLimit         string     `json:"gasLimit" validate:"required"`
-	GasUsed          string     `json:"gasUsed" validate:"required"`
-	Timestamp        string     `json:"timestamp" validate:"required"`
-	TransactionsRoot string     `json:"transactionsRoot" validate:"required"`
-	ReceiptsRoot     string     `json:"receiptsRoot" validate:"required"`
-	Transactions     T          `json:"transactions" validate:"required"`
-	TotalDifficulty  string     `json:"totalDifficulty" validate:"required"`
-	Size             string     `json:"size"`
-	Uncles           []string   `json:"uncles"`
-	UncleBlocks      []Block[T] `json:"uncleBlocks,omitempty"`
-
-	BaseFeePerGas         *string      `json:"baseFeePerGas,omitempty"`         // EIP-1559
-	WithdrawalsRoot       *string      `json:"withdrawalsRoot,omitempty"`       // EIP-4895
-	Withdrawals           []Withdrawal `json:"withdrawals,omitempty"`           // EIP-4895
-	BlobGasUsed           *string      `json:"blobGasUsed,omitempty"`           // EIP-4844
-	ExcessBlobGas         *string      `json:"excessBlobGas,omitempty"`         // EIP-4844
-	ParentBeaconBlockRoot *string      `json:"parentBeaconBlockRoot,omitempty"` // EIP-4788
-
-	*additionalArbitrumBlock // Arbitrum
+type Subscription interface {
+	Unsubscribe()
+	Err() <-chan error
 }
 
-func (b *Block[incTxs]) NextBaseFee() decimal.Decimal {
+type block struct {
+	Number           uint64   `json:"number" validate:"-"`
+	Hash             string   `json:"hash" validate:"required"`
+	ParentHash       string   `json:"parentHash" validate:"required"`
+	Nonce            string   `json:"nonce" validate:"required"`
+	MixHash          string   `json:"mixHash" validate:"required"`
+	Sha3Uncles       string   `json:"sha3Uncles" validate:"required"`
+	LogsBloom        string   `json:"logsBloom" validate:"required"`
+	StateRoot        string   `json:"stateRoot" validate:"required"`
+	Miner            string   `json:"miner" validate:"required"`
+	Difficulty       string   `json:"difficulty" validate:"required"`
+	ExtraData        string   `json:"extraData" validate:"required"`
+	GasLimit         string   `json:"gasLimit" validate:"required"`
+	GasUsed          string   `json:"gasUsed" validate:"required"`
+	Timestamp        uint64   `json:"timestamp" validate:"required"`
+	TransactionsRoot string   `json:"transactionsRoot" validate:"required"`
+	ReceiptsRoot     string   `json:"receiptsRoot" validate:"required"`
+	TotalDifficulty  string   `json:"totalDifficulty" validate:"required"`
+	Size             string   `json:"size"`
+	Uncles           []string `json:"uncles"`
+
+	BaseFeePerGas         *string       `json:"baseFeePerGas,omitempty"`         // EIP-1559
+	WithdrawalsRoot       *string       `json:"withdrawalsRoot,omitempty"`       // EIP-4895
+	Withdrawals           []*Withdrawal `json:"withdrawals,omitempty"`           // EIP-4895
+	BlobGasUsed           *string       `json:"blobGasUsed,omitempty"`           // EIP-4844
+	ExcessBlobGas         *string       `json:"excessBlobGas,omitempty"`         // EIP-4844
+	ParentBeaconBlockRoot *string       `json:"parentBeaconBlockRoot,omitempty"` // EIP-4788
+
+	L1BlockNumber *uint64 `json:"l1BlockNumber,omitempty"` // Arbitrum
+	SendCount     *string `json:"sendCount,omitempty"`     // Arbitrum
+	SendRoot      *string `json:"sendRoot,omitempty"`      // Arbitrum
+}
+
+func (b *block) NextBaseFee() decimal.Decimal {
 	if b.BaseFeePerGas == nil {
 		return decimal.Zero
 	}
 	return decimal.NewFromBigInt(hexutil.MustDecodeBig(*b.BaseFeePerGas), 0).Mul(decimal.NewFromInt(2))
 }
 
-type additionalArbitrumBlock struct {
-	L1BlockNumber *string `json:"l1BlockNumber,omitempty"`
-	SendCount     *string `json:"sendCount,omitempty"`
-	SendRoot      *string `json:"sendRoot,omitempty"`
+type Block struct {
+	block
+	Transactions []string `json:"transactions" validate:""`
+	UncleBlocks  []*Block `json:"uncleBlocks,omitempty"`
+}
+
+type BlockIncTx struct {
+	block
+	Transactions []*Transaction `json:"transactions" validate:""`
+	UncleBlocks  []*BlockIncTx  `json:"uncleBlocks,omitempty"`
 }
 
 type Withdrawal struct {
-	Index          string `json:"index" validate:"required"`
-	ValidatorIndex string `json:"validatorIndex" validate:"required"`
+	Index          uint64 `json:"index" validate:"-"`
+	ValidatorIndex uint64 `json:"validatorIndex" validate:"-"`
 	Address        string `json:"address" validate:"required"`
-	Amount         string `json:"amount" validate:"required"`
+	Amount         uint64 `json:"amount" validate:"required"`
 }
 
 type Transaction struct {
-	BlockHash        string  `json:"blockHash" validate:"required"`
-	BlockNumber      string  `json:"blockNumber" validate:"required"`
-	From             string  `json:"from" validate:"required"`
-	Gas              string  `json:"gas" validate:"required"`
-	GasPrice         string  `json:"gasPrice" validate:"required"`
-	Hash             string  `json:"hash" validate:"required"`
-	Input            string  `json:"input" validate:"required"`
-	Nonce            string  `json:"nonce" validate:"required"`
-	To               string  `json:"to" validate:"required"`
-	TransactionIndex string  `json:"transactionIndex" validate:"required"`
-	Value            string  `json:"value" validate:"required"`
-	Type             string  `json:"type" validate:"required"`
-	V                string  `json:"v" validate:"required"`
-	R                string  `json:"r" validate:"required"`
-	S                string  `json:"s" validate:"required"`
-	YParity          *string `json:"yParity,omitempty"`
+	BlockHash        string          `json:"blockHash" validate:"required"`
+	BlockNumber      uint64          `json:"blockNumber" validate:"-"`
+	From             string          `json:"from" validate:"required"`
+	Gas              string          `json:"gas" validate:"required"`
+	GasPrice         string          `json:"gasPrice" validate:"required"`
+	Hash             string          `json:"hash" validate:"required"`
+	Input            string          `json:"input" validate:"required"`
+	Nonce            string          `json:"nonce" validate:"required"`
+	To               string          `json:"to" validate:"required"`
+	TransactionIndex uint64          `json:"transactionIndex" validate:"-"`
+	Value            decimal.Decimal `json:"value" validate:"required"`
+	Type             string          `json:"type" validate:"required"`
+	V                string          `json:"v" validate:"required"`
+	R                string          `json:"r" validate:"required"`
+	S                string          `json:"s" validate:"required"`
+	YParity          *string         `json:"yParity,omitempty"`
 
 	ChainID              *string   `json:"chainId,omitempty"`              // EIP-155
 	AccessList           []*Access `json:"accessList,omitempty"`           // EIP-2930
@@ -87,38 +94,31 @@ type Transaction struct {
 	MaxFeePerBlobGas     *string   `json:"maxFeePerBlobGas,omitempty"`     // EIP-4844
 	BlobVersionedHashes  []string  `json:"blobVersionedHashes,omitempty"`  // EIP-4844
 
-	*additionalArbitrumTx // Arbitrum
-	*additionalOptimismTx // Optimism
-}
+	L1BlockNumber *uint64 `json:"l1BlockNumber,omitempty"` // Arbitrum, Optimism
 
-type additionalArbitrumTx struct {
-	RequestID           *string `json:"requestId,omitempty"`
-	TicketID            *string `json:"ticketId,omitempty"`
-	MaxRefund           *string `json:"maxRefund,omitempty"`
-	SubmissionFeeRefund *string `json:"submissionFeeRefund,omitempty"`
-	RefundTo            *string `json:"refundTo,omitempty"`
-	L1BaseFee           *string `json:"l1BaseFee,omitempty"`
-	L1BlockNumber       *string `json:"l1BlockNumber,omitempty"`
-	DepositValue        *string `json:"depositValue,omitempty"`
-	RetryTo             *string `json:"retryTo,omitempty"`
-	RetryValue          *string `json:"retryValue,omitempty"`
-	RetryData           *string `json:"retryData,omitempty"`
-	Beneficiary         *string `json:"beneficiary,omitempty"`
-	MaxSubmissionFee    *string `json:"maxSubmissionFee,omitempty"`
-	EffectiveGasPrice   *string `json:"effectiveGasPrice,omitempty"`
-}
+	RequestID           *string `json:"requestId,omitempty"`           // Arbitrum
+	TicketID            *string `json:"ticketId,omitempty"`            // Arbitrum
+	MaxRefund           *string `json:"maxRefund,omitempty"`           // Arbitrum
+	SubmissionFeeRefund *string `json:"submissionFeeRefund,omitempty"` // Arbitrum
+	RefundTo            *string `json:"refundTo,omitempty"`            // Arbitrum
+	L1BaseFee           *string `json:"l1BaseFee,omitempty"`           // Arbitrum
+	DepositValue        *string `json:"depositValue,omitempty"`        // Arbitrum
+	RetryTo             *string `json:"retryTo,omitempty"`             // Arbitrum
+	RetryValue          *string `json:"retryValue,omitempty"`          // Arbitrum
+	RetryData           *string `json:"retryData,omitempty"`           // Arbitrum
+	Beneficiary         *string `json:"beneficiary,omitempty"`         // Arbitrum
+	MaxSubmissionFee    *string `json:"maxSubmissionFee,omitempty"`    // Arbitrum
+	EffectiveGasPrice   *string `json:"effectiveGasPrice,omitempty"`   // Arbitrum
 
-type additionalOptimismTx struct {
-	QueueOrigin           *string `json:"queueOrigin,omitempty"`
-	L1TxOrigin            *string `json:"l1TxOrigin,omitempty"`
-	L1BlockTimestamp      *string `json:"l1Timestamp,omitempty"`
-	L1BlockNumber         *string `json:"l1BlockNumber,omitempty"`
-	Index                 *string `json:"index,omitempty"`
-	QueueIndex            *string `json:"queueIndex,omitempty"`
-	SourceHash            *string `json:"sourceHash,omitempty"`
-	Mint                  *string `json:"mint,omitempty"`
-	IsSystemTx            *bool   `json:"isSystemTx,omitempty"`
-	DepositReceiptVersion *string `json:"depositReceiptVersion,omitempty"`
+	QueueOrigin           *string `json:"queueOrigin,omitempty"`           // Optimism
+	L1TxOrigin            *string `json:"l1TxOrigin,omitempty"`            // Optimism
+	L1BlockTimestamp      *string `json:"l1Timestamp,omitempty"`           // Optimism
+	Index                 *uint64 `json:"index,omitempty"`                 // Optimism
+	QueueIndex            *uint64 `json:"queueIndex,omitempty"`            // Optimism
+	SourceHash            *string `json:"sourceHash,omitempty"`            // Optimism
+	Mint                  *string `json:"mint,omitempty"`                  // Optimism
+	IsSystemTx            *bool   `json:"isSystemTx,omitempty"`            // Optimism
+	DepositReceiptVersion *string `json:"depositReceiptVersion,omitempty"` // Optimism
 }
 
 type Access struct {
@@ -128,9 +128,9 @@ type Access struct {
 
 type Receipt struct {
 	BlockHash         string  `json:"blockHash" validate:"required"`
-	BlockNumber       string  `json:"blockNumber" validate:"required"`
+	BlockNumber       uint64  `json:"blockNumber" validate:"-"`
 	TransactionHash   string  `json:"transactionHash" validate:"required"`
-	TransactionIndex  string  `json:"transactionIndex" validate:"required"`
+	TransactionIndex  uint64  `json:"transactionIndex" validate:"-"`
 	From              string  `json:"from" validate:"required"`
 	To                string  `json:"to" validate:"required"`
 	GasUsed           string  `json:"gasUsed" validate:"required"`
@@ -146,36 +146,29 @@ type Receipt struct {
 	BlobGasPrice *string `json:"blobGasPrice,omitempty"` // EIP-4844
 	BlobGasUsed  *string `json:"blobGasUsed,omitempty"`  // EIP-4844
 
-	*additionalArbitrumReceipt // Arbitrum
-	*additionalOptimismReceipt // Optimism
-}
+	GasUsedForL1  *string `json:"gasUsedForL1,omitempty"`  // Arbitrum
+	L1BlockNumber *uint64 `json:"l1BlockNumber,omitempty"` // Arbitrum
 
-type additionalArbitrumReceipt struct {
-	GasUsedForL1  *string `json:"gasUsedForL1,omitempty"`
-	L1BlockNumber *string `json:"l1BlockNumber,omitempty"`
-}
-
-type additionalOptimismReceipt struct {
-	L1GasPrice            *string `json:"l1GasPrice,omitempty"`
-	L1GasUsed             *string `json:"l1GasUsed,omitempty"`
-	L1FeeScalar           *string `json:"l1FeeScalar,omitempty"`
-	L1Fee                 *string `json:"l1Fee,omitempty"`
-	DepositNonce          *string `json:"depositNonce,omitempty"`
-	DepositReceiptVersion *string `json:"depositReceiptVersion,omitempty"`
-	L1BlobBaseFee         *string `json:"l1BlobBaseFee,omitempty"`
-	L1BaseFeeScalar       *string `json:"l1BaseFeeScalar,omitempty"`
-	L1BlobBaseFeeScalar   *string `json:"l1BlobBaseFeeScalar,omitempty"`
+	L1GasPrice            *string `json:"l1GasPrice,omitempty"`            // Optimism
+	L1GasUsed             *string `json:"l1GasUsed,omitempty"`             // Optimism
+	L1FeeScalar           *string `json:"l1FeeScalar,omitempty"`           // Optimism
+	L1Fee                 *string `json:"l1Fee,omitempty"`                 // Optimism
+	DepositNonce          *string `json:"depositNonce,omitempty"`          // Optimism
+	DepositReceiptVersion *string `json:"depositReceiptVersion,omitempty"` // Optimism
+	L1BlobBaseFee         *string `json:"l1BlobBaseFee,omitempty"`         // Optimism
+	L1BaseFeeScalar       *string `json:"l1BaseFeeScalar,omitempty"`       // Optimism
+	L1BlobBaseFeeScalar   *string `json:"l1BlobBaseFeeScalar,omitempty"`   // Optimism
 }
 
 type Log struct {
 	Address          string   `json:"address" validate:"required"`
 	Topics           []string `json:"topics" validate:"required"`
 	Data             string   `json:"data" validate:"required"`
-	BlockNumber      string   `json:"blockNumber" validate:"required"`
+	BlockNumber      uint64   `json:"blockNumber" validate:"-"`
 	TransactionHash  string   `json:"transactionHash" validate:"required"`
-	TransactionIndex string   `json:"transactionIndex" validate:"required"`
+	TransactionIndex uint64   `json:"transactionIndex" validate:"-"`
 	BlockHash        string   `json:"blockHash" validate:"required"`
-	LogIndex         string   `json:"logIndex" validate:"required"`
+	LogIndex         uint64   `json:"logIndex" validate:"-"`
 	Removed          bool     `json:"removed" validate:"-"`
 }
 
@@ -187,56 +180,62 @@ type LogFilter struct {
 	Topics    []string `json:"topics,omitempty"`
 }
 
-type callTracer interface {
-	*CallFrame | []*FlatCallFrame
-}
-
-type DebugCallTracer[T callTracer] struct {
+type debugTracer struct {
 	TxHash string  `json:"txHash"`
-	Result T       `json:"result"`
 	Error  *string `json:"error,omitempty"`
 }
 
+type DebugCallTracer struct {
+	debugTracer
+	Result *CallFrame `json:"result"`
+}
+
+type DebugFlatCallTracer struct {
+	debugTracer
+	Result *FlatCallFrame `json:"result"`
+}
+
 type CallFrame struct {
-	From         string      `json:"from" validate:"required"`
-	Gas          string      `json:"gas" validate:"required"`
-	GasUsed      string      `json:"gasUsed" validate:"required"`
-	To           *string     `json:"to,omitempty"`
-	Input        *string     `json:"input"`
-	Output       *string     `json:"output,omitempty"`
-	Error        *string     `json:"error,omitempty"`
-	RevertReason *string     `json:"revertReason,omitempty"`
-	Calls        []CallFrame `json:"calls,omitempty"`
-	Logs         []CallLog   `json:"logs,omitempty"`
-	Value        *string     `json:"value,omitempty"`
-	Type         string      `json:"type"`
+	From         string           `json:"from" validate:"required"`
+	Gas          string           `json:"gas" validate:"required"`
+	GasUsed      string           `json:"gasUsed" validate:"required"`
+	To           *string          `json:"to,omitempty"`
+	Input        *string          `json:"input"`
+	Output       *string          `json:"output,omitempty"`
+	Error        *string          `json:"error,omitempty"`
+	RevertReason *string          `json:"revertReason,omitempty"`
+	Calls        []*CallFrame     `json:"calls,omitempty"`
+	Logs         []*CallLog       `json:"logs,omitempty"`
+	Value        *decimal.Decimal `json:"value,omitempty"`
+	Type         string           `json:"type"`
+	Index        uint64           `json:"index"` // custom index
 }
 
 type CallLog struct {
 	Address  string   `json:"address" validate:"required"`
 	Topics   []string `json:"topics" validate:"required"`
 	Data     string   `json:"data" validate:"required"`
-	Position string   `json:"position" validate:"required"`
+	Position uint64   `json:"position" validate:"-"`
 }
 
 type FlatCallFrame struct {
 	Action struct {
-		Author         *string `json:"author,omitempty"`
-		RewardType     *string `json:"rewardType,omitempty"`
-		Address        *string `json:"address,omitempty"`
-		Balance        *string `json:"balance,omitempty"`
-		CreationMethod *string `json:"creationMethod,omitempty"`
-		RefundAddress  *string `json:"refundAddress,omitempty"`
-		CallType       *string `json:"callType,omitempty"`
-		From           *string `json:"from,omitempty"`
-		Gas            *string `json:"gas,omitempty"`
-		Input          *string `json:"input,omitempty"`
-		To             *string `json:"to,omitempty"`
-		Init           *string `json:"init,omitempty"`
-		Value          *string `json:"value,omitempty"`
+		Author         *string          `json:"author,omitempty"`
+		RewardType     *string          `json:"rewardType,omitempty"`
+		Address        *string          `json:"address,omitempty"`
+		Balance        *string          `json:"balance,omitempty"`
+		CreationMethod *string          `json:"creationMethod,omitempty"`
+		RefundAddress  *string          `json:"refundAddress,omitempty"`
+		CallType       *string          `json:"callType,omitempty"`
+		From           *string          `json:"from,omitempty"`
+		Gas            *string          `json:"gas,omitempty"`
+		Input          *string          `json:"input,omitempty"`
+		To             *string          `json:"to,omitempty"`
+		Init           *string          `json:"init,omitempty"`
+		Value          *decimal.Decimal `json:"value,omitempty"`
 	} `json:"action"`
 	BlockHash   string  `json:"blockHash" validate:"required"`
-	BlockNumber uint64  `json:"blockNumber" validate:"required"`
+	BlockNumber uint64  `json:"blockNumber" validate:"-"`
 	Error       *string `json:"error,omitempty"`
 	Result      *struct {
 		Address *string `json:"address,omitempty"`
@@ -249,6 +248,7 @@ type FlatCallFrame struct {
 	TransactionHash     string   `json:"transactionHash" validate:"required"`
 	TransactionPosition uint64   `json:"transactionPosition" validate:"-"`
 	Type                string   `json:"type" validate:"required"`
+	Index               uint64   `json:"index"` // custom index
 }
 
 // TODO: erigon(parity) trace types
@@ -280,9 +280,28 @@ type Trace struct {
 	TransactionHash     string   `json:"transactionHash"`
 	TransactionPosition uint64   `json:"transactionPosition"`
 	Type                string   `json:"type"`
+	Index               uint64   `json:"index"` // custom index
 }
 
 type ContractCreator struct {
 	TransactionHash string `json:"hash"`
 	Creator         string `json:"creator"`
+}
+
+type Balance struct {
+	Address string          `json:"address"`
+	Value   decimal.Decimal `json:"value"`
+}
+
+type ContractCallParams struct {
+	To       string `json:"to"`
+	Data     string `json:"data"`
+	NumOrTag interface{}
+}
+
+type ContractCallResp struct {
+	To     string
+	Data   string
+	Result string
+	Error  error
 }
