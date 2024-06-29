@@ -7,26 +7,33 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/bbaktaeho/evmc/evmctypes"
 	"github.com/ethereum/go-ethereum/rpc"
 )
 
 // TODO: websocket RPC
 // TODO: backoff retry
 
-type caller interface {
+type clientInfo interface {
 	ChainID() uint64
 	NodeClient() (name, version string)
+}
 
+type caller interface {
 	call(ctx context.Context, result interface{}, method procedure, params ...interface{}) error
 	// batchCall(ctx context.Context, elements []rpc.BatchElem) error
 }
 
 type contractCaller interface {
-	contractCall(ctx context.Context, result interface{}, contract string, data string, parsedNumOrTag string) error
+	contractCall(ctx context.Context, result interface{}, contract, data, parsedNumOrTag string) error
+}
+
+type subscriber interface {
+	subscribe(ctx context.Context, namespace string, ch interface{}, args ...interface{}) (evmctypes.Subscription, error)
 }
 
 type nodeSetter interface {
-	setNode(cv string)
+	setNode(clientVersion string)
 }
 
 type Evmc struct {
@@ -155,7 +162,7 @@ func (e *Evmc) contractCall(
 	parsedNumOrTag string,
 ) error {
 	params := []interface{}{
-		ContractCallParams{
+		evmctypes.ContractCallParams{
 			To:   contract,
 			Data: data,
 		},
@@ -177,6 +184,19 @@ func (e *Evmc) call(
 		return err
 	}
 	return nil
+}
+
+func (e *Evmc) subscribe(
+	ctx context.Context,
+	namespace string,
+	ch interface{},
+	args ...interface{},
+) (evmctypes.Subscription, error) {
+	subscription, err := e.c.Subscribe(ctx, namespace, ch, args...)
+	if err != nil {
+		return nil, err
+	}
+	return subscription, nil
 }
 
 func (e *Evmc) setNode(cv string) {
