@@ -29,6 +29,15 @@ func Test_Block(t *testing.T) {
 	raw["totalDifficulty"] = "0x11"
 	raw["size"] = "0x12"
 	raw["uncles"] = []string{"0x13"}
+	raw["baseFeePerGas"] = "0x14"
+	raw["withdrawalsRoot"] = "0x15"
+	raw["blobGasUsed"] = "0x16"
+	raw["excessBlobGas"] = "0x17"
+	raw["parentBeaconBlockRoot"] = "0x18"
+	raw["l1BlockNumber"] = "0x19"
+	raw["sendCount"] = "0x1a"
+	raw["sendRoot"] = "0x1b"
+	raw["transactions"] = []string{"0x10", "0x11", "0x12"}
 	raw["withdrawals"] = []map[string]interface{}{
 		{
 			"index":          "0x1",
@@ -66,12 +75,19 @@ func Test_Block(t *testing.T) {
 	assert.Equal(t, "0x11", block.TotalDifficulty)
 	assert.Equal(t, "0x12", block.Size)
 	assert.Equal(t, []string{"0x13"}, block.Uncles)
+	assert.Equal(t, "0x14", *block.BaseFeePerGas)
+	assert.Equal(t, "0x15", *block.WithdrawalsRoot)
+	assert.Equal(t, "0x16", *block.BlobGasUsed)
+	assert.Equal(t, "0x17", *block.ExcessBlobGas)
+	assert.Equal(t, "0x18", *block.ParentBeaconBlockRoot)
+	assert.Equal(t, uint64(25), *block.L1BlockNumber)
+	assert.Equal(t, "0x1a", *block.SendCount)
+	assert.Equal(t, "0x1b", *block.SendRoot)
+	assert.Equal(t, []string{"0x10", "0x11", "0x12"}, block.Transactions)
 	assert.Equal(t, uint64(1), block.Withdrawals[0].Index)
 	assert.Equal(t, uint64(2), block.Withdrawals[0].ValidatorIndex)
 	assert.Equal(t, "0x3", block.Withdrawals[0].Address)
 	assert.Equal(t, uint64(4), block.Withdrawals[0].Amount)
-	assert.Nil(t, block.BaseFeePerGas)
-	assert.Nil(t, block.L1BlockNumber)
 }
 
 func Test_block_NextBaseFee(t *testing.T) {

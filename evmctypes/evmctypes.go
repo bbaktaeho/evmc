@@ -1,7 +1,6 @@
 package evmctypes
 
 import (
-	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/shopspring/decimal"
 )
 
@@ -10,56 +9,22 @@ type Subscription interface {
 	Err() <-chan error
 }
 
-type block struct {
-	Number           uint64   `json:"number" validate:"-"`
-	Hash             string   `json:"hash" validate:"required"`
-	ParentHash       string   `json:"parentHash" validate:"required"`
-	Nonce            string   `json:"nonce" validate:"required"`
-	MixHash          string   `json:"mixHash" validate:"required"`
-	Sha3Uncles       string   `json:"sha3Uncles" validate:"required"`
-	LogsBloom        string   `json:"logsBloom" validate:"required"`
-	StateRoot        string   `json:"stateRoot" validate:"required"`
-	Miner            string   `json:"miner" validate:"required"`
-	Difficulty       string   `json:"difficulty" validate:"required"`
-	ExtraData        string   `json:"extraData" validate:"required"`
-	GasLimit         string   `json:"gasLimit" validate:"required"`
-	GasUsed          string   `json:"gasUsed" validate:"required"`
-	Timestamp        uint64   `json:"timestamp" validate:"required"`
-	TransactionsRoot string   `json:"transactionsRoot" validate:"required"`
-	ReceiptsRoot     string   `json:"receiptsRoot" validate:"required"`
-	TotalDifficulty  string   `json:"totalDifficulty" validate:"required"`
-	Size             string   `json:"size"`
-	Uncles           []string `json:"uncles"`
-
-	BaseFeePerGas         *string       `json:"baseFeePerGas,omitempty"`         // EIP-1559
-	WithdrawalsRoot       *string       `json:"withdrawalsRoot,omitempty"`       // EIP-4895
-	Withdrawals           []*Withdrawal `json:"withdrawals,omitempty"`           // EIP-4895
-	BlobGasUsed           *string       `json:"blobGasUsed,omitempty"`           // EIP-4844
-	ExcessBlobGas         *string       `json:"excessBlobGas,omitempty"`         // EIP-4844
-	ParentBeaconBlockRoot *string       `json:"parentBeaconBlockRoot,omitempty"` // EIP-4788
-
-	L1BlockNumber *uint64 `json:"l1BlockNumber,omitempty"` // Arbitrum
-	SendCount     *string `json:"sendCount,omitempty"`     // Arbitrum
-	SendRoot      *string `json:"sendRoot,omitempty"`      // Arbitrum
-}
-
-func (b *block) NextBaseFee() decimal.Decimal {
-	if b.BaseFeePerGas == nil {
-		return decimal.Zero
-	}
-	return decimal.NewFromBigInt(hexutil.MustDecodeBig(*b.BaseFeePerGas), 0).Mul(decimal.NewFromInt(2))
+type Header struct {
+	block
 }
 
 type Block struct {
 	block
-	Transactions []string `json:"transactions" validate:""`
-	UncleBlocks  []*Block `json:"uncleBlocks,omitempty"`
+	Transactions []string      `json:"transactions" validate:""`
+	UncleBlocks  []*Block      `json:"uncleBlocks,omitempty"`
+	Withdrawals  []*Withdrawal `json:"withdrawals,omitempty"` // EIP-4895
 }
 
 type BlockIncTx struct {
 	block
 	Transactions []*Transaction `json:"transactions" validate:""`
 	UncleBlocks  []*BlockIncTx  `json:"uncleBlocks,omitempty"`
+	Withdrawals  []*Withdrawal  `json:"withdrawals,omitempty"` // EIP-4895
 }
 
 type Withdrawal struct {

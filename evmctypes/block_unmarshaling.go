@@ -4,138 +4,275 @@ import (
 	"encoding/json"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/shopspring/decimal"
 )
 
-func (b *block) UnmarshalJSON(input []byte) error {
-	type block struct {
-		Number                *string       `json:"number" validate:"-"`
-		Hash                  *string       `json:"hash" validate:"required"`
-		ParentHash            *string       `json:"parentHash" validate:"required"`
-		Nonce                 *string       `json:"nonce" validate:"required"`
-		MixHash               *string       `json:"mixHash" validate:"required"`
-		Sha3Uncles            *string       `json:"sha3Uncles" validate:"required"`
-		LogsBloom             *string       `json:"logsBloom" validate:"required"`
-		StateRoot             *string       `json:"stateRoot" validate:"required"`
-		Miner                 *string       `json:"miner" validate:"required"`
-		Difficulty            *string       `json:"difficulty" validate:"required"`
-		ExtraData             *string       `json:"extraData" validate:"required"`
-		GasLimit              *string       `json:"gasLimit" validate:"required"`
-		GasUsed               *string       `json:"gasUsed" validate:"required"`
-		Timestamp             *string       `json:"timestamp" validate:"required"`
-		TransactionsRoot      *string       `json:"transactionsRoot" validate:"required"`
-		ReceiptsRoot          *string       `json:"receiptsRoot" validate:"required"`
-		TotalDifficulty       *string       `json:"totalDifficulty" validate:"required"`
-		Size                  *string       `json:"size"`
-		Uncles                []string      `json:"uncles"`
-		BaseFeePerGas         *string       `json:"baseFeePerGas,omitempty"`
-		WithdrawalsRoot       *string       `json:"withdrawalsRoot,omitempty"`
-		Withdrawals           []*Withdrawal `json:"withdrawals,omitempty"`
-		BlobGasUsed           *string       `json:"blobGasUsed,omitempty"`
-		ExcessBlobGas         *string       `json:"excessBlobGas,omitempty"`
-		ParentBeaconBlockRoot *string       `json:"parentBeaconBlockRoot,omitempty"`
-		L1BlockNumber         *string       `json:"l1BlockNumber,omitempty"`
-		SendCount             *string       `json:"sendCount,omitempty"`
-		SendRoot              *string       `json:"sendRoot,omitempty"`
+// block is raw data from the blockchain RPC calls.
+type block struct {
+	Number           uint64   `json:"number" validate:"-"`
+	Hash             string   `json:"hash" validate:"required"`
+	ParentHash       string   `json:"parentHash" validate:"required"`
+	Nonce            string   `json:"nonce" validate:"required"`
+	MixHash          string   `json:"mixHash" validate:"required"`
+	Sha3Uncles       string   `json:"sha3Uncles" validate:"required"`
+	LogsBloom        string   `json:"logsBloom" validate:"required"`
+	StateRoot        string   `json:"stateRoot" validate:"required"`
+	Miner            string   `json:"miner" validate:"required"`
+	Difficulty       string   `json:"difficulty" validate:"required"`
+	ExtraData        string   `json:"extraData" validate:"required"`
+	GasLimit         string   `json:"gasLimit" validate:"required"`
+	GasUsed          string   `json:"gasUsed" validate:"required"`
+	Timestamp        uint64   `json:"timestamp" validate:"required"`
+	TransactionsRoot string   `json:"transactionsRoot" validate:"required"`
+	ReceiptsRoot     string   `json:"receiptsRoot" validate:"required"`
+	TotalDifficulty  string   `json:"totalDifficulty" validate:"required"`
+	Size             string   `json:"size"`
+	Uncles           []string `json:"uncles"`
+
+	BaseFeePerGas         *string `json:"baseFeePerGas,omitempty"`         // EIP-1559
+	WithdrawalsRoot       *string `json:"withdrawalsRoot,omitempty"`       // EIP-4895
+	BlobGasUsed           *string `json:"blobGasUsed,omitempty"`           // EIP-4844
+	ExcessBlobGas         *string `json:"excessBlobGas,omitempty"`         // EIP-4844
+	ParentBeaconBlockRoot *string `json:"parentBeaconBlockRoot,omitempty"` // EIP-4788
+
+	L1BlockNumber *uint64 `json:"l1BlockNumber,omitempty"` // Arbitrum
+	SendCount     *string `json:"sendCount,omitempty"`     // Arbitrum
+	SendRoot      *string `json:"sendRoot,omitempty"`      // Arbitrum
+}
+
+func (b *block) NextBaseFee() decimal.Decimal {
+	if b.BaseFeePerGas == nil {
+		return decimal.Zero
 	}
-	var dec block
-	if err := json.Unmarshal(input, &dec); err != nil {
-		return err
-	}
-	if dec.Number != nil {
-		number, err := hexutil.DecodeUint64(*dec.Number)
+	return decimal.NewFromBigInt(hexutil.MustDecodeBig(*b.BaseFeePerGas), 0).Mul(decimal.NewFromInt(2))
+}
+
+type _block struct {
+	Number           *string  `json:"number"`
+	Hash             *string  `json:"hash"`
+	ParentHash       *string  `json:"parentHash"`
+	Nonce            *string  `json:"nonce"`
+	MixHash          *string  `json:"mixHash"`
+	Sha3Uncles       *string  `json:"sha3Uncles"`
+	LogsBloom        *string  `json:"logsBloom"`
+	StateRoot        *string  `json:"stateRoot"`
+	Miner            *string  `json:"miner"`
+	Difficulty       *string  `json:"difficulty"`
+	ExtraData        *string  `json:"extraData"`
+	GasLimit         *string  `json:"gasLimit"`
+	GasUsed          *string  `json:"gasUsed"`
+	Timestamp        *string  `json:"timestamp"`
+	TransactionsRoot *string  `json:"transactionsRoot"`
+	ReceiptsRoot     *string  `json:"receiptsRoot"`
+	TotalDifficulty  *string  `json:"totalDifficulty"`
+	Size             *string  `json:"size"`
+	Uncles           []string `json:"uncles"`
+
+	BaseFeePerGas         *string `json:"baseFeePerGas,omitempty"`
+	WithdrawalsRoot       *string `json:"withdrawalsRoot,omitempty"`
+	BlobGasUsed           *string `json:"blobGasUsed,omitempty"`
+	ExcessBlobGas         *string `json:"excessBlobGas,omitempty"`
+	ParentBeaconBlockRoot *string `json:"parentBeaconBlockRoot,omitempty"`
+
+	L1BlockNumber *string `json:"l1BlockNumber,omitempty"`
+	SendCount     *string `json:"sendCount,omitempty"`
+	SendRoot      *string `json:"sendRoot,omitempty"`
+}
+
+func (_b *_block) unmarshal(b *block) error {
+	if _b.Number != nil {
+		number, err := hexutil.DecodeUint64(*_b.Number)
 		if err != nil {
 			return err
 		}
 		b.Number = number
 	}
-	if dec.Hash != nil {
-		b.Hash = *dec.Hash
+	if _b.Hash != nil {
+		b.Hash = *_b.Hash
 	}
-	if dec.ParentHash != nil {
-		b.ParentHash = *dec.ParentHash
+	if _b.ParentHash != nil {
+		b.ParentHash = *_b.ParentHash
 	}
-	if dec.Nonce != nil {
-		b.Nonce = *dec.Nonce
+	if _b.Nonce != nil {
+		b.Nonce = *_b.Nonce
 	}
-	if dec.MixHash != nil {
-		b.MixHash = *dec.MixHash
+	if _b.MixHash != nil {
+		b.MixHash = *_b.MixHash
 	}
-	if dec.Sha3Uncles != nil {
-		b.Sha3Uncles = *dec.Sha3Uncles
+	if _b.Sha3Uncles != nil {
+		b.Sha3Uncles = *_b.Sha3Uncles
 	}
-	if dec.LogsBloom != nil {
-		b.LogsBloom = *dec.LogsBloom
+	if _b.LogsBloom != nil {
+		b.LogsBloom = *_b.LogsBloom
 	}
-	if dec.StateRoot != nil {
-		b.StateRoot = *dec.StateRoot
+	if _b.StateRoot != nil {
+		b.StateRoot = *_b.StateRoot
 	}
-	if dec.Miner != nil {
-		b.Miner = *dec.Miner
+	if _b.Miner != nil {
+		b.Miner = *_b.Miner
 	}
-	if dec.Difficulty != nil {
-		b.Difficulty = *dec.Difficulty
+	if _b.Difficulty != nil {
+		b.Difficulty = *_b.Difficulty
 	}
-	if dec.ExtraData != nil {
-		b.ExtraData = *dec.ExtraData
+	if _b.ExtraData != nil {
+		b.ExtraData = *_b.ExtraData
 	}
-	if dec.GasLimit != nil {
-		b.GasLimit = *dec.GasLimit
+	if _b.GasLimit != nil {
+		b.GasLimit = *_b.GasLimit
 	}
-	if dec.GasUsed != nil {
-		b.GasUsed = *dec.GasUsed
+	if _b.GasUsed != nil {
+		b.GasUsed = *_b.GasUsed
 	}
-	if dec.Timestamp != nil {
-		timestamp, err := hexutil.DecodeUint64(*dec.Timestamp)
+	if _b.Timestamp != nil {
+		timestamp, err := hexutil.DecodeUint64(*_b.Timestamp)
 		if err != nil {
 			return err
 		}
 		b.Timestamp = timestamp
 	}
-	if dec.TransactionsRoot != nil {
-		b.TransactionsRoot = *dec.TransactionsRoot
+	if _b.TransactionsRoot != nil {
+		b.TransactionsRoot = *_b.TransactionsRoot
 	}
-	if dec.ReceiptsRoot != nil {
-		b.ReceiptsRoot = *dec.ReceiptsRoot
+	if _b.ReceiptsRoot != nil {
+		b.ReceiptsRoot = *_b.ReceiptsRoot
 	}
-	if dec.TotalDifficulty != nil {
-		b.TotalDifficulty = *dec.TotalDifficulty
+	if _b.TotalDifficulty != nil {
+		b.TotalDifficulty = *_b.TotalDifficulty
 	}
-	if dec.Size != nil {
-		b.Size = *dec.Size
+	if _b.Size != nil {
+		b.Size = *_b.Size
 	}
-	if dec.Uncles != nil {
-		b.Uncles = dec.Uncles
+	if _b.Uncles != nil {
+		b.Uncles = _b.Uncles
 	}
-	if dec.BaseFeePerGas != nil {
-		b.BaseFeePerGas = dec.BaseFeePerGas
+	if _b.BaseFeePerGas != nil {
+		b.BaseFeePerGas = _b.BaseFeePerGas
 	}
-	if dec.WithdrawalsRoot != nil {
-		b.WithdrawalsRoot = dec.WithdrawalsRoot
+	if _b.WithdrawalsRoot != nil {
+		b.WithdrawalsRoot = _b.WithdrawalsRoot
 	}
-	if dec.Withdrawals != nil {
-		b.Withdrawals = dec.Withdrawals
+	if _b.BlobGasUsed != nil {
+		b.BlobGasUsed = _b.BlobGasUsed
 	}
-	if dec.BlobGasUsed != nil {
-		b.BlobGasUsed = dec.BlobGasUsed
+	if _b.ExcessBlobGas != nil {
+		b.ExcessBlobGas = _b.ExcessBlobGas
 	}
-	if dec.ExcessBlobGas != nil {
-		b.ExcessBlobGas = dec.ExcessBlobGas
+	if _b.ParentBeaconBlockRoot != nil {
+		b.ParentBeaconBlockRoot = _b.ParentBeaconBlockRoot
 	}
-	if dec.ParentBeaconBlockRoot != nil {
-		b.ParentBeaconBlockRoot = dec.ParentBeaconBlockRoot
-	}
-	if dec.L1BlockNumber != nil {
-		l1BlockNumber, err := hexutil.DecodeUint64(*dec.L1BlockNumber)
+	if _b.L1BlockNumber != nil {
+		l1BlockNumber, err := hexutil.DecodeUint64(*_b.L1BlockNumber)
 		if err != nil {
 			return err
 		}
 		b.L1BlockNumber = &l1BlockNumber
 	}
-	if dec.SendCount != nil {
-		b.SendCount = dec.SendCount
+	if _b.SendCount != nil {
+		b.SendCount = _b.SendCount
 	}
-	if dec.SendRoot != nil {
-		b.SendRoot = dec.SendRoot
+	if _b.SendRoot != nil {
+		b.SendRoot = _b.SendRoot
+	}
+	return nil
+}
+
+func (h *Header) UnmarshalJSON(input []byte) error {
+	type header struct {
+		_block
+	}
+	var dec header
+	if err := json.Unmarshal(input, &dec); err != nil {
+		return err
+	}
+	return dec.unmarshal(&h.block)
+}
+
+func (b *Block) UnmarshalJSON(input []byte) error {
+	type block struct {
+		_block
+		Withdrawals  []*Withdrawal `json:"withdrawals,omitempty"`
+		Transactions []string      `json:"transactions"`
+		UncleBlocks  []*Block      `json:"uncleBlocks"`
+	}
+	var dec block
+	if err := json.Unmarshal(input, &dec); err != nil {
+		return err
+	}
+	if err := dec.unmarshal(&b.block); err != nil {
+		return err
+	}
+	if dec.Transactions != nil {
+		b.Transactions = dec.Transactions
+	}
+	if dec.UncleBlocks != nil {
+		b.UncleBlocks = dec.UncleBlocks
+	}
+	if dec.Withdrawals != nil {
+		b.Withdrawals = dec.Withdrawals
+	}
+	return nil
+}
+
+func (b *BlockIncTx) UnmarshalJSON(input []byte) error {
+	type blockIncTx struct {
+		_block
+		Transactions []*Transaction `json:"transactions"`
+		Withdrawals  []*Withdrawal  `json:"withdrawals,omitempty"`
+		UncleBlocks  []*BlockIncTx  `json:"uncleBlocks,omitempty"`
+	}
+	var dec blockIncTx
+	if err := json.Unmarshal(input, &dec); err != nil {
+		return err
+	}
+	if err := dec.unmarshal(&b.block); err != nil {
+		return err
+	}
+	if dec.Transactions != nil {
+		b.Transactions = dec.Transactions
+	}
+	if dec.UncleBlocks != nil {
+		b.UncleBlocks = dec.UncleBlocks
+	}
+	if dec.Withdrawals != nil {
+		b.Withdrawals = dec.Withdrawals
+	}
+	return nil
+}
+
+func (w *Withdrawal) UnmarshalJSON(input []byte) error {
+	type withdrawal struct {
+		Index          *string `json:"index"`
+		ValidatorIndex *string `json:"validatorIndex"`
+		Address        *string `json:"address"`
+		Amount         *string `json:"amount"`
+	}
+	var dec withdrawal
+	if err := json.Unmarshal(input, &dec); err != nil {
+		return err
+	}
+	if dec.Index != nil {
+		index, err := hexutil.DecodeUint64(*dec.Index)
+		if err != nil {
+			return err
+		}
+		w.Index = index
+	}
+	if dec.ValidatorIndex != nil {
+		validatorIndex, err := hexutil.DecodeUint64(*dec.ValidatorIndex)
+		if err != nil {
+			return err
+		}
+		w.ValidatorIndex = validatorIndex
+	}
+	if dec.Address != nil {
+		w.Address = *dec.Address
+	}
+	if dec.Amount != nil {
+		amount, err := hexutil.DecodeUint64(*dec.Amount)
+		if err != nil {
+			return err
+		}
+		w.Amount = amount
 	}
 	return nil
 }
