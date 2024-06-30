@@ -9,6 +9,7 @@ import (
 
 	"github.com/bbaktaeho/evmc/evmctypes"
 	"github.com/ethereum/go-ethereum/rpc"
+	"github.com/gorilla/websocket"
 )
 
 // TODO: websocket RPC
@@ -17,6 +18,7 @@ import (
 type clientInfo interface {
 	ChainID() uint64
 	NodeClient() (name, version string)
+	IsWebsocket() bool
 }
 
 type caller interface {
@@ -37,7 +39,8 @@ type nodeSetter interface {
 }
 
 type Evmc struct {
-	c *rpc.Client
+	c           *rpc.Client
+	isWebsocket bool
 
 	chainID     uint64
 	nodeName    ClientName
@@ -72,8 +75,21 @@ func New(httpURL string, opts ...Options) (*Evmc, error) {
 	if u.Scheme != "http" && u.Scheme != "https" {
 		return nil, errors.New("invalid http scheme")
 	}
+	return newClient(context.Background(), httpURL, false, opts...)
+}
 
-	ctx := context.Background()
+func NewWebsocket(ctx context.Context, wsURL string, opts ...Options) (*Evmc, error) {
+	u, err := url.Parse(wsURL)
+	if err != nil {
+		return nil, err
+	}
+	if u.Scheme != "ws" && u.Scheme != "wss" {
+		return nil, errors.New("invalid websocket scheme")
+	}
+	return newClient(ctx, wsURL, true, opts...)
+}
+
+func newClient(ctx context.Context, url string, isWs bool, opts ...Options) (*Evmc, error) {
 	o := newOps()
 	for _, opt := range opts {
 		opt.apply(o)
@@ -81,17 +97,22 @@ func New(httpURL string, opts ...Options) (*Evmc, error) {
 
 	rpcClient, err := rpc.DialOptions(
 		ctx,
-		httpURL,
+		url,
 		rpc.WithHTTPClient(httpClient(o)),
 		rpc.WithBatchItemLimit(o.maxBatchItems),
 		rpc.WithBatchResponseSizeLimit(o.maxBatchSize),
+		rpc.WithWebsocketDialer(websocket.Dialer{
+			ReadBufferSize:  o.wsReadBufferSize,
+			WriteBufferSize: o.wsWriteBufferSize,
+		}),
+		rpc.WithWebsocketMessageSizeLimit(int64(o.wsMessageSizeLimit)),
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	evmc := &Evmc{c: rpcClient}
-	evmc.eth = &ethNamespace{c: evmc}
+	evmc := &Evmc{c: rpcClient, isWebsocket: isWs}
+	evmc.eth = &ethNamespace{info: evmc, c: evmc, s: evmc}
 	evmc.web3 = &web3Namespace{c: evmc, n: evmc}
 	evmc.debug = &debugNamespace{c: evmc}
 	evmc.erc20 = &erc20Contract{c: evmc}
@@ -111,6 +132,14 @@ func New(httpURL string, opts ...Options) (*Evmc, error) {
 	evmc.nodeVersion = cvarr[1]
 
 	return evmc, nil
+}
+
+func (e *Evmc) Close() {
+	e.c.Close()
+}
+
+func (e *Evmc) IsWebsocket() bool {
+	return e.isWebsocket
 }
 
 func (e *Evmc) ChainID() uint64 {
