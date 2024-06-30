@@ -7,27 +7,27 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-// block is raw data from the blockchain RPC calls.
 type block struct {
-	Number           uint64   `json:"number" validate:"-"`
-	Hash             string   `json:"hash" validate:"required"`
-	ParentHash       string   `json:"parentHash" validate:"required"`
-	Nonce            string   `json:"nonce" validate:"required"`
-	MixHash          string   `json:"mixHash" validate:"required"`
-	Sha3Uncles       string   `json:"sha3Uncles" validate:"required"`
-	LogsBloom        string   `json:"logsBloom" validate:"required"`
-	StateRoot        string   `json:"stateRoot" validate:"required"`
-	Miner            string   `json:"miner" validate:"required"`
-	Difficulty       string   `json:"difficulty" validate:"required"`
-	ExtraData        string   `json:"extraData" validate:"required"`
-	GasLimit         string   `json:"gasLimit" validate:"required"`
-	GasUsed          string   `json:"gasUsed" validate:"required"`
-	Timestamp        uint64   `json:"timestamp" validate:"required"`
-	TransactionsRoot string   `json:"transactionsRoot" validate:"required"`
-	ReceiptsRoot     string   `json:"receiptsRoot" validate:"required"`
-	TotalDifficulty  string   `json:"totalDifficulty" validate:"required"`
-	Size             string   `json:"size"`
-	Uncles           []string `json:"uncles"`
+	Number           uint64 `json:"number" validate:"-"`
+	Hash             string `json:"hash" validate:"required"`
+	ParentHash       string `json:"parentHash" validate:"required"`
+	Nonce            string `json:"nonce" validate:"required"`
+	MixHash          string `json:"mixHash" validate:"required"`
+	Sha3Uncles       string `json:"sha3Uncles" validate:"required"`
+	LogsBloom        string `json:"logsBloom" validate:"required"`
+	StateRoot        string `json:"stateRoot" validate:"required"`
+	Miner            string `json:"miner" validate:"required"`
+	Difficulty       string `json:"difficulty" validate:"required"`
+	ExtraData        string `json:"extraData" validate:"required"`
+	GasLimit         string `json:"gasLimit" validate:"required"`
+	GasUsed          string `json:"gasUsed" validate:"required"`
+	Timestamp        uint64 `json:"timestamp" validate:"required"`
+	TransactionsRoot string `json:"transactionsRoot" validate:"required"`
+	ReceiptsRoot     string `json:"receiptsRoot" validate:"required"`
+
+	TotalDifficulty string   `json:"totalDifficulty,omitempty"` // Unused fields in newHeads
+	Size            string   `json:"size,omitempty"`            // Unused fields in newHeads
+	Uncles          []string `json:"uncles,omitempty"`          // Unused fields in newHeads
 
 	BaseFeePerGas         *string `json:"baseFeePerGas,omitempty"`         // EIP-1559
 	WithdrawalsRoot       *string `json:"withdrawalsRoot,omitempty"`       // EIP-4895
@@ -47,6 +47,7 @@ func (b *block) NextBaseFee() decimal.Decimal {
 	return decimal.NewFromBigInt(hexutil.MustDecodeBig(*b.BaseFeePerGas), 0).Mul(decimal.NewFromInt(2))
 }
 
+// _block is raw data from the blockchain RPC calls.
 type _block struct {
 	Number           *string  `json:"number"`
 	Hash             *string  `json:"hash"`

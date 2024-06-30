@@ -1,5 +1,13 @@
 package evmc
 
+type subscription string
+
+const (
+	newHeads               subscription = "newHeads"
+	newPendingTransactions subscription = "newPendingTransactions"
+	logs                   subscription = "logs"
+)
+
 type procedure string
 
 const (

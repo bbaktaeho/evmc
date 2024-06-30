@@ -9,6 +9,13 @@ const (
 
 	defaultMaxBatchItems int = 100
 	defaultMaxBatchSize  int = 30 * 1024 * 1024
+
+	defaultWsReadBufferSize   int = 1024
+	defaultWsWriteBufferSize  int = 1024
+	defaultWsMessageSizeLimit int = 0 // unlimited
+	// defaultWsPingInterval     time.Duration = 30 * time.Second
+	// defaultWsPingWriteTimeout time.Duration = 2 * time.Second
+	// defaultWsPongTimeout      time.Duration = 10 * time.Second
 )
 
 type options struct {
@@ -17,15 +24,28 @@ type options struct {
 	idleConnTimeout time.Duration
 	maxBatchItems   int
 	maxBatchSize    int
+
+	wsReadBufferSize   int
+	wsWriteBufferSize  int
+	wsMessageSizeLimit int
+	// wsPingInterval     time.Duration
+	// wsPingWriteTimeout time.Duration
+	// wsPongTimeout      time.Duration
 }
 
 func newOps() *options {
 	return &options{
-		connPool:        defaultConnPool,
-		reqTimeout:      defaultReqTimeout,
-		idleConnTimeout: defaultIdleConnTimeout,
-		maxBatchItems:   defaultMaxBatchItems,
-		maxBatchSize:    defaultMaxBatchSize,
+		connPool:           defaultConnPool,
+		reqTimeout:         defaultReqTimeout,
+		idleConnTimeout:    defaultIdleConnTimeout,
+		maxBatchItems:      defaultMaxBatchItems,
+		maxBatchSize:       defaultMaxBatchSize,
+		wsReadBufferSize:   defaultWsReadBufferSize,
+		wsWriteBufferSize:  defaultWsWriteBufferSize,
+		wsMessageSizeLimit: defaultWsMessageSizeLimit,
+		// wsPingInterval:     defaultWsPingInterval,
+		// wsPingWriteTimeout: defaultWsPingWriteTimeout,
+		// wsPongTimeout:      defaultWsPongTimeout,
 	}
 }
 
@@ -62,3 +82,39 @@ func WithMaxBatchSize(size int) Options {
 		o.connPool = size
 	})
 }
+
+func WithWsReadBufferSize(size int) Options {
+	return optionFunc(func(o *options) {
+		o.wsReadBufferSize = size
+	})
+}
+
+func WithWsWriteBufferSize(size int) Options {
+	return optionFunc(func(o *options) {
+		o.wsWriteBufferSize = size
+	})
+}
+
+func WithWsMessageSizeLimit(limit int) Options {
+	return optionFunc(func(o *options) {
+		o.wsMessageSizeLimit = limit
+	})
+}
+
+// func WithWsPingInterval(interval time.Duration) Options {
+// 	return optionFunc(func(o *options) {
+// 		o.wsPingInterval = interval
+// 	})
+// }
+
+// func WithWsPingWriteTimeout(timeout time.Duration) Options {
+// 	return optionFunc(func(o *options) {
+// 		o.wsPingWriteTimeout = timeout
+// 	})
+// }
+
+// func WithWsPongTimeout(timeout time.Duration) Options {
+// 	return optionFunc(func(o *options) {
+// 		o.wsPongTimeout = timeout
+// 	})
+// }
