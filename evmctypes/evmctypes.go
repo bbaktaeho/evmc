@@ -145,6 +145,11 @@ type LogFilter struct {
 	Topics    []string `json:"topics,omitempty"`
 }
 
+type SubLog struct {
+	Address string   `json:"address,omitempty"`
+	Topics  []string `json:"topics,omitempty"`
+}
+
 type debugTracer struct {
 	TxHash string  `json:"txHash"`
 	Error  *string `json:"error,omitempty"`
