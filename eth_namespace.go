@@ -20,24 +20,30 @@ type ethNamespace struct {
 	s    subscriber
 }
 
-func (e *ethNamespace) SubscribeNewHeads(ctx context.Context, ch chan<- *evmctypes.Header) (evmctypes.Subscription, error) {
+func (e *ethNamespace) SubscribeNewHeads(
+	ctx context.Context,
+	ch chan<- *evmctypes.Header,
+) (evmctypes.Subscription, error) {
 	return e.subscribe(ctx, ch, newHeads)
 }
 
-func (e *ethNamespace) SubscribeNewPendingTransactions(ctx context.Context, ch chan<- string) (evmctypes.Subscription, error) {
+func (e *ethNamespace) SubscribeNewPendingTransactions(
+	ctx context.Context,
+	ch chan<- string,
+) (evmctypes.Subscription, error) {
 	return e.subscribe(ctx, ch, newPendingTransactions)
 }
 
-// func (e *ethNamespace) SubscribeLogs(
-// 	ctx context.Context,
-// 	ch chan<- []*evmctypes.Log,
-// 	filter interface{},
-// ) (evmctypes.Subscription, error) {
-// 	if !e.info.IsWebsocket() {
-// 		return nil, ErrWebsocketRequired
-// 	}
-// 	return e.s.subscribe(ctx, "eth", ch, logs, filter)
-// }
+func (e *ethNamespace) SubscribeLogs(
+	ctx context.Context,
+	ch chan<- *evmctypes.Log,
+	params *evmctypes.SubLog,
+) (evmctypes.Subscription, error) {
+	if params == nil {
+		return e.s.subscribe(ctx, "eth", ch, logs)
+	}
+	return e.s.subscribe(ctx, "eth", ch, logs, params)
+}
 
 func (e *ethNamespace) subscribe(ctx context.Context, ch interface{}, args ...interface{}) (evmctypes.Subscription, error) {
 	if !e.info.IsWebsocket() {
