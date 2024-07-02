@@ -5,9 +5,12 @@ import (
 	"strings"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/shopspring/decimal"
 )
+
+// TODO: dinamic type
 
 var (
 	solUint, _       = abi.NewType("uint256", "", nil)
@@ -28,6 +31,24 @@ var (
 	solUint64ArrArgs  = abi.Arguments{{Type: solUint64Arr}}
 	solAddressArrArgs = abi.Arguments{{Type: solAddressArr}}
 )
+
+type SolType interface{}
+
+func ParseUint256(d decimal.Decimal) SolType {
+	res, err := solUint256Args.Pack(d.BigInt())
+	if err != nil {
+		panic(err)
+	}
+	return res
+}
+
+func ParseAddress(address string) SolType {
+	res, err := solAddressArgs.Pack(common.HexToAddress(address))
+	if err != nil {
+		panic(err)
+	}
+	return res
+}
 
 func parseSolStringToString(solReturn string) (string, error) {
 	b, err := hexutil.Decode(solReturn)

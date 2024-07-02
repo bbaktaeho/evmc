@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/bbaktaeho/evmc/evmctypes"
+	"github.com/ethereum/go-ethereum/common/lru"
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/gorilla/websocket"
 )
@@ -55,6 +56,8 @@ type Evmc struct {
 	erc20   *erc20Contract
 	erc721  *erc721Contract
 	erc1155 *erc1155Contract
+
+	abiCache *lru.Cache[string, interface{}]
 }
 
 func httpClient(o *options) *http.Client {
@@ -111,7 +114,7 @@ func newClient(ctx context.Context, url string, isWs bool, opts ...Options) (*Ev
 		return nil, err
 	}
 
-	evmc := &Evmc{c: rpcClient, isWebsocket: isWs}
+	evmc := &Evmc{c: rpcClient, isWebsocket: isWs, abiCache: lru.NewCache[string, interface{}](10)}
 	evmc.eth = &ethNamespace{info: evmc, c: evmc, s: evmc}
 	evmc.web3 = &web3Namespace{c: evmc, n: evmc}
 	evmc.debug = &debugNamespace{c: evmc}
