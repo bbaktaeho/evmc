@@ -12,19 +12,71 @@ import (
 // Tx is a structure that contains transaction information
 // to be sent to the blockchain network by EOA.
 type Tx struct {
-	Nonce    uint64
-	To       string
-	Data     string
-	Value    decimal.Decimal
-	GasPrice decimal.Decimal // legacy
-	GasLimit uint64
+	From     string          `json:"from"`
+	Nonce    uint64          `json:"nonce"`
+	To       string          `json:"to"`
+	Data     string          `json:"data"`
+	Value    decimal.Decimal `json:"value"`
+	GasPrice decimal.Decimal `json:"gasPrice"` // legacy
+	GasLimit uint64          `json:"gasLimit"`
 
 	AccessList []struct {
-		Address     string
-		StorageKeys []string
-	} // EIP-2930
-	MaxPriorityFeePerGas decimal.Decimal // EIP-1559
-	MaxFeePerGas         decimal.Decimal // EIP-1559
+		Address     string   `json:"address"`
+		StorageKeys []string `json:"storageKeys"`
+	} `json:"accessList"` // EIP-2930
+	MaxPriorityFeePerGas decimal.Decimal `json:"maxPriorityFeePerGas"` // EIP-1559
+	MaxFeePerGas         decimal.Decimal `json:"maxFeePerGas"`         // EIP-1559
+}
+
+func (t *Tx) parseCallMsg() (map[string]interface{}, error) {
+	accessList := make([]map[string]interface{}, len(t.AccessList))
+	for i, access := range t.AccessList {
+		storageKeys := make([]string, len(access.StorageKeys))
+		for j, key := range access.StorageKeys {
+			storageKeys[j] = key
+		}
+		accessList[i] = map[string]interface{}{
+			"address":     access.Address,
+			"storageKeys": storageKeys,
+		}
+	}
+	if t.From == "" {
+		return nil, ErrFromRequired
+	}
+	if t.To == "" {
+		return nil, ErrToRequired
+	}
+	return map[string]interface{}{
+		"from":       t.From,
+		"nonce":      hexutil.EncodeUint64(t.Nonce),
+		"to":         t.To,
+		"data":       t.Data,
+		"value":      hexutil.EncodeBig(t.Value.BigInt()),
+		"gasLimit":   hexutil.EncodeUint64(t.GasLimit),
+		"accessList": accessList,
+	}, nil
+}
+
+func (t *Tx) checkSendingTx() error {
+	if t.To == "" {
+		return ErrToRequired
+	}
+	if t.GasLimit == 0 {
+		return ErrTxGasLimitZero
+	}
+	if t.GasPrice.IsNegative() {
+		return ErrTxGasPriceZero
+	}
+	if t.MaxFeePerGas.IsNegative() {
+		return ErrTxMaxFeePerGasZero
+	}
+	if t.MaxPriorityFeePerGas.IsNegative() {
+		return ErrTxMaxPriorityFeePerGasZero
+	}
+	if t.Value.IsNegative() {
+		return ErrTxValueLessThanZero
+	}
+	return nil
 }
 
 type SendingTx struct {
@@ -32,6 +84,12 @@ type SendingTx struct {
 }
 
 func NewSendingTx(tx *Tx) (*SendingTx, error) {
+	if err := tx.checkSendingTx(); err != nil {
+		return nil, err
+	}
+	if !tx.GasPrice.IsZero() {
+		return NewLegacyTx(tx)
+	}
 	return NewDynamicFeeTx(tx)
 }
 
