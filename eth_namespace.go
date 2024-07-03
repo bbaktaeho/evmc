@@ -18,6 +18,7 @@ type ethNamespace struct {
 	info clientInfo
 	c    caller
 	s    subscriber
+	ts   transactionSender
 }
 
 func (e *ethNamespace) SubscribeNewHeads(
@@ -92,15 +93,7 @@ func (e *ethNamespace) getStorageAt(
 	numOrTag BlockAndTag,
 ) (string, error) {
 	result := new(string)
-	parsedBT := parseBlockAndTag(numOrTag)
-	if err := e.c.call(
-		ctx,
-		result,
-		ethGetStorageAt,
-		address,
-		position,
-		parsedBT,
-	); err != nil {
+	if err := e.c.call(ctx, result, ethGetStorageAt, address, position, numOrTag.String()); err != nil {
 		return "", err
 	}
 	return *result, nil
@@ -136,8 +129,7 @@ func (e *ethNamespace) getCode(
 	blockAndTag BlockAndTag,
 ) (string, error) {
 	result := new(string)
-	parsedBT := parseBlockAndTag(blockAndTag)
-	if err := e.c.call(ctx, result, ethGetCode, address, parsedBT); err != nil {
+	if err := e.c.call(ctx, result, ethGetCode, address, blockAndTag.String()); err != nil {
 		return "", err
 	}
 	return *result, nil
@@ -219,8 +211,7 @@ func (e *ethNamespace) getBlockByNumber(
 	if number == Pending {
 		return ErrPendingBlockNotSupported
 	}
-	parsedBT := parseBlockAndTag(number)
-	params := []interface{}{parsedBT, incTx}
+	params := []interface{}{number.String(), incTx}
 	if err := e.c.call(ctx, result, ethGetBlockByNumber, params...); err != nil {
 		return err
 	}
@@ -312,8 +303,7 @@ func (e *ethNamespace) GetBalanceWithContext(ctx context.Context, address string
 
 func (e *ethNamespace) getBalance(ctx context.Context, address string, blockAndTag BlockAndTag) (decimal.Decimal, error) {
 	result := new(string)
-	parsedBT := parseBlockAndTag(blockAndTag)
-	if err := e.c.call(ctx, result, ethGetBalance, address, parsedBT); err != nil {
+	if err := e.c.call(ctx, result, ethGetBalance, address, blockAndTag.String()); err != nil {
 		return decimal.Zero, err
 	}
 	if *result == "" {
@@ -399,8 +389,7 @@ func (e *ethNamespace) GetTransactionCountWithContext(
 
 func (e *ethNamespace) getTransactionCount(ctx context.Context, address string, blockAndTag BlockAndTag) (uint64, error) {
 	result := new(string)
-	parsedBT := parseBlockAndTag(blockAndTag)
-	if err := e.c.call(ctx, result, ethGetTransactionCount, address, parsedBT); err != nil {
+	if err := e.c.call(ctx, result, ethGetTransactionCount, address, blockAndTag.String()); err != nil {
 		return 0, err
 	}
 	return hexutil.MustDecodeUint64(*result), nil
@@ -478,31 +467,68 @@ func (e *ethNamespace) sendTransaction(
 	sendingTx *SendingTx,
 	wallet *Wallet,
 ) (string, error) {
-	hash, rawTx, err := wallet.SignTx(sendingTx, e.info.ChainID())
+	_, rawTx, err := wallet.SignTx(sendingTx, e.info.ChainID())
 	if err != nil {
 		return "", err
 	}
-	txHash, err := e.sendRawTransaction(ctx, rawTx)
+	txHash, err := e.ts.sendRawTransaction(ctx, rawTx)
 	if err != nil {
 		return "", err
-	}
-	if hash != txHash {
-		return "", errors.New("transaction hash mismatch")
 	}
 	return txHash, nil
 }
 
 func (e *ethNamespace) SendRawTransaction(rawTx string) (string, error) {
-	return e.sendRawTransaction(context.Background(), rawTx)
+	return e.ts.sendRawTransaction(context.Background(), rawTx)
 }
 
 func (e *ethNamespace) SendRawTransactionWithContext(ctx context.Context, rawTx string) (string, error) {
-	return e.sendRawTransaction(ctx, rawTx)
+	return e.ts.sendRawTransaction(ctx, rawTx)
 }
 
 func (e *ethNamespace) sendRawTransaction(ctx context.Context, rawTx string) (string, error) {
 	result := new(string)
 	if err := e.c.call(ctx, result, ethSendRawTransaction, rawTx); err != nil {
+		return "", err
+	}
+	return *result, nil
+}
+
+func (e *ethNamespace) EstimateGas(tx *Tx) (uint64, error) {
+	return e.estimateGas(context.Background(), tx)
+}
+
+func (e *ethNamespace) EstimateGasWithContext(ctx context.Context, tx *Tx) (uint64, error) {
+	return e.estimateGas(ctx, tx)
+}
+
+func (e *ethNamespace) estimateGas(ctx context.Context, tx *Tx) (uint64, error) {
+	result := new(string)
+	msg, err := tx.parseCallMsg()
+	if err != nil {
+		return 0, err
+	}
+	if err := e.c.call(ctx, result, ethEstimateGas, msg); err != nil {
+		return 0, err
+	}
+	return hexutil.MustDecodeUint64(*result), nil
+}
+
+func (e *ethNamespace) Call(tx *Tx, blockAndTag BlockAndTag) (string, error) {
+	return e.ethCall(context.Background(), tx, blockAndTag)
+}
+
+func (e *ethNamespace) CallWithContext(ctx context.Context, tx *Tx, blockAndTag BlockAndTag) (string, error) {
+	return e.ethCall(ctx, tx, blockAndTag)
+}
+
+func (e *ethNamespace) ethCall(ctx context.Context, tx *Tx, blockAndTag BlockAndTag) (string, error) {
+	result := new(string)
+	msg, err := tx.parseCallMsg()
+	if err != nil {
+		return "", err
+	}
+	if err := e.c.call(ctx, result, ethCall, msg, blockAndTag.String()); err != nil {
 		return "", err
 	}
 	return *result, nil
