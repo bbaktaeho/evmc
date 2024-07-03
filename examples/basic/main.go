@@ -2,9 +2,13 @@ package main
 
 import (
 	"fmt"
+	"math/big"
 
 	"github.com/bbaktaeho/evmc"
+	"github.com/bbaktaeho/evmc/evmcsoltypes"
 	"github.com/bbaktaeho/evmc/evmctypes"
+	"github.com/bbaktaeho/evmc/evmcutils"
+	"github.com/shopspring/decimal"
 )
 
 func nodeInfoExample(client *evmc.Evmc) {
@@ -53,7 +57,7 @@ func blockAndTagExample(client *evmc.Evmc) {
 	if err != nil {
 		panic(err)
 	}
-	archiveBalance, err := client.Eth().GetBalance(evmc.ZeroAddress, evmc.FormatNumber(18000000))
+	archiveBalance, err := client.Eth().GetBalance(evmc.ZeroAddress, evmc.FormatNumber(4000000))
 	if err != nil {
 		panic(err)
 	}
@@ -87,19 +91,42 @@ func transactionAndReceiptExample(client *evmc.Evmc) {
 	}
 	fmt.Println("receipt:", receipt.BlockNumber, receipt.TransactionHash, receipt.Status, receipt.CumulativeGasUsed)
 
-	fromBlock, toBlock := uint64(18000000), uint64(18000001)
+	fromBlock, toBlock := uint64(4000000), uint64(4000001)
 	logs, err := client.Eth().GetLogs(&evmctypes.LogFilter{FromBlock: &fromBlock, ToBlock: &toBlock})
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("logs:", len(logs))
+	fmt.Printf("from: %d, to: %d, logs: %d\n", fromBlock, toBlock, len(logs))
 }
 
-func receiptExample(client *evmc.Evmc) {}
+func callExample(client *evmc.Evmc) {
+	from := "0xBB402D125aC13e86457D7516069B359365Ee6F7e"
+
+	nonce, err := client.Eth().GetTransactionCount(from, evmc.Pending)
+	if err != nil {
+		panic(err)
+	}
+	input, _ := evmcutils.GenerateTxInput(
+		"transfer(address,uint256)",
+		evmcsoltypes.Address("0x0a3f6849f78076aefaDf113F5BED87720274dDC0"),
+		evmcsoltypes.Uint256(decimal.NewFromBigInt(big.NewInt(1), 18)),
+	)
+	tx := &evmc.Tx{
+		From:  from,
+		To:    "0x97AC1b933AA2B4aB14b5f7Cbe9270A2279eb3F21",
+		Nonce: nonce,
+		Data:  input,
+	}
+	gas, err := client.Eth().EstimateGas(tx)
+	if err != nil {
+		fmt.Println("failed to estimate gas:", err)
+	}
+	fmt.Println("gas:", gas)
+}
 
 func main() {
 	// set url to connect to blockchain node
-	client, err := evmc.New("http://localhost:8545")
+	client, err := evmc.New("https://ethereum-sepolia.nodit.io/<api-key>")
 	if err != nil {
 		panic(err)
 	}
@@ -107,4 +134,5 @@ func main() {
 	nodeInfoExample(client)
 	blockAndTagExample(client)
 	transactionAndReceiptExample(client)
+	callExample(client)
 }
