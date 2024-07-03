@@ -13,6 +13,7 @@ type procedure string
 const (
 	web3ClientVersion procedure = "web3_clientVersion"
 
+	ethEstimateGas                   procedure = "eth_estimateGas"
 	ethSendRawTransaction            procedure = "eth_sendRawTransaction"
 	ethMaxPriorityFeePerGas          procedure = "eth_maxPriorityFeePerGas"
 	ethSyncing                       procedure = "eth_syncing"

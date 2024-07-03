@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/bbaktaeho/evmc/evmctypes"
+	"github.com/ethereum/go-ethereum/common/lru"
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/gorilla/websocket"
 )
@@ -38,6 +39,10 @@ type nodeSetter interface {
 	setNode(clientVersion string)
 }
 
+type transactionSender interface {
+	sendRawTransaction(ctx context.Context, rawTx string) (string, error)
+}
+
 type Evmc struct {
 	c           *rpc.Client
 	isWebsocket bool
@@ -55,6 +60,8 @@ type Evmc struct {
 	erc20   *erc20Contract
 	erc721  *erc721Contract
 	erc1155 *erc1155Contract
+
+	abiCache *lru.Cache[string, interface{}]
 }
 
 func httpClient(o *options) *http.Client {
@@ -111,11 +118,11 @@ func newClient(ctx context.Context, url string, isWs bool, opts ...Options) (*Ev
 		return nil, err
 	}
 
-	evmc := &Evmc{c: rpcClient, isWebsocket: isWs}
-	evmc.eth = &ethNamespace{info: evmc, c: evmc, s: evmc}
+	evmc := &Evmc{c: rpcClient, isWebsocket: isWs, abiCache: lru.NewCache[string, interface{}](10)}
+	evmc.eth = &ethNamespace{info: evmc, c: evmc, s: evmc, ts: evmc}
 	evmc.web3 = &web3Namespace{c: evmc, n: evmc}
 	evmc.debug = &debugNamespace{c: evmc}
-	evmc.erc20 = &erc20Contract{c: evmc}
+	evmc.erc20 = &erc20Contract{info: evmc, c: evmc, ts: evmc}
 
 	chainID, err := evmc.eth.ChainID()
 	if err != nil {
@@ -226,6 +233,14 @@ func (e *Evmc) subscribe(
 		return nil, err
 	}
 	return subscription, nil
+}
+
+func (e *Evmc) sendRawTransaction(ctx context.Context, rawTx string) (string, error) {
+	result := new(string)
+	if err := e.call(ctx, result, ethSendRawTransaction, rawTx); err != nil {
+		return "", err
+	}
+	return *result, nil
 }
 
 func (e *Evmc) setNode(cv string) {
