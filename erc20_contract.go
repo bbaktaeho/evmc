@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/bbaktaeho/evmc/evmcsoltypes"
+	"github.com/bbaktaeho/evmc/evmcutils"
 	"github.com/shopspring/decimal"
 )
 
@@ -17,10 +19,16 @@ const (
 	erc20TransferFromSig = "0x23b872dd"
 	erc20ApproveSig      = "0x095ea7b3"
 	erc20AllowanceSig    = "0xdd62ed3e"
+
+	erc20FuncSigTransfer     = "transfer(address,uint256)"
+	erc20FuncSigTransferFrom = "transferFrom(address,address,uint256)"
+	erc20FuncSigApprove      = "approve(address,uint256)"
 )
 
 type erc20Contract struct {
-	c contractCaller
+	info clientInfo
+	c    contractCaller
+	ts   transactionSender
 }
 
 func (e *erc20Contract) Name(tokenAddress string, blockAndTag BlockAndTag) (string, error) {
@@ -51,9 +59,9 @@ func (e *erc20Contract) name(
 	); err != nil {
 		return "", err
 	}
-	name, err := parseSolStringToString(*result)
+	name, err := evmcsoltypes.ParseSolStringToString(*result)
 	if err != nil {
-		return parseSolFixedBytesToString(*result)
+		return evmcsoltypes.ParseSolBytesToString(*result)
 	}
 	return name, nil
 }
@@ -86,9 +94,9 @@ func (e *erc20Contract) symbol(
 	); err != nil {
 		return "", err
 	}
-	symbol, err := parseSolStringToString(*result)
+	symbol, err := evmcsoltypes.ParseSolStringToString(*result)
 	if err != nil {
-		return parseSolFixedBytesToString(*result)
+		return evmcsoltypes.ParseSolBytesToString(*result)
 	}
 	return symbol, nil
 }
@@ -121,7 +129,7 @@ func (e *erc20Contract) totalSupply(
 	); err != nil {
 		return decimal.Zero, err
 	}
-	return parseSolUintToDecimal(*result)
+	return evmcsoltypes.ParseSolUintToDecimal(*result)
 }
 
 func (e *erc20Contract) Decimals(tokenAddress string, blockAndTag BlockAndTag) (decimal.Decimal, error) {
@@ -152,12 +160,58 @@ func (e *erc20Contract) decimals(
 	); err != nil {
 		return decimal.Zero, err
 	}
-	return parseSolUintToDecimal(*result)
+	return evmcsoltypes.ParseSolUintToDecimal(*result)
 }
 
-func (e *erc20Contract) Approve() {}
+func (e *erc20Contract) Approve(tx *Tx, wallet *Wallet, spender string, amount decimal.Decimal) {}
 
-func (e *erc20Contract) Transfer() {}
+// TODO: check gas price and base fee
+func (e *erc20Contract) Transfer(tx *Tx, wallet *Wallet, recipient string, amount decimal.Decimal) (string, error) {
+	return e.transfer(context.Background(), tx, wallet, recipient, amount)
+}
+
+func (e *erc20Contract) TransferWithContext(
+	ctx context.Context,
+	tx *Tx,
+	wallet *Wallet,
+	recipient string,
+	amount decimal.Decimal,
+) (string, error) {
+	return e.transfer(ctx, tx, wallet, recipient, amount)
+}
+
+func (e *erc20Contract) transfer(
+	ctx context.Context,
+	tx *Tx,
+	wallet *Wallet,
+	recipient string,
+	amount decimal.Decimal,
+) (string, error) {
+	if tx == nil {
+		return "", ErrTxRequired
+	}
+	if wallet == nil {
+		return "", ErrWalletRequired
+	}
+	if err := tx.checkSendingTx(); err != nil {
+		return "", err
+	}
+	input, _ := evmcutils.GenerateTxInput(
+		erc20FuncSigTransfer,
+		evmcsoltypes.Address(recipient),
+		evmcsoltypes.Uint256(amount),
+	)
+	tx.Data = input
+	sendingTx, err := NewSendingTx(tx)
+	if err != nil {
+		return "", err
+	}
+	_, rawTx, err := wallet.SignTx(sendingTx, e.info.ChainID())
+	if err != nil {
+		return "", err
+	}
+	return e.ts.sendRawTransaction(ctx, rawTx)
+}
 
 func (e *erc20Contract) TransferFrom() {}
 
@@ -194,7 +248,7 @@ func (e *erc20Contract) balanceOf(
 	); err != nil {
 		return decimal.Zero, err
 	}
-	return parseSolUintToDecimal(*result)
+	return evmcsoltypes.ParseSolUintToDecimal(*result)
 }
 
 func (e *erc20Contract) Allowance(
@@ -240,5 +294,5 @@ func (e *erc20Contract) allowance(
 	); err != nil {
 		return decimal.Zero, err
 	}
-	return parseSolUintToDecimal(*result)
+	return evmcsoltypes.ParseSolUintToDecimal(*result)
 }
