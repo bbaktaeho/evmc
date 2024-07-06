@@ -41,7 +41,7 @@ func (t *Tx) parseCallMsg() (map[string]interface{}, error) {
 		}
 	}
 	if t.From == "" {
-		return nil, ErrFromRequired
+		// return nil, ErrFromRequired
 	}
 	if t.To == "" {
 		return nil, ErrToRequired
