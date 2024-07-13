@@ -40,9 +40,6 @@ func (t *Tx) parseCallMsg() (map[string]interface{}, error) {
 			"storageKeys": storageKeys,
 		}
 	}
-	if t.From == "" {
-		// return nil, ErrFromRequired
-	}
 	if t.To == "" {
 		return nil, ErrToRequired
 	}

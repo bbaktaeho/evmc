@@ -508,6 +508,10 @@ func (e *ethNamespace) estimateGas(ctx context.Context, tx *Tx) (uint64, error) 
 	if err != nil {
 		return 0, err
 	}
+	// gas estimation requires from field
+	if msg["from"] == "" {
+		return 0, ErrFromRequired
+	}
 	if err := e.c.call(ctx, result, ethEstimateGas, msg); err != nil {
 		return 0, err
 	}
