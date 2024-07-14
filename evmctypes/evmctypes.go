@@ -91,6 +91,12 @@ type Access struct {
 	StorageKeys []string `json:"storageKeys" validate:"required"`
 }
 
+type AccessListResp struct {
+	AccessList []*Access `json:"accessList"`
+	Error      *string   `json:"error,omitempty"`
+	GasUsed    string    `json:"gasUsed"`
+}
+
 type Receipt struct {
 	BlockHash         string  `json:"blockHash" validate:"required"`
 	BlockNumber       uint64  `json:"blockNumber" validate:"-"`
@@ -143,6 +149,10 @@ type LogFilter struct {
 	ToBlock   *uint64  `json:"toBlock,omitempty"`
 	Address   *string  `json:"address,omitempty"`
 	Topics    []string `json:"topics,omitempty"`
+}
+
+type FeeHistory struct {
+	feeHistory
 }
 
 type SubLog struct {
