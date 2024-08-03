@@ -12,8 +12,8 @@ import (
 // TODO: get uncle block
 // TODO: batch call
 // TODO: describe custom functions
-// TODO: subscription pending transaction details
-// TODO: filter changes
+// TODO: eth_new... & filter
+// TODO: eth_syncing
 
 type ethNamespace struct {
 	info clientInfo
@@ -359,17 +359,17 @@ func (e *ethNamespace) getBlockByHash(ctx context.Context, result interface{}, h
 	return nil
 }
 
-func (e *ethNamespace) GetTransaction(hash string) (*evmctypes.Transaction, error) {
-	return e.getTransaction(context.Background(), hash)
+func (e *ethNamespace) GetTransactionByHash(hash string) (*evmctypes.Transaction, error) {
+	return e.getTransactionByHash(context.Background(), hash)
 }
 
-func (e *ethNamespace) GetTransactionWithContext(ctx context.Context, hash string) (*evmctypes.Transaction, error) {
-	return e.getTransaction(ctx, hash)
+func (e *ethNamespace) GetTransactionByHashWithContext(ctx context.Context, hash string) (*evmctypes.Transaction, error) {
+	return e.getTransactionByHash(ctx, hash)
 }
 
-func (e *ethNamespace) getTransaction(ctx context.Context, hash string) (*evmctypes.Transaction, error) {
+func (e *ethNamespace) getTransactionByHash(ctx context.Context, hash string) (*evmctypes.Transaction, error) {
 	tx := new(evmctypes.Transaction)
-	if err := e.c.call(ctx, tx, ethGetTransaction, hash); err != nil {
+	if err := e.c.call(ctx, tx, ethGetTransactionByHash, hash); err != nil {
 		return nil, err
 	}
 	return tx, nil
