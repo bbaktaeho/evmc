@@ -79,7 +79,7 @@ func blockAndTagExample(client *evmc.Evmc) {
 }
 
 func transactionAndReceiptExample(client *evmc.Evmc) {
-	transaction, err := client.Eth().GetTransaction("0x0bf219063db8f75ba381c6b67d7f0f40e0e1d2b40f92725324b11e4ad72a5dab")
+	transaction, err := client.Eth().GetTransactionByHash("0x0bf219063db8f75ba381c6b67d7f0f40e0e1d2b40f92725324b11e4ad72a5dab")
 	if err != nil {
 		panic(err)
 	}

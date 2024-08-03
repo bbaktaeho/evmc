@@ -130,13 +130,11 @@ func newClient(ctx context.Context, url string, isWs bool, opts ...Options) (*Ev
 	}
 	evmc.chainID = chainID
 
-	// cv, err := evmc.web3.ClientVersion()
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// cvarr := strings.Split(cv, "/")
-	// evmc.nodeName = ClientName(cvarr[0])
-	// evmc.nodeVersion = cvarr[1]
+	nodeClient, err := evmc.web3.ClientVersion()
+	if err != nil {
+		return nil, err
+	}
+	evmc.setNode(nodeClient)
 
 	return evmc, nil
 }

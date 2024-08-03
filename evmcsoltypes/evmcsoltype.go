@@ -11,24 +11,26 @@ import (
 )
 
 var (
-	solInt, _        = abi.NewType("int256", "", nil)
-	solUint, _       = abi.NewType("uint256", "", nil)
-	solString, _     = abi.NewType("string", "", nil)
-	solBool, _       = abi.NewType("bool", "", nil)
-	solFixedBytes, _ = abi.NewType("bytes32", "", nil)
-	solBytes, _      = abi.NewType("bytes", "", nil)
-	solAddress, _    = abi.NewType("address", "", nil)
-	solUint64Arr, _  = abi.NewType("uint64[]", "", nil)
-	solAddressArr, _ = abi.NewType("address[]", "", nil)
+	solInt, _           = abi.NewType("int256", "", nil)
+	solUint, _          = abi.NewType("uint256", "", nil)
+	solString, _        = abi.NewType("string", "", nil)
+	solBool, _          = abi.NewType("bool", "", nil)
+	solFixedBytes, _    = abi.NewType("bytes32", "", nil)
+	solBytes, _         = abi.NewType("bytes", "", nil)
+	solAddress, _       = abi.NewType("address", "", nil)
+	solUint64Arr, _     = abi.NewType("uint64[]", "", nil)
+	solFiexdBytesArr, _ = abi.NewType("bytes32[]", "", nil)
+	solAddressArr, _    = abi.NewType("address[]", "", nil)
 
-	solUint256Args    = abi.Arguments{{Type: solUint}}
-	solStringArgs     = abi.Arguments{{Type: solString}}
-	solBoolArgs       = abi.Arguments{{Type: solBool}}
-	solBytesArgs      = abi.Arguments{{Type: solBytes}}
-	solFixedBytesArgs = abi.Arguments{{Type: solFixedBytes}}
-	solAddressArgs    = abi.Arguments{{Type: solAddress}}
-	solUint64ArrArgs  = abi.Arguments{{Type: solUint64Arr}}
-	solAddressArrArgs = abi.Arguments{{Type: solAddressArr}}
+	solUint256Args       = abi.Arguments{{Type: solUint}}
+	solStringArgs        = abi.Arguments{{Type: solString}}
+	solBoolArgs          = abi.Arguments{{Type: solBool}}
+	solBytesArgs         = abi.Arguments{{Type: solBytes}}
+	solFixedBytesArgs    = abi.Arguments{{Type: solFixedBytes}}
+	solAddressArgs       = abi.Arguments{{Type: solAddress}}
+	solUint64ArrArgs     = abi.Arguments{{Type: solUint64Arr}}
+	solFiexdBytesArrArgs = abi.Arguments{{Type: solFiexdBytesArr}}
+	solAddressArrArgs    = abi.Arguments{{Type: solAddressArr}}
 )
 
 type SolType interface{}

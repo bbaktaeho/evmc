@@ -12,7 +12,8 @@ import (
 // TODO: get uncle block
 // TODO: batch call
 // TODO: describe custom functions
-// TODO: subscription pending transaction details
+// TODO: eth_new... & filter
+// TODO: eth_syncing
 
 type ethNamespace struct {
 	info clientInfo
@@ -51,6 +52,103 @@ func (e *ethNamespace) subscribe(ctx context.Context, ch interface{}, args ...in
 		return nil, ErrWebsocketRequired
 	}
 	return e.s.subscribe(ctx, "eth", ch, args...)
+}
+
+// BlobBaseFee returns the base fee per gas for the next block in the current block.
+func (e *ethNamespace) BlobBaseFee() (decimal.Decimal, error) {
+	return e.blobBaseFee(context.Background())
+}
+
+// BlobBaseFeeWithContext returns the base fee per gas for the next block in the current block.
+func (e *ethNamespace) BlobBaseFeeWithContext(ctx context.Context) (decimal.Decimal, error) {
+	return e.blobBaseFee(ctx)
+}
+
+func (e *ethNamespace) blobBaseFee(ctx context.Context) (decimal.Decimal, error) {
+	result := new(string)
+	if err := e.c.call(ctx, result, ethBlobBaseFee); err != nil {
+		return decimal.Zero, err
+	}
+	return decimal.NewFromBigInt(hexutil.MustDecodeBig(*result), 0), nil
+}
+
+func (e *ethNamespace) CreateAccessList(tx *Tx) (*evmctypes.AccessListResp, error) {
+	return e.createAccessList(context.Background(), tx)
+}
+
+func (e *ethNamespace) CreateAccessListWithContext(ctx context.Context, tx *Tx) (*evmctypes.AccessListResp, error) {
+	return e.createAccessList(ctx, tx)
+}
+
+func (e *ethNamespace) createAccessList(ctx context.Context, tx *Tx) (*evmctypes.AccessListResp, error) {
+	msg, err := tx.parseCallMsg()
+	if err != nil {
+		return nil, err
+	}
+	result := new(evmctypes.AccessListResp)
+	if err := e.c.call(ctx, result, ethCreateAccessList, msg); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (e *ethNamespace) FeeHistory(blockCount uint64, lastBlock BlockAndTag, rewardPercentiles []float64) (*evmctypes.FeeHistory, error) {
+	return e.feeHistory(context.Background(), blockCount, lastBlock, rewardPercentiles)
+}
+
+func (e *ethNamespace) FeeHistoryWithContext(
+	ctx context.Context,
+	blockCount uint64,
+	lastBlock BlockAndTag,
+	rewardPercentiles []float64,
+) (*evmctypes.FeeHistory, error) {
+	return e.feeHistory(ctx, blockCount, lastBlock, rewardPercentiles)
+}
+
+func (e *ethNamespace) feeHistory(
+	ctx context.Context,
+	blockCount uint64,
+	lastBlock BlockAndTag,
+	rewardPercentiles []float64,
+) (*evmctypes.FeeHistory, error) {
+	result := new(evmctypes.FeeHistory)
+	params := []interface{}{hexutil.EncodeUint64(blockCount), lastBlock.String(), rewardPercentiles}
+	if err := e.c.call(ctx, result, ethFeeHistory, params...); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (e *ethNamespace) BlockTransactionCountByHash(hash string) (uint64, error) {
+	return e.blockTransactionCountByHash(context.Background(), hash)
+}
+
+func (e *ethNamespace) BlockTransactionCountByHashWithContext(ctx context.Context, hash string) (uint64, error) {
+	return e.blockTransactionCountByHash(ctx, hash)
+}
+
+func (e *ethNamespace) blockTransactionCountByHash(ctx context.Context, hash string) (uint64, error) {
+	result := new(string)
+	if err := e.c.call(ctx, result, ethGetBlockTransactionCountByHash, hash); err != nil {
+		return 0, err
+	}
+	return hexutil.MustDecodeUint64(*result), nil
+}
+
+func (e *ethNamespace) BlockTransactionCountByNumber(number uint64) (uint64, error) {
+	return e.blockTransactionCountByNumber(context.Background(), number)
+}
+
+func (e *ethNamespace) BlockTransactionCountByNumberWithContext(ctx context.Context, number uint64) (uint64, error) {
+	return e.blockTransactionCountByNumber(ctx, number)
+}
+
+func (e *ethNamespace) blockTransactionCountByNumber(ctx context.Context, number uint64) (uint64, error) {
+	result := new(string)
+	if err := e.c.call(ctx, result, ethGetBlockTransactionCountByNumber, FormatNumber(number)); err != nil {
+		return 0, err
+	}
+	return hexutil.MustDecodeUint64(*result), nil
 }
 
 func (e *ethNamespace) ChainID() (uint64, error) {
@@ -261,17 +359,17 @@ func (e *ethNamespace) getBlockByHash(ctx context.Context, result interface{}, h
 	return nil
 }
 
-func (e *ethNamespace) GetTransaction(hash string) (*evmctypes.Transaction, error) {
-	return e.getTransaction(context.Background(), hash)
+func (e *ethNamespace) GetTransactionByHash(hash string) (*evmctypes.Transaction, error) {
+	return e.getTransactionByHash(context.Background(), hash)
 }
 
-func (e *ethNamespace) GetTransactionWithContext(ctx context.Context, hash string) (*evmctypes.Transaction, error) {
-	return e.getTransaction(ctx, hash)
+func (e *ethNamespace) GetTransactionByHashWithContext(ctx context.Context, hash string) (*evmctypes.Transaction, error) {
+	return e.getTransactionByHash(ctx, hash)
 }
 
-func (e *ethNamespace) getTransaction(ctx context.Context, hash string) (*evmctypes.Transaction, error) {
+func (e *ethNamespace) getTransactionByHash(ctx context.Context, hash string) (*evmctypes.Transaction, error) {
 	tx := new(evmctypes.Transaction)
-	if err := e.c.call(ctx, tx, ethGetTransaction, hash); err != nil {
+	if err := e.c.call(ctx, tx, ethGetTransactionByHash, hash); err != nil {
 		return nil, err
 	}
 	return tx, nil
