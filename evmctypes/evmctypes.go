@@ -274,9 +274,9 @@ type Balance struct {
 }
 
 type ContractCallParams struct {
-	To       string `json:"to"`
-	Data     string `json:"data"`
-	NumOrTag interface{}
+	To       string      `json:"to"`
+	Data     string      `json:"data"`
+	NumOrTag interface{} `json:"omitempty"`
 }
 
 type ContractCallResp struct {
