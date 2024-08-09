@@ -28,7 +28,7 @@ const (
 
 type erc20Contract struct {
 	info clientInfo
-	c    contractCaller
+	c    caller
 	ts   transactionSender
 }
 
@@ -49,20 +49,19 @@ func (e *erc20Contract) name(
 	tokenAddress string,
 	blockAndTag evmctypes.BlockAndTag,
 ) (string, error) {
-	result := new(string)
-	parseBT := evmctypes.ParseBlockAndTag(blockAndTag)
-	if err := e.c.contractCall(
-		ctx,
-		result,
-		tokenAddress,
-		erc20NameSig,
-		parseBT,
-	); err != nil {
+	var (
+		result = new(string)
+		params = []interface{}{
+			&evmctypes.QueryParams{To: tokenAddress, Data: erc20NameSig},
+			evmctypes.ParseBlockAndTag(blockAndTag),
+		}
+	)
+	if err := e.c.call(ctx, result, ethCall, params...); err != nil {
 		return "", err
 	}
 	name, err := evmcsoltypes.ParseSolStringToString(*result)
 	if err != nil {
-		return evmcsoltypes.ParseSolBytesToString(*result)
+		return evmcsoltypes.ParseSolFixedBytesToString(*result)
 	}
 	return name, nil
 }
@@ -84,20 +83,19 @@ func (e *erc20Contract) symbol(
 	tokenAddress string,
 	blockAndTag evmctypes.BlockAndTag,
 ) (string, error) {
-	result := new(string)
-	parsedBT := evmctypes.ParseBlockAndTag(blockAndTag)
-	if err := e.c.contractCall(
-		ctx,
-		result,
-		tokenAddress,
-		erc20SymbolSig,
-		parsedBT,
-	); err != nil {
+	var (
+		result = new(string)
+		params = []interface{}{
+			evmctypes.QueryParams{To: tokenAddress, Data: erc20SymbolSig},
+			evmctypes.ParseBlockAndTag(blockAndTag),
+		}
+	)
+	if err := e.c.call(ctx, result, ethCall, params...); err != nil {
 		return "", err
 	}
 	symbol, err := evmcsoltypes.ParseSolStringToString(*result)
 	if err != nil {
-		return evmcsoltypes.ParseSolBytesToString(*result)
+		return evmcsoltypes.ParseSolFixedBytesToString(*result)
 	}
 	return symbol, nil
 }
@@ -119,15 +117,14 @@ func (e *erc20Contract) totalSupply(
 	tokenAddress string,
 	blockAndTag evmctypes.BlockAndTag,
 ) (decimal.Decimal, error) {
-	result := new(string)
-	parsedBT := evmctypes.ParseBlockAndTag(blockAndTag)
-	if err := e.c.contractCall(
-		ctx,
-		result,
-		tokenAddress,
-		erc20TotalSupplySig,
-		parsedBT,
-	); err != nil {
+	var (
+		result = new(string)
+		params = []interface{}{
+			evmctypes.QueryParams{To: tokenAddress, Data: erc20TotalSupplySig},
+			evmctypes.ParseBlockAndTag(blockAndTag),
+		}
+	)
+	if err := e.c.call(ctx, result, ethCall, params...); err != nil {
 		return decimal.Zero, err
 	}
 	return evmcsoltypes.ParseSolUintToDecimal(*result)
@@ -150,15 +147,14 @@ func (e *erc20Contract) decimals(
 	tokenAddress string,
 	blockAndTag evmctypes.BlockAndTag,
 ) (decimal.Decimal, error) {
-	result := new(string)
-	parsedBT := evmctypes.ParseBlockAndTag(blockAndTag)
-	if err := e.c.contractCall(
-		ctx,
-		result,
-		tokenAddress,
-		erc20DecimalsSig,
-		parsedBT,
-	); err != nil {
+	var (
+		result = new(string)
+		params = []interface{}{
+			evmctypes.QueryParams{To: tokenAddress, Data: erc20DecimalsSig},
+			evmctypes.ParseBlockAndTag(blockAndTag),
+		}
+	)
+	if err := e.c.call(ctx, result, ethCall, params...); err != nil {
 		return decimal.Zero, err
 	}
 	return evmcsoltypes.ParseSolUintToDecimal(*result)
@@ -238,15 +234,14 @@ func (e *erc20Contract) balanceOf(
 	if owner[:2] == "0x" {
 		owner = owner[2:]
 	}
-	result := new(string)
-	parsedBT := evmctypes.ParseBlockAndTag(blockAndTag)
-	if err := e.c.contractCall(
-		ctx,
-		result,
-		tokenAddress,
-		fmt.Sprintf("%s%064s", erc20BalanceOfSig, owner),
-		parsedBT,
-	); err != nil {
+	var (
+		result = new(string)
+		params = []interface{}{
+			evmctypes.QueryParams{To: tokenAddress, Data: fmt.Sprintf("%s%064s", erc20BalanceOfSig, owner)},
+			evmctypes.ParseBlockAndTag(blockAndTag),
+		}
+	)
+	if err := e.c.call(ctx, result, ethCall, params...); err != nil {
 		return decimal.Zero, err
 	}
 	return evmcsoltypes.ParseSolUintToDecimal(*result)
@@ -284,15 +279,14 @@ func (e *erc20Contract) allowance(
 	if spender[:2] == "0x" {
 		spender = spender[2:]
 	}
-	result := new(string)
-	parsedBT := evmctypes.ParseBlockAndTag(blockAndTag)
-	if err := e.c.contractCall(
-		ctx,
-		result,
-		tokenAddress,
-		fmt.Sprintf("%s%064s%064s", erc20AllowanceSig, owner, spender),
-		parsedBT,
-	); err != nil {
+	var (
+		result = new(string)
+		params = []interface{}{
+			evmctypes.QueryParams{To: tokenAddress, Data: fmt.Sprintf("%s%064s%064s", erc20AllowanceSig, owner, spender)},
+			evmctypes.ParseBlockAndTag(blockAndTag),
+		}
+	)
+	if err := e.c.call(ctx, result, ethCall, params...); err != nil {
 		return decimal.Zero, err
 	}
 	return evmcsoltypes.ParseSolUintToDecimal(*result)

@@ -25,11 +25,7 @@ type clientInfo interface {
 
 type caller interface {
 	call(ctx context.Context, result interface{}, method procedure, params ...interface{}) error
-	// batchCall(ctx context.Context, elements []rpc.BatchElem) error
-}
-
-type contractCaller interface {
-	contractCall(ctx context.Context, result interface{}, contract, data, parsedNumOrTag string) error
+	batchCall(ctx context.Context, elements []rpc.BatchElem) error
 }
 
 type subscriber interface {
@@ -194,26 +190,6 @@ func (e *Evmc) ERC1155() *erc1155Contract {
 }
 
 // func (e *Evmc) Ots() {}
-
-func (e *Evmc) contractCall(
-	ctx context.Context,
-	result interface{},
-	contract string,
-	data string,
-	parsedNumOrTag string,
-) error {
-	params := []interface{}{
-		evmctypes.QueryParams{
-			To:   contract,
-			Data: data,
-		},
-		parsedNumOrTag,
-	}
-	if err := e.call(ctx, result, ethCall, params...); err != nil {
-		return err
-	}
-	return nil
-}
 
 func (e *Evmc) call(
 	ctx context.Context,

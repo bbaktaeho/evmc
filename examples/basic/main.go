@@ -126,7 +126,7 @@ func callExample(client *evmc.Evmc) {
 
 func main() {
 	// set url to connect to blockchain node
-	client, err := evmc.New("http://10.20.3.48:8545")
+	client, err := evmc.New("https://ethereum-mainnet.nodit.io/<api-key>")
 	if err != nil {
 		panic(err)
 	}

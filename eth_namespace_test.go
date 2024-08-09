@@ -9,7 +9,7 @@ import (
 )
 
 func testEvmc() *Evmc {
-	rpcURL := "https://ethereum-mainnet.nodit.io/GFmKSckrZadkyloR~v0FTPqDpFy6-ZSZ"
+	rpcURL := "https://ethereum-mainnet.nodit.io/<api-key>"
 	client, err := New(rpcURL)
 	if err != nil {
 		panic(err)

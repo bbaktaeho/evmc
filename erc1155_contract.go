@@ -12,5 +12,5 @@ const (
 )
 
 type erc1155Contract struct {
-	c contractCaller
+	c caller
 }
