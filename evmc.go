@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"sync"
 
 	"github.com/bbaktaeho/evmc/evmctypes"
 	"github.com/ethereum/go-ethereum/common/lru"
@@ -47,9 +48,10 @@ type Evmc struct {
 	c           *rpc.Client
 	isWebsocket bool
 
-	chainID     uint64
-	nodeName    ClientName
-	nodeVersion string
+	chainID       uint64
+	nodeName      ClientName
+	nodeVersion   string
+	maxBatchItems int
 
 	eth   *ethNamespace
 	web3  *web3Namespace
@@ -118,7 +120,12 @@ func newClient(ctx context.Context, url string, isWs bool, opts ...Options) (*Ev
 		return nil, err
 	}
 
-	evmc := &Evmc{c: rpcClient, isWebsocket: isWs, abiCache: lru.NewCache[string, interface{}](10)}
+	evmc := &Evmc{
+		c:             rpcClient,
+		isWebsocket:   isWs,
+		abiCache:      lru.NewCache[string, interface{}](10),
+		maxBatchItems: o.maxBatchItems,
+	}
 	evmc.eth = &ethNamespace{info: evmc, c: evmc, s: evmc, ts: evmc}
 	evmc.web3 = &web3Namespace{c: evmc, n: evmc}
 	evmc.debug = &debugNamespace{c: evmc}
@@ -196,7 +203,7 @@ func (e *Evmc) contractCall(
 	parsedNumOrTag string,
 ) error {
 	params := []interface{}{
-		evmctypes.ContractCallParams{
+		evmctypes.QueryParams{
 			To:   contract,
 			Data: data,
 		},
@@ -216,6 +223,48 @@ func (e *Evmc) call(
 ) error {
 	if err := e.c.CallContext(ctx, result, method.String(), params...); err != nil {
 		return err
+	}
+	return nil
+}
+
+func (e *Evmc) batchCall(ctx context.Context, elements []rpc.BatchElem) error {
+	var (
+		size      = len(elements)
+		loopCount = size / e.maxBatchItems
+		wg        = new(sync.WaitGroup)
+		errCh     = make(chan error)
+		errs      = make([]error, 0, 1)
+	)
+	if size%e.maxBatchItems != 0 {
+		loopCount++
+	}
+	go func() {
+		for e := range errCh {
+			errs = append(errs, e)
+		}
+	}()
+	for i := 0; i < loopCount; i++ {
+		low := e.maxBatchItems * i
+		high := e.maxBatchItems * (i + 1)
+		if high > size {
+			high = size
+		}
+		div := elements[low:high]
+
+		wg.Add(1)
+		go func(subElements []rpc.BatchElem) {
+			defer wg.Done()
+
+			if err := e.c.BatchCallContext(ctx, subElements); err != nil {
+				errCh <- err
+			}
+		}(div)
+	}
+	wg.Wait()
+	close(errCh)
+
+	if len(errs) > 0 {
+		return errs[0]
 	}
 	return nil
 }

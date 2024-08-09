@@ -273,13 +273,13 @@ type Balance struct {
 	Value   decimal.Decimal `json:"value"`
 }
 
-type ContractCallParams struct {
+type QueryParams struct {
 	To       string      `json:"to"`
 	Data     string      `json:"data"`
-	NumOrTag interface{} `json:"omitempty"`
+	NumOrTag BlockAndTag `json:"-"`
 }
 
-type ContractCallResp struct {
+type QueryResp struct {
 	To     string
 	Data   string
 	Result string

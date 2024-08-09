@@ -5,6 +5,7 @@ import (
 	"math/big"
 
 	"github.com/bbaktaeho/evmc"
+	"github.com/bbaktaeho/evmc/evmctypes"
 	"github.com/shopspring/decimal"
 )
 
@@ -19,7 +20,7 @@ func main() {
 		panic(err)
 	}
 
-	block, err := client.Eth().GetBlockByTag(evmc.Latest)
+	block, err := client.Eth().GetBlockByTag(evmctypes.Latest)
 	if err != nil {
 		panic(err)
 	}
@@ -30,7 +31,7 @@ func main() {
 		panic(err)
 	}
 
-	nonce, err := client.Eth().GetTransactionCount(wallet.Address(), evmc.Pending)
+	nonce, err := client.Eth().GetTransactionCount(wallet.Address(), evmctypes.Pending)
 	if err != nil {
 		panic(err)
 	}
@@ -64,7 +65,7 @@ func main() {
 		panic(err)
 	}
 
-	nonce, err = client.Eth().GetTransactionCount(wallet.Address(), evmc.Pending)
+	nonce, err = client.Eth().GetTransactionCount(wallet.Address(), evmctypes.Pending)
 	if err != nil {
 		panic(err)
 	}

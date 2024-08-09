@@ -1,4 +1,4 @@
-package evmc
+package evmctypes
 
 import (
 	"reflect"
@@ -24,7 +24,7 @@ func FormatNumber(number uint64) BlockAndTag {
 	return BlockAndTag(hexutil.EncodeUint64(number))
 }
 
-func parseBlockAndTag(blockAndTag interface{}) string {
+func ParseBlockAndTag(blockAndTag interface{}) string {
 	if reflect.TypeOf(blockAndTag).Kind() != reflect.String {
 		return Latest.String()
 	}

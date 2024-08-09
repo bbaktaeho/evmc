@@ -7,45 +7,46 @@ import (
 	"time"
 
 	"github.com/bbaktaeho/evmc"
+	"github.com/bbaktaeho/evmc/evmctypes"
 	"github.com/shopspring/decimal"
 )
 
 func viewExample(client *evmc.Evmc) {
-	name, err := client.ERC20().Name("0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2", evmc.Latest)
+	name, err := client.ERC20().Name("0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2", evmctypes.Latest)
 	if err != nil {
 		panic(err)
 	}
 	fmt.Println(name)
 
-	symbol, err := client.ERC20().Symbol("0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2", evmc.Latest)
+	symbol, err := client.ERC20().Symbol("0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2", evmctypes.Latest)
 	if err != nil {
 		panic(err)
 	}
 	fmt.Println(symbol)
 
-	totalSupply, err := client.ERC20().TotalSupply("0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2", evmc.Latest)
+	totalSupply, err := client.ERC20().TotalSupply("0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2", evmctypes.Latest)
 	if err != nil {
 		panic(err)
 	}
 	fmt.Println(totalSupply.String())
 
-	decimals, err := client.ERC20().Decimals("0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2", evmc.Latest)
+	decimals, err := client.ERC20().Decimals("0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2", evmctypes.Latest)
 	if err != nil {
 		panic(err)
 	}
 	fmt.Println(decimals.String())
 
-	balance1, err := client.ERC20().BalanceOf("0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2", "0x0a3f6849f78076aefaDf113F5BED87720274dDC0", evmc.Latest)
+	balance1, err := client.ERC20().BalanceOf("0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2", "0x0a3f6849f78076aefaDf113F5BED87720274dDC0", evmctypes.Latest)
 	if err != nil {
 		panic(err)
 	}
-	balance2, err := client.ERC20().BalanceOf("0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2", "0x0a3f6849f78076aefaDf113F5BED87720274dDC0", evmc.FormatNumber(18000000))
+	balance2, err := client.ERC20().BalanceOf("0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2", "0x0a3f6849f78076aefaDf113F5BED87720274dDC0", evmctypes.FormatNumber(18000000))
 	if err != nil {
 		panic(err)
 	}
 	fmt.Println(balance1.String(), balance2.String())
 
-	allowance, err := client.ERC20().Allowance("0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2", "0x0a3f6849f78076aefaDf113F5BED87720274dDC0", "0x0a3f6849f78076aefaDf113F5BED87720274dDC0", evmc.Latest)
+	allowance, err := client.ERC20().Allowance("0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2", "0x0a3f6849f78076aefaDf113F5BED87720274dDC0", "0x0a3f6849f78076aefaDf113F5BED87720274dDC0", evmctypes.Latest)
 	if err != nil {
 		panic(err)
 	}
@@ -53,7 +54,7 @@ func viewExample(client *evmc.Evmc) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Nanosecond)
 	defer cancel()
-	_, err = client.ERC20().NameWithContext(ctx, "0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2", evmc.Latest)
+	_, err = client.ERC20().NameWithContext(ctx, "0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2", evmctypes.Latest)
 	if err != nil {
 		// context deadline exceeded
 		fmt.Println(err.Error())
@@ -75,13 +76,13 @@ func transferExample(client *evmc.Evmc) {
 		panic(err)
 	}
 
-	n, err := client.Eth().GetTransactionCount(wallet.Address(), evmc.Pending)
+	n, err := client.Eth().GetTransactionCount(wallet.Address(), evmctypes.Pending)
 	if err != nil {
 		panic(err)
 	}
 	nonce = n
 
-	block, err := client.Eth().GetBlockByTag(evmc.Latest)
+	block, err := client.Eth().GetBlockByTag(evmctypes.Latest)
 	if err != nil {
 		panic(err)
 	}

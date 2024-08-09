@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/bbaktaeho/evmc/evmcsoltypes"
+	"github.com/bbaktaeho/evmc/evmctypes"
 	"github.com/bbaktaeho/evmc/evmcutils"
 	"github.com/shopspring/decimal"
 )
@@ -31,14 +32,14 @@ type erc20Contract struct {
 	ts   transactionSender
 }
 
-func (e *erc20Contract) Name(tokenAddress string, blockAndTag BlockAndTag) (string, error) {
+func (e *erc20Contract) Name(tokenAddress string, blockAndTag evmctypes.BlockAndTag) (string, error) {
 	return e.name(context.Background(), tokenAddress, blockAndTag)
 }
 
 func (e *erc20Contract) NameWithContext(
 	ctx context.Context,
 	tokenAddress string,
-	blockAndTag BlockAndTag,
+	blockAndTag evmctypes.BlockAndTag,
 ) (string, error) {
 	return e.name(ctx, tokenAddress, blockAndTag)
 }
@@ -46,10 +47,10 @@ func (e *erc20Contract) NameWithContext(
 func (e *erc20Contract) name(
 	ctx context.Context,
 	tokenAddress string,
-	blockAndTag BlockAndTag,
+	blockAndTag evmctypes.BlockAndTag,
 ) (string, error) {
 	result := new(string)
-	parseBT := parseBlockAndTag(blockAndTag)
+	parseBT := evmctypes.ParseBlockAndTag(blockAndTag)
 	if err := e.c.contractCall(
 		ctx,
 		result,
@@ -66,14 +67,14 @@ func (e *erc20Contract) name(
 	return name, nil
 }
 
-func (e *erc20Contract) Symbol(tokenAddress string, blockAndTag BlockAndTag) (string, error) {
+func (e *erc20Contract) Symbol(tokenAddress string, blockAndTag evmctypes.BlockAndTag) (string, error) {
 	return e.symbol(context.Background(), tokenAddress, blockAndTag)
 }
 
 func (e *erc20Contract) SymbolWithContext(
 	ctx context.Context,
 	tokenAddress string,
-	blockAndTag BlockAndTag,
+	blockAndTag evmctypes.BlockAndTag,
 ) (string, error) {
 	return e.symbol(ctx, tokenAddress, blockAndTag)
 }
@@ -81,10 +82,10 @@ func (e *erc20Contract) SymbolWithContext(
 func (e *erc20Contract) symbol(
 	ctx context.Context,
 	tokenAddress string,
-	blockAndTag BlockAndTag,
+	blockAndTag evmctypes.BlockAndTag,
 ) (string, error) {
 	result := new(string)
-	parsedBT := parseBlockAndTag(blockAndTag)
+	parsedBT := evmctypes.ParseBlockAndTag(blockAndTag)
 	if err := e.c.contractCall(
 		ctx,
 		result,
@@ -101,14 +102,14 @@ func (e *erc20Contract) symbol(
 	return symbol, nil
 }
 
-func (e *erc20Contract) TotalSupply(tokenAddress string, blockAndTag BlockAndTag) (decimal.Decimal, error) {
+func (e *erc20Contract) TotalSupply(tokenAddress string, blockAndTag evmctypes.BlockAndTag) (decimal.Decimal, error) {
 	return e.totalSupply(context.Background(), tokenAddress, blockAndTag)
 }
 
 func (e *erc20Contract) TotalSupplyWithContext(
 	ctx context.Context,
 	tokenAddress string,
-	blockAndTag BlockAndTag,
+	blockAndTag evmctypes.BlockAndTag,
 ) (decimal.Decimal, error) {
 	return e.totalSupply(ctx, tokenAddress, blockAndTag)
 }
@@ -116,10 +117,10 @@ func (e *erc20Contract) TotalSupplyWithContext(
 func (e *erc20Contract) totalSupply(
 	ctx context.Context,
 	tokenAddress string,
-	blockAndTag BlockAndTag,
+	blockAndTag evmctypes.BlockAndTag,
 ) (decimal.Decimal, error) {
 	result := new(string)
-	parsedBT := parseBlockAndTag(blockAndTag)
+	parsedBT := evmctypes.ParseBlockAndTag(blockAndTag)
 	if err := e.c.contractCall(
 		ctx,
 		result,
@@ -132,14 +133,14 @@ func (e *erc20Contract) totalSupply(
 	return evmcsoltypes.ParseSolUintToDecimal(*result)
 }
 
-func (e *erc20Contract) Decimals(tokenAddress string, blockAndTag BlockAndTag) (decimal.Decimal, error) {
+func (e *erc20Contract) Decimals(tokenAddress string, blockAndTag evmctypes.BlockAndTag) (decimal.Decimal, error) {
 	return e.decimals(context.Background(), tokenAddress, blockAndTag)
 }
 
 func (e *erc20Contract) DecimalsWithContext(
 	ctx context.Context,
 	tokenAddress string,
-	blockAndTag BlockAndTag,
+	blockAndTag evmctypes.BlockAndTag,
 ) (decimal.Decimal, error) {
 	return e.decimals(ctx, tokenAddress, blockAndTag)
 }
@@ -147,10 +148,10 @@ func (e *erc20Contract) DecimalsWithContext(
 func (e *erc20Contract) decimals(
 	ctx context.Context,
 	tokenAddress string,
-	blockAndTag BlockAndTag,
+	blockAndTag evmctypes.BlockAndTag,
 ) (decimal.Decimal, error) {
 	result := new(string)
-	parsedBT := parseBlockAndTag(blockAndTag)
+	parsedBT := evmctypes.ParseBlockAndTag(blockAndTag)
 	if err := e.c.contractCall(
 		ctx,
 		result,
@@ -215,7 +216,7 @@ func (e *erc20Contract) transfer(
 
 func (e *erc20Contract) TransferFrom() {}
 
-func (e *erc20Contract) BalanceOf(tokenAddress string, owner string, blockAndTag BlockAndTag) (decimal.Decimal, error) {
+func (e *erc20Contract) BalanceOf(tokenAddress string, owner string, blockAndTag evmctypes.BlockAndTag) (decimal.Decimal, error) {
 	return e.balanceOf(context.Background(), tokenAddress, owner, blockAndTag)
 }
 
@@ -223,7 +224,7 @@ func (e *erc20Contract) BalanceOfWithContext(
 	ctx context.Context,
 	tokenAddress string,
 	owner string,
-	blockAndTag BlockAndTag,
+	blockAndTag evmctypes.BlockAndTag,
 ) (decimal.Decimal, error) {
 	return e.balanceOf(ctx, tokenAddress, owner, blockAndTag)
 }
@@ -232,13 +233,13 @@ func (e *erc20Contract) balanceOf(
 	ctx context.Context,
 	tokenAddress string,
 	owner string,
-	blockAndTag BlockAndTag,
+	blockAndTag evmctypes.BlockAndTag,
 ) (decimal.Decimal, error) {
 	if owner[:2] == "0x" {
 		owner = owner[2:]
 	}
 	result := new(string)
-	parsedBT := parseBlockAndTag(blockAndTag)
+	parsedBT := evmctypes.ParseBlockAndTag(blockAndTag)
 	if err := e.c.contractCall(
 		ctx,
 		result,
@@ -255,7 +256,7 @@ func (e *erc20Contract) Allowance(
 	tokenAddress string,
 	owner string,
 	spender string,
-	blockAndTag BlockAndTag,
+	blockAndTag evmctypes.BlockAndTag,
 ) (decimal.Decimal, error) {
 	return e.allowance(context.Background(), tokenAddress, owner, spender, blockAndTag)
 }
@@ -265,7 +266,7 @@ func (e *erc20Contract) AllowanceWithContext(
 	tokenAddress string,
 	owner string,
 	spender string,
-	blockAndTag BlockAndTag,
+	blockAndTag evmctypes.BlockAndTag,
 ) (decimal.Decimal, error) {
 	return e.allowance(ctx, tokenAddress, owner, spender, blockAndTag)
 }
@@ -275,7 +276,7 @@ func (e *erc20Contract) allowance(
 	tokenAddress string,
 	owner string,
 	spender string,
-	blockAndTag BlockAndTag,
+	blockAndTag evmctypes.BlockAndTag,
 ) (decimal.Decimal, error) {
 	if owner[:2] == "0x" {
 		owner = owner[2:]
@@ -284,7 +285,7 @@ func (e *erc20Contract) allowance(
 		spender = spender[2:]
 	}
 	result := new(string)
-	parsedBT := parseBlockAndTag(blockAndTag)
+	parsedBT := evmctypes.ParseBlockAndTag(blockAndTag)
 	if err := e.c.contractCall(
 		ctx,
 		result,

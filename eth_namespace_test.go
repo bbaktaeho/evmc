@@ -9,13 +9,16 @@ import (
 )
 
 func testEvmc() *Evmc {
-	rpcURL := "https://ethereum-mainnet.nodit.io/<api_key>"
+	rpcURL := "https://ethereum-mainnet.nodit.io/GFmKSckrZadkyloR~v0FTPqDpFy6-ZSZ"
 	client, err := New(rpcURL)
 	if err != nil {
 		panic(err)
 	}
 	return client
 }
+
+// v1.14.5
+// 2.59.0
 
 func Test_ethNamespace(t *testing.T) {
 	var (
@@ -26,9 +29,11 @@ func Test_ethNamespace(t *testing.T) {
 	)
 	t.Parallel()
 
+	t.Log(client.nodeVersion)
+
 	t.Run("eth_blobBaseFee", func(t *testing.T) {
 		// TODO: skip this test if the node does not support the blobBaseFee method
-		t.SkipNow()
+		// t.SkipNow()
 		baseFee, err := client.eth.BlobBaseFee()
 		if err != nil {
 			t.Error(err)
@@ -64,7 +69,7 @@ func Test_ethNamespace(t *testing.T) {
 			assert.Equal(t, testBlockNumber, block.Number)
 			assert.Equal(t, txCount, len(block.Transactions))
 		}
-		block, err = client.eth.GetBlockByTag(Safe)
+		block, err = client.eth.GetBlockByTag(evmctypes.Safe)
 		if err != nil {
 			t.Error(err)
 		} else {
@@ -92,7 +97,7 @@ func Test_ethNamespace(t *testing.T) {
 	t.Run("eth_feeHistory", func(t *testing.T) {
 		// get the fee history
 		blockCount := uint64(1024)
-		feeHistory, err := client.eth.FeeHistory(blockCount, FormatNumber(testBlockNumber), nil)
+		feeHistory, err := client.eth.FeeHistory(blockCount, evmctypes.FormatNumber(testBlockNumber), nil)
 		if err != nil {
 			t.Error(err)
 		} else {
@@ -126,13 +131,13 @@ func Test_ethNamespace(t *testing.T) {
 			key1  = "0x7050c9e0f4ca769c69bd3a8ef740bc37934f8e2c036e5a723fd8ee048ed3f8c3"
 			key2  = "0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc"
 		)
-		storage1, err := client.eth.GetStorageAt(addr1, key1, Latest)
+		storage1, err := client.eth.GetStorageAt(addr1, key1, evmctypes.Latest)
 		if err != nil {
 			t.Error(err)
 		} else {
 			assert.Equal(t, "0x0000000000000000000000002a3f1a37c04f82aa274f5353834b2d002db91015", storage1)
 		}
-		storage2, err := client.eth.GetStorageAt(addr2, key2, Latest)
+		storage2, err := client.eth.GetStorageAt(addr2, key2, evmctypes.Latest)
 		if err != nil {
 			t.Error(err)
 		} else {
@@ -142,7 +147,7 @@ func Test_ethNamespace(t *testing.T) {
 
 	t.Run("eth_getCode", func(t *testing.T) {
 		addr := "0x8b142accdc5d4233abef308974aba3566e9a6824"
-		code, err := client.eth.GetCode(addr, Latest)
+		code, err := client.eth.GetCode(addr, evmctypes.Latest)
 		if err != nil {
 			t.Error(err)
 		} else {
@@ -172,7 +177,7 @@ func Test_ethNamespace(t *testing.T) {
 
 	t.Run("eth_getTransactionCount", func(t *testing.T) {
 		addr := "0xA627202EC3A92e647da14A54F7973478b7cFAe4c"
-		nonce, err := client.eth.GetTransactionCount(addr, Pending)
+		nonce, err := client.eth.GetTransactionCount(addr, evmctypes.Pending)
 		if err != nil {
 			t.Error(err)
 		} else {
@@ -182,7 +187,7 @@ func Test_ethNamespace(t *testing.T) {
 
 	t.Run("eth_getBalance", func(t *testing.T) {
 		addr := "0xA627202EC3A92e647da14A54F7973478b7cFAe4c"
-		balance, err := client.eth.GetBalance(addr, Latest)
+		balance, err := client.eth.GetBalance(addr, evmctypes.Latest)
 		if err != nil {
 			t.Error(err)
 		} else {

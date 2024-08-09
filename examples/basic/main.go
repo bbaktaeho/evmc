@@ -31,47 +31,47 @@ func nodeInfoExample(client *evmc.Evmc) {
 }
 
 func blockAndTagExample(client *evmc.Evmc) {
-	Latestblock, err := client.Eth().GetBlockByTag(evmc.Latest)
+	LatestBlock, err := client.Eth().GetBlockByTag(evmctypes.Latest)
 	if err != nil {
 		panic(err)
 	}
-	safeBlock, err := client.Eth().GetBlockByTag(evmc.Safe)
+	safeBlock, err := client.Eth().GetBlockByTag(evmctypes.Safe)
 	if err != nil {
 		panic(err)
 	}
-	finalizedBlock, err := client.Eth().GetBlockByTag(evmc.Finalized)
+	finalizedBlock, err := client.Eth().GetBlockByTag(evmctypes.Finalized)
 	if err != nil {
 		panic(err)
 	}
-	ealiestBlock, err := client.Eth().GetBlockByTag(evmc.Earliest)
+	ealiestBlock, err := client.Eth().GetBlockByTag(evmctypes.Earliest)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("block:", Latestblock.Number, safeBlock.Number, finalizedBlock.Number, ealiestBlock.Number)
+	fmt.Println("block:", LatestBlock.Number, safeBlock.Number, finalizedBlock.Number, ealiestBlock.Number)
 
-	pendingBalance, err := client.Eth().GetBalance(evmc.ZeroAddress, evmc.Pending)
+	pendingBalance, err := client.Eth().GetBalance(evmc.ZeroAddress, evmctypes.Pending)
 	if err != nil {
 		panic(err)
 	}
-	latestBalance, err := client.Eth().GetBalance(evmc.ZeroAddress, evmc.Latest)
+	latestBalance, err := client.Eth().GetBalance(evmc.ZeroAddress, evmctypes.Latest)
 	if err != nil {
 		panic(err)
 	}
-	archiveBalance, err := client.Eth().GetBalance(evmc.ZeroAddress, evmc.FormatNumber(4000000))
+	archiveBalance, err := client.Eth().GetBalance(evmc.ZeroAddress, evmctypes.FormatNumber(4000000))
 	if err != nil {
 		panic(err)
 	}
 	fmt.Println("balance:", pendingBalance, latestBalance, archiveBalance)
 
-	pendingStorage, err := client.Eth().GetStorageAt("0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2", "0x0", evmc.Pending)
+	pendingStorage, err := client.Eth().GetStorageAt("0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2", "0x0", evmctypes.Pending)
 	if err != nil {
 		panic(err)
 	}
-	latestStorage, err := client.Eth().GetStorageAt("0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2", "0x0", evmc.Latest)
+	latestStorage, err := client.Eth().GetStorageAt("0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2", "0x0", evmctypes.Latest)
 	if err != nil {
 		panic(err)
 	}
-	archibeStorage, err := client.Eth().GetStorageAt("0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2", "0x0", evmc.FormatNumber(18000000))
+	archibeStorage, err := client.Eth().GetStorageAt("0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2", "0x0", evmctypes.FormatNumber(18000000))
 	if err != nil {
 		panic(err)
 	}
@@ -102,7 +102,7 @@ func transactionAndReceiptExample(client *evmc.Evmc) {
 func callExample(client *evmc.Evmc) {
 	from := "0xBB402D125aC13e86457D7516069B359365Ee6F7e"
 
-	nonce, err := client.Eth().GetTransactionCount(from, evmc.Pending)
+	nonce, err := client.Eth().GetTransactionCount(from, evmctypes.Pending)
 	if err != nil {
 		panic(err)
 	}
@@ -126,7 +126,7 @@ func callExample(client *evmc.Evmc) {
 
 func main() {
 	// set url to connect to blockchain node
-	client, err := evmc.New("https://ethereum-sepolia.nodit.io/<api-key>")
+	client, err := evmc.New("http://10.20.3.48:8545")
 	if err != nil {
 		panic(err)
 	}
