@@ -268,6 +268,9 @@ func (e *Evmc) sendRawTransaction(ctx context.Context, rawTx string) (string, er
 
 func (e *Evmc) setNode(cv string) {
 	cvarr := strings.Split(cv, "/")
+	if len(cvarr) < 2 {
+		return
+	}
 	e.nodeName = ClientName(cvarr[0])
 	e.nodeVersion = cvarr[1]
 }
