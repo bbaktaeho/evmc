@@ -66,7 +66,7 @@ func (e *ethNamespace) BlobBaseFeeWithContext(ctx context.Context) (decimal.Deci
 
 func (e *ethNamespace) blobBaseFee(ctx context.Context) (decimal.Decimal, error) {
 	result := new(string)
-	if err := e.c.call(ctx, result, ethBlobBaseFee); err != nil {
+	if err := e.c.call(ctx, result, EthBlobBaseFee); err != nil {
 		return decimal.Zero, err
 	}
 	return decimal.NewFromBigInt(hexutil.MustDecodeBig(*result), 0), nil
@@ -86,7 +86,7 @@ func (e *ethNamespace) createAccessList(ctx context.Context, tx *Tx) (*evmctypes
 		return nil, err
 	}
 	result := new(evmctypes.AccessListResp)
-	if err := e.c.call(ctx, result, ethCreateAccessList, msg); err != nil {
+	if err := e.c.call(ctx, result, EthCreateAccessList, msg); err != nil {
 		return nil, err
 	}
 	return result, nil
@@ -113,7 +113,7 @@ func (e *ethNamespace) feeHistory(
 ) (*evmctypes.FeeHistory, error) {
 	result := new(evmctypes.FeeHistory)
 	params := []interface{}{hexutil.EncodeUint64(blockCount), lastBlock.String(), rewardPercentiles}
-	if err := e.c.call(ctx, result, ethFeeHistory, params...); err != nil {
+	if err := e.c.call(ctx, result, EthFeeHistory, params...); err != nil {
 		return nil, err
 	}
 	return result, nil
@@ -129,7 +129,7 @@ func (e *ethNamespace) BlockTransactionCountByHashWithContext(ctx context.Contex
 
 func (e *ethNamespace) blockTransactionCountByHash(ctx context.Context, hash string) (uint64, error) {
 	result := new(string)
-	if err := e.c.call(ctx, result, ethGetBlockTransactionCountByHash, hash); err != nil {
+	if err := e.c.call(ctx, result, EthGetBlockTransactionCountByHash, hash); err != nil {
 		return 0, err
 	}
 	return hexutil.MustDecodeUint64(*result), nil
@@ -145,7 +145,7 @@ func (e *ethNamespace) BlockTransactionCountByNumberWithContext(ctx context.Cont
 
 func (e *ethNamespace) blockTransactionCountByNumber(ctx context.Context, number uint64) (uint64, error) {
 	result := new(string)
-	if err := e.c.call(ctx, result, ethGetBlockTransactionCountByNumber, evmctypes.FormatNumber(number)); err != nil {
+	if err := e.c.call(ctx, result, EthGetBlockTransactionCountByNumber, evmctypes.FormatNumber(number)); err != nil {
 		return 0, err
 	}
 	return hexutil.MustDecodeUint64(*result), nil
@@ -161,7 +161,7 @@ func (e *ethNamespace) ChainIDWithContext(ctx context.Context) (uint64, error) {
 
 func (e *ethNamespace) chainID(ctx context.Context) (uint64, error) {
 	result := new(string)
-	if err := e.c.call(ctx, result, ethChainID); err != nil {
+	if err := e.c.call(ctx, result, EthChainID); err != nil {
 		return 0, err
 	}
 	id, err := hexutil.DecodeUint64(*result)
@@ -191,7 +191,7 @@ func (e *ethNamespace) getStorageAt(
 	numOrTag evmctypes.BlockAndTag,
 ) (string, error) {
 	result := new(string)
-	if err := e.c.call(ctx, result, ethGetStorageAt, address, position, numOrTag.String()); err != nil {
+	if err := e.c.call(ctx, result, EthGetStorageAt, address, position, numOrTag.String()); err != nil {
 		return "", err
 	}
 	return *result, nil
@@ -207,7 +207,7 @@ func (e *ethNamespace) BlockNumberWithContext(ctx context.Context) (uint64, erro
 
 func (e *ethNamespace) blockNumber(ctx context.Context) (uint64, error) {
 	result := new(string)
-	if err := e.c.call(ctx, result, ethBlockNumber); err != nil {
+	if err := e.c.call(ctx, result, EthBlockNumber); err != nil {
 		return 0, err
 	}
 	return hexutil.MustDecodeUint64(*result), nil
@@ -227,7 +227,7 @@ func (e *ethNamespace) getCode(
 	blockAndTag evmctypes.BlockAndTag,
 ) (string, error) {
 	result := new(string)
-	if err := e.c.call(ctx, result, ethGetCode, address, blockAndTag.String()); err != nil {
+	if err := e.c.call(ctx, result, EthGetCode, address, blockAndTag.String()); err != nil {
 		return "", err
 	}
 	return *result, nil
@@ -310,7 +310,7 @@ func (e *ethNamespace) getBlockByNumber(
 		return ErrPendingBlockNotSupported
 	}
 	params := []interface{}{number.String(), incTx}
-	if err := e.c.call(ctx, result, ethGetBlockByNumber, params...); err != nil {
+	if err := e.c.call(ctx, result, EthGetBlockByNumber, params...); err != nil {
 		return err
 	}
 	return nil
@@ -353,7 +353,7 @@ func (e *ethNamespace) getBlockIncTxByHash(ctx context.Context, hash string) (*e
 
 func (e *ethNamespace) getBlockByHash(ctx context.Context, result interface{}, hash string, incTx bool) error {
 	params := []interface{}{hash, incTx}
-	if err := e.c.call(ctx, result, ethGetBlockByHash, params...); err != nil {
+	if err := e.c.call(ctx, result, EthGetBlockByHash, params...); err != nil {
 		return err
 	}
 	return nil
@@ -369,7 +369,7 @@ func (e *ethNamespace) GetTransactionByHashWithContext(ctx context.Context, hash
 
 func (e *ethNamespace) getTransactionByHash(ctx context.Context, hash string) (*evmctypes.Transaction, error) {
 	tx := new(evmctypes.Transaction)
-	if err := e.c.call(ctx, tx, ethGetTransactionByHash, hash); err != nil {
+	if err := e.c.call(ctx, tx, EthGetTransactionByHash, hash); err != nil {
 		return nil, err
 	}
 	return tx, nil
@@ -385,7 +385,7 @@ func (e *ethNamespace) GetTransactionReceiptWithContext(ctx context.Context, has
 
 func (e *ethNamespace) getTransactionReceipt(ctx context.Context, hash string) (*evmctypes.Receipt, error) {
 	receipt := new(evmctypes.Receipt)
-	if err := e.c.call(ctx, receipt, ethGetReceipt, hash); err != nil {
+	if err := e.c.call(ctx, receipt, EthGetReceipt, hash); err != nil {
 		return nil, err
 	}
 	return receipt, nil
@@ -401,7 +401,7 @@ func (e *ethNamespace) GetBalanceWithContext(ctx context.Context, address string
 
 func (e *ethNamespace) getBalance(ctx context.Context, address string, blockAndTag evmctypes.BlockAndTag) (decimal.Decimal, error) {
 	result := new(string)
-	if err := e.c.call(ctx, result, ethGetBalance, address, blockAndTag.String()); err != nil {
+	if err := e.c.call(ctx, result, EthGetBalance, address, blockAndTag.String()); err != nil {
 		return decimal.Zero, err
 	}
 	if *result == "" {
@@ -467,7 +467,7 @@ func (e *ethNamespace) getLogs(ctx context.Context, filter *evmctypes.LogFilter)
 	if filter.Topics != nil {
 		params["topics"] = filter.Topics
 	}
-	if err := e.c.call(ctx, logs, ethGetLogs, params); err != nil {
+	if err := e.c.call(ctx, logs, EthGetLogs, params); err != nil {
 		return nil, err
 	}
 	return *logs, nil
@@ -487,7 +487,7 @@ func (e *ethNamespace) GetTransactionCountWithContext(
 
 func (e *ethNamespace) getTransactionCount(ctx context.Context, address string, blockAndTag evmctypes.BlockAndTag) (uint64, error) {
 	result := new(string)
-	if err := e.c.call(ctx, result, ethGetTransactionCount, address, blockAndTag.String()); err != nil {
+	if err := e.c.call(ctx, result, EthGetTransactionCount, address, blockAndTag.String()); err != nil {
 		return 0, err
 	}
 	return hexutil.MustDecodeUint64(*result), nil
@@ -504,11 +504,11 @@ func (e *ethNamespace) GetBlockReceiptsWithContext(ctx context.Context, number u
 func (e *ethNamespace) getBlockReceipts(ctx context.Context, number uint64) ([]*evmctypes.Receipt, error) {
 	var (
 		result        = new([]*evmctypes.Receipt)
-		method        = ethGetBlockReceipts
+		method        = EthGetBlockReceipts
 		clientName, _ = e.info.NodeClient()
 	)
 	if ClientName(clientName) == Bor {
-		method = ethGetTransactionReceiptsByBlock
+		method = EthGetTransactionReceiptsByBlock
 	}
 	if err := e.c.call(ctx, result, method, hexutil.EncodeUint64(number)); err != nil {
 		return nil, err
@@ -526,7 +526,7 @@ func (e *ethNamespace) GasPriceWithContext(ctx context.Context) (decimal.Decimal
 
 func (e *ethNamespace) gasPrice(ctx context.Context) (decimal.Decimal, error) {
 	result := new(string)
-	if err := e.c.call(ctx, result, ethGasPrice); err != nil {
+	if err := e.c.call(ctx, result, EthGasPrice); err != nil {
 		return decimal.Zero, err
 	}
 	return decimal.NewFromBigInt(hexutil.MustDecodeBig(*result), 0), nil
@@ -542,7 +542,7 @@ func (e *ethNamespace) MaxPriorityFeePerGasWithContext(ctx context.Context) (dec
 
 func (e *ethNamespace) maxPriorityFeePerGas(ctx context.Context) (decimal.Decimal, error) {
 	result := new(string)
-	if err := e.c.call(ctx, result, ethMaxPriorityFeePerGas); err != nil {
+	if err := e.c.call(ctx, result, EthMaxPriorityFeePerGas); err != nil {
 		return decimal.Zero, err
 	}
 	return decimal.NewFromBigInt(hexutil.MustDecodeBig(*result), 0), nil
@@ -586,7 +586,7 @@ func (e *ethNamespace) SendRawTransactionWithContext(ctx context.Context, rawTx 
 
 func (e *ethNamespace) sendRawTransaction(ctx context.Context, rawTx string) (string, error) {
 	result := new(string)
-	if err := e.c.call(ctx, result, ethSendRawTransaction, rawTx); err != nil {
+	if err := e.c.call(ctx, result, EthSendRawTransaction, rawTx); err != nil {
 		return "", err
 	}
 	return *result, nil
@@ -610,7 +610,7 @@ func (e *ethNamespace) estimateGas(ctx context.Context, tx *Tx) (uint64, error) 
 	if msg["from"] == "" {
 		return 0, ErrFromRequired
 	}
-	if err := e.c.call(ctx, result, ethEstimateGas, msg); err != nil {
+	if err := e.c.call(ctx, result, EthEstimateGas, msg); err != nil {
 		return 0, err
 	}
 	return hexutil.MustDecodeUint64(*result), nil
@@ -630,7 +630,7 @@ func (e *ethNamespace) ethCall(ctx context.Context, tx *Tx, blockAndTag evmctype
 	if err != nil {
 		return "", err
 	}
-	if err := e.c.call(ctx, result, ethCall, msg, blockAndTag.String()); err != nil {
+	if err := e.c.call(ctx, result, EthCall, msg, blockAndTag.String()); err != nil {
 		return "", err
 	}
 	return *result, nil

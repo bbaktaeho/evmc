@@ -9,7 +9,7 @@ type web3Namespace struct {
 
 func (w *web3Namespace) ClientVersion() (string, error) {
 	result := new(string)
-	if err := w.c.call(context.Background(), result, web3ClientVersion); err != nil {
+	if err := w.c.call(context.Background(), result, Web3ClientVersion); err != nil {
 		return "", err
 	}
 	w.n.setNode(*result)

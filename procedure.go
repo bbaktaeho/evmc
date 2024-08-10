@@ -8,53 +8,53 @@ const (
 	logs                   subscription = "logs"
 )
 
-type procedure string
+type Procedure string
 
 const (
-	web3ClientVersion procedure = "web3_clientVersion"
+	Web3ClientVersion Procedure = "web3_clientVersion"
 
-	ethNewBlockFilter                   procedure = "eth_newBlockFilter"
-	ethNewPendingTransactionFilter      procedure = "eth_newPendingTransactionFilter"
-	ethNewFilter                        procedure = "eth_newFilter"
-	ethUninstallFilter                  procedure = "eth_uninstallFilter"
-	ethBlobBaseFee                      procedure = "eth_blobBaseFee"
-	ethBlockNumber                      procedure = "eth_blockNumber"
-	ethCall                             procedure = "eth_call"
-	ethChainID                          procedure = "eth_chainId"
-	ethCreateAccessList                 procedure = "eth_createAccessList"
-	ethEstimateGas                      procedure = "eth_estimateGas"
-	ethFeeHistory                       procedure = "eth_feeHistory"
-	ethGasPrice                         procedure = "eth_gasPrice"
-	ethGetBalance                       procedure = "eth_getBalance"
-	ethGetBlockByHash                   procedure = "eth_getBlockByHash"
-	ethGetBlockByNumber                 procedure = "eth_getBlockByNumber"
-	ethGetBlockReceipts                 procedure = "eth_getBlockReceipts"
-	ethGetBlockTransactionCountByHash   procedure = "eth_getBlockTransactionCountByHash"
-	ethGetBlockTransactionCountByNumber procedure = "eth_getBlockTransactionCountByNumber"
-	ethGetCode                          procedure = "eth_getCode"
-	ethGetFilterChanges                 procedure = "eth_getFilterChanges"
-	ethGetFilterLogs                    procedure = "eth_getFilterLogs"
-	ethGetReceipt                       procedure = "eth_getTransactionReceipt"
-	ethSendRawTransaction               procedure = "eth_sendRawTransaction"
-	ethMaxPriorityFeePerGas             procedure = "eth_maxPriorityFeePerGas"
-	ethSyncing                          procedure = "eth_syncing"
-	ethGetUncleByBlockNumberAndIndex    procedure = "eth_getUncleByBlockNumberAndIndex"
-	ethGetTransactionByHash             procedure = "eth_getTransactionByHash"
-	ethGetStorageAt                     procedure = "eth_getStorageAt"
-	ethGetLogs                          procedure = "eth_getLogs"
-	ethGetTransactionCount              procedure = "eth_getTransactionCount"
-	ethGetTransactionReceiptsByBlock    procedure = "eth_getTransactionReceiptsByBlock" // bor
+	EthNewBlockFilter                   Procedure = "eth_newBlockFilter"
+	EthNewPendingTransactionFilter      Procedure = "eth_newPendingTransactionFilter"
+	EthNewFilter                        Procedure = "eth_newFilter"
+	EthUninstallFilter                  Procedure = "eth_uninstallFilter"
+	EthBlobBaseFee                      Procedure = "eth_blobBaseFee"
+	EthBlockNumber                      Procedure = "eth_blockNumber"
+	EthCall                             Procedure = "eth_call"
+	EthChainID                          Procedure = "eth_chainId"
+	EthCreateAccessList                 Procedure = "eth_createAccessList"
+	EthEstimateGas                      Procedure = "eth_estimateGas"
+	EthFeeHistory                       Procedure = "eth_feeHistory"
+	EthGasPrice                         Procedure = "eth_gasPrice"
+	EthGetBalance                       Procedure = "eth_getBalance"
+	EthGetBlockByHash                   Procedure = "eth_getBlockByHash"
+	EthGetBlockByNumber                 Procedure = "eth_getBlockByNumber"
+	EthGetBlockReceipts                 Procedure = "eth_getBlockReceipts"
+	EthGetBlockTransactionCountByHash   Procedure = "eth_getBlockTransactionCountByHash"
+	EthGetBlockTransactionCountByNumber Procedure = "eth_getBlockTransactionCountByNumber"
+	EthGetCode                          Procedure = "eth_getCode"
+	EthGetFilterChanges                 Procedure = "eth_getFilterChanges"
+	EthGetFilterLogs                    Procedure = "eth_getFilterLogs"
+	EthGetReceipt                       Procedure = "eth_getTransactionReceipt"
+	EthSendRawTransaction               Procedure = "eth_sendRawTransaction"
+	EthMaxPriorityFeePerGas             Procedure = "eth_maxPriorityFeePerGas"
+	EthSyncing                          Procedure = "eth_syncing"
+	EthGetUncleByBlockNumberAndIndex    Procedure = "eth_getUncleByBlockNumberAndIndex"
+	EthGetTransactionByHash             Procedure = "eth_getTransactionByHash"
+	EthGetStorageAt                     Procedure = "eth_getStorageAt"
+	EthGetLogs                          Procedure = "eth_getLogs"
+	EthGetTransactionCount              Procedure = "eth_getTransactionCount"
+	EthGetTransactionReceiptsByBlock    Procedure = "eth_getTransactionReceiptsByBlock" // bor
 
-	debugTraceBlockByNumber procedure = "debug_traceBlockByNumber"
-	debugTraceTransaction   procedure = "debug_traceTransaction"
+	DebugTraceBlockByNumber Procedure = "debug_traceBlockByNumber"
+	DebugTraceTransaction   Procedure = "debug_traceTransaction"
 
-	otsGetContractCreator procedure = "ots_getContractCreator" // erigon
-	traceBlock            procedure = "trace_block"            // erigon
+	OtsGetContractCreator Procedure = "ots_getContractCreator" // erigon
+	TraceBlock            Procedure = "trace_block"            // erigon
 
 	// arb_trace methods on the Arbitrum One chain should be called on blocks prior to 22207815
-	arbitraceBlock procedure = "arbtrace_block" // arbitrum
+	ArbitraceBlock Procedure = "arbtrace_block" // arbitrum
 )
 
-func (p procedure) String() string {
+func (p Procedure) String() string {
 	return string(p)
 }

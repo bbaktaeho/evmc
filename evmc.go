@@ -24,7 +24,7 @@ type clientInfo interface {
 }
 
 type caller interface {
-	call(ctx context.Context, result interface{}, method procedure, params ...interface{}) error
+	call(ctx context.Context, result interface{}, method Procedure, params ...interface{}) error
 	batchCall(ctx context.Context, elements []rpc.BatchElem) error
 }
 
@@ -194,7 +194,7 @@ func (e *Evmc) ERC1155() *erc1155Contract {
 func (e *Evmc) call(
 	ctx context.Context,
 	result interface{},
-	method procedure,
+	method Procedure,
 	params ...interface{},
 ) error {
 	if err := e.c.CallContext(ctx, result, method.String(), params...); err != nil {
@@ -260,7 +260,7 @@ func (e *Evmc) subscribe(
 
 func (e *Evmc) sendRawTransaction(ctx context.Context, rawTx string) (string, error) {
 	result := new(string)
-	if err := e.call(ctx, result, ethSendRawTransaction, rawTx); err != nil {
+	if err := e.call(ctx, result, EthSendRawTransaction, rawTx); err != nil {
 		return "", err
 	}
 	return *result, nil

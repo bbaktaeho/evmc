@@ -56,7 +56,7 @@ func (e *erc20Contract) name(
 			evmctypes.ParseBlockAndTag(blockAndTag),
 		}
 	)
-	if err := e.c.call(ctx, result, ethCall, params...); err != nil {
+	if err := e.c.call(ctx, result, EthCall, params...); err != nil {
 		return "", err
 	}
 	name, err := evmcsoltypes.ParseSolStringToString(*result)
@@ -90,7 +90,7 @@ func (e *erc20Contract) symbol(
 			evmctypes.ParseBlockAndTag(blockAndTag),
 		}
 	)
-	if err := e.c.call(ctx, result, ethCall, params...); err != nil {
+	if err := e.c.call(ctx, result, EthCall, params...); err != nil {
 		return "", err
 	}
 	symbol, err := evmcsoltypes.ParseSolStringToString(*result)
@@ -124,7 +124,7 @@ func (e *erc20Contract) totalSupply(
 			evmctypes.ParseBlockAndTag(blockAndTag),
 		}
 	)
-	if err := e.c.call(ctx, result, ethCall, params...); err != nil {
+	if err := e.c.call(ctx, result, EthCall, params...); err != nil {
 		return decimal.Zero, err
 	}
 	return evmcsoltypes.ParseSolUintToDecimal(*result)
@@ -154,7 +154,7 @@ func (e *erc20Contract) decimals(
 			evmctypes.ParseBlockAndTag(blockAndTag),
 		}
 	)
-	if err := e.c.call(ctx, result, ethCall, params...); err != nil {
+	if err := e.c.call(ctx, result, EthCall, params...); err != nil {
 		return decimal.Zero, err
 	}
 	return evmcsoltypes.ParseSolUintToDecimal(*result)
@@ -241,7 +241,7 @@ func (e *erc20Contract) balanceOf(
 			evmctypes.ParseBlockAndTag(blockAndTag),
 		}
 	)
-	if err := e.c.call(ctx, result, ethCall, params...); err != nil {
+	if err := e.c.call(ctx, result, EthCall, params...); err != nil {
 		return decimal.Zero, err
 	}
 	return evmcsoltypes.ParseSolUintToDecimal(*result)
@@ -286,7 +286,7 @@ func (e *erc20Contract) allowance(
 			evmctypes.ParseBlockAndTag(blockAndTag),
 		}
 	)
-	if err := e.c.call(ctx, result, ethCall, params...); err != nil {
+	if err := e.c.call(ctx, result, EthCall, params...); err != nil {
 		return decimal.Zero, err
 	}
 	return evmcsoltypes.ParseSolUintToDecimal(*result)

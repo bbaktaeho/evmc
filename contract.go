@@ -16,7 +16,7 @@ func (c *contract) Query(ctx context.Context, queryParams *evmctypes.QueryParams
 		result = new(string)
 		params = []interface{}{queryParams, evmctypes.ParseBlockAndTag(queryParams.NumOrTag)}
 	)
-	if err := c.c.call(ctx, result, ethCall, params...); err != nil {
+	if err := c.c.call(ctx, result, EthCall, params...); err != nil {
 		return "", err
 	}
 	return *result, nil
@@ -34,7 +34,7 @@ func (c *contract) BatchQuery(
 	for i := range elements {
 		numOrTag := evmctypes.ParseBlockAndTag(batchQueryParams[i].NumOrTag)
 		elements[i] = rpc.BatchElem{
-			Method: ethCall.String(),
+			Method: EthCall.String(),
 			Args: []interface{}{
 				batchQueryParams[i],
 				numOrTag,
