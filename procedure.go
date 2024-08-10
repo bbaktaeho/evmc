@@ -13,10 +13,15 @@ type Procedure string
 const (
 	Web3ClientVersion Procedure = "web3_clientVersion"
 
-	EthNewBlockFilter                   Procedure = "eth_newBlockFilter"
-	EthNewPendingTransactionFilter      Procedure = "eth_newPendingTransactionFilter"
-	EthNewFilter                        Procedure = "eth_newFilter"
-	EthUninstallFilter                  Procedure = "eth_uninstallFilter"
+	EthNewBlockFilter              Procedure = "eth_newBlockFilter"
+	EthNewPendingTransactionFilter Procedure = "eth_newPendingTransactionFilter"
+	EthNewFilter                   Procedure = "eth_newFilter"
+	EthUninstallFilter             Procedure = "eth_uninstallFilter"
+	EthGetFilterChanges            Procedure = "eth_getFilterChanges"
+	EthGetFilterLogs               Procedure = "eth_getFilterLogs"
+
+	EthGetUncleByBlockNumberAndIndex Procedure = "eth_getUncleByBlockNumberAndIndex"
+
 	EthBlobBaseFee                      Procedure = "eth_blobBaseFee"
 	EthBlockNumber                      Procedure = "eth_blockNumber"
 	EthCall                             Procedure = "eth_call"
@@ -32,13 +37,10 @@ const (
 	EthGetBlockTransactionCountByHash   Procedure = "eth_getBlockTransactionCountByHash"
 	EthGetBlockTransactionCountByNumber Procedure = "eth_getBlockTransactionCountByNumber"
 	EthGetCode                          Procedure = "eth_getCode"
-	EthGetFilterChanges                 Procedure = "eth_getFilterChanges"
-	EthGetFilterLogs                    Procedure = "eth_getFilterLogs"
 	EthGetReceipt                       Procedure = "eth_getTransactionReceipt"
 	EthSendRawTransaction               Procedure = "eth_sendRawTransaction"
 	EthMaxPriorityFeePerGas             Procedure = "eth_maxPriorityFeePerGas"
 	EthSyncing                          Procedure = "eth_syncing"
-	EthGetUncleByBlockNumberAndIndex    Procedure = "eth_getUncleByBlockNumberAndIndex"
 	EthGetTransactionByHash             Procedure = "eth_getTransactionByHash"
 	EthGetStorageAt                     Procedure = "eth_getStorageAt"
 	EthGetLogs                          Procedure = "eth_getLogs"
