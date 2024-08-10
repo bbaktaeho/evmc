@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"math/big"
 
@@ -28,6 +29,16 @@ func nodeInfoExample(client *evmc.Evmc) {
 	chainID = client.ChainID()
 	nodeName, nodeVersion := client.NodeClient()
 	fmt.Println("chain id:", chainID, "name:", nodeName, "version:", nodeVersion)
+
+	isSyncing, syncing, err := client.Eth().Syncing()
+	if err != nil {
+		panic(err)
+	}
+	s, err := json.Marshal(syncing)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("isSyncing: %v, syncing: %s\n", isSyncing, string(s))
 }
 
 func blockAndTagExample(client *evmc.Evmc) {

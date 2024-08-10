@@ -155,6 +155,10 @@ type FeeHistory struct {
 	feeHistory
 }
 
+type Syncing struct {
+	syncing
+}
+
 type SubLog struct {
 	Address string   `json:"address,omitempty"`
 	Topics  []string `json:"topics,omitempty"`

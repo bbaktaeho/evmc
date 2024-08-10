@@ -2,7 +2,9 @@ package evmc
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"fmt"
 
 	"github.com/bbaktaeho/evmc/evmctypes"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -546,6 +548,38 @@ func (e *ethNamespace) maxPriorityFeePerGas(ctx context.Context) (decimal.Decima
 		return decimal.Zero, err
 	}
 	return decimal.NewFromBigInt(hexutil.MustDecodeBig(*result), 0), nil
+}
+
+func (e *ethNamespace) Syncing() (bool, *evmctypes.Syncing, error) {
+	return e.syncing(context.Background())
+}
+
+func (e *ethNamespace) SyncingWithContext(ctx context.Context) (bool, *evmctypes.Syncing, error) {
+	return e.syncing(ctx)
+}
+
+func (e *ethNamespace) syncing(ctx context.Context) (bool, *evmctypes.Syncing, error) {
+	var (
+		result        interface{}
+		resultSyncing = new(evmctypes.Syncing)
+	)
+	if err := e.c.call(ctx, &result, EthSyncing); err != nil {
+		return false, nil, err
+	}
+	if result == nil {
+		return false, nil, fmt.Errorf("syncing is not supported")
+	}
+	if _, ok := result.(bool); ok {
+		return false, nil, nil
+	}
+	b, err := json.Marshal(result)
+	if err != nil {
+		return false, nil, err
+	}
+	if err := json.Unmarshal(b, resultSyncing); err != nil {
+		return false, nil, err
+	}
+	return true, resultSyncing, nil
 }
 
 func (e *ethNamespace) SendTransaction(sendingTx *SendingTx, wallet *Wallet) (string, error) {
