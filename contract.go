@@ -11,15 +11,19 @@ type contract struct {
 	c caller
 }
 
-func (c *contract) Query(ctx context.Context, queryParams *evmctypes.QueryParams) (string, error) {
+func (c *contract) Query(ctx context.Context, queryParams *evmctypes.QueryParams) (*evmctypes.QueryResp, error) {
 	var (
 		result = new(string)
 		params = []interface{}{queryParams, evmctypes.ParseBlockAndTag(queryParams.NumOrTag)}
 	)
 	if err := c.c.call(ctx, result, EthCall, params...); err != nil {
-		return "", err
+		return nil, err
 	}
-	return *result, nil
+	return &evmctypes.QueryResp{
+		To:     queryParams.To,
+		Data:   queryParams.Data,
+		Result: *result,
+	}, nil
 }
 
 func (c *contract) BatchQuery(
@@ -32,6 +36,7 @@ func (c *contract) BatchQuery(
 		results  = make([]*evmctypes.QueryResp, size)
 	)
 	for i := range elements {
+		results[i] = &evmctypes.QueryResp{To: batchQueryParams[i].To, Data: batchQueryParams[i].Data}
 		numOrTag := evmctypes.ParseBlockAndTag(batchQueryParams[i].NumOrTag)
 		elements[i] = rpc.BatchElem{
 			Method: EthCall.String(),
