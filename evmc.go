@@ -55,9 +55,10 @@ type Evmc struct {
 	// trace *traceNamespace
 	// ots   *otsNamespace
 
-	erc20   *erc20Contract
-	erc721  *erc721Contract
-	erc1155 *erc1155Contract
+	contract *contract
+	erc20    *erc20Contract
+	erc721   *erc721Contract
+	erc1155  *erc1155Contract
 
 	abiCache *lru.Cache[string, interface{}]
 }
@@ -125,6 +126,7 @@ func newClient(ctx context.Context, url string, isWs bool, opts ...Options) (*Ev
 	evmc.eth = &ethNamespace{info: evmc, c: evmc, s: evmc, ts: evmc}
 	evmc.web3 = &web3Namespace{c: evmc, n: evmc}
 	evmc.debug = &debugNamespace{c: evmc}
+	evmc.contract = &contract{c: evmc}
 	evmc.erc20 = &erc20Contract{info: evmc, c: evmc, ts: evmc}
 
 	chainID, err := evmc.eth.ChainID()
@@ -165,8 +167,13 @@ func (e *Evmc) Web3() *web3Namespace {
 func (e *Evmc) Eth() *ethNamespace {
 	return e.eth
 }
+
 func (e *Evmc) Debug() *debugNamespace {
 	return e.debug
+}
+
+func (e *Evmc) Contract() *contract {
+	return e.contract
 }
 
 // func (e *Evmc) Trace() *traceNamespace {
