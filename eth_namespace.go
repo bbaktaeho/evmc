@@ -8,6 +8,7 @@ import (
 
 	"github.com/bbaktaeho/evmc/evmctypes"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/shopspring/decimal"
 )
 
@@ -22,6 +23,82 @@ type ethNamespace struct {
 	c    caller
 	s    subscriber
 	ts   transactionSender
+}
+
+func (e *ethNamespace) GetBlockIncTxRange(from, to uint64) ([]*evmctypes.BlockIncTx, error) {
+	return e.getBlockIncTxRange(context.Background(), from, to)
+}
+
+func (e *ethNamespace) GetBlockIncTxRangeWithContext(ctx context.Context, from, to uint64) ([]*evmctypes.BlockIncTx, error) {
+	return e.getBlockIncTxRange(ctx, from, to)
+}
+
+func (e *ethNamespace) getBlockIncTxRange(ctx context.Context, from, to uint64) ([]*evmctypes.BlockIncTx, error) {
+	if from > to {
+		return nil, ErrInvalidRange
+	}
+	var (
+		size     = to - from + 1
+		results  = make([]*evmctypes.BlockIncTx, size)
+		elements = make([]rpc.BatchElem, size)
+	)
+	for i := range elements {
+		elements[i] = rpc.BatchElem{
+			Method: EthGetBlockByNumber.String(),
+			Args:   []interface{}{evmctypes.FormatNumber(from + uint64(i)), true},
+			Result: &results[i],
+		}
+	}
+	if err := e.c.batchCall(ctx, elements); err != nil {
+		return nil, err
+	}
+	for i, el := range elements {
+		if el.Error != nil {
+			return nil, el.Error
+		}
+		if results[i] == nil || results[i].Hash == "" {
+			return nil, fmt.Errorf("block %d not found", from+uint64(i))
+		}
+	}
+	return results, nil
+}
+
+func (e *ethNamespace) GetBlockRange(from, to uint64) ([]*evmctypes.Block, error) {
+	return e.getBlockRange(context.Background(), from, to)
+}
+
+func (e *ethNamespace) GetBlockRangeWithContext(ctx context.Context, from, to uint64) ([]*evmctypes.Block, error) {
+	return e.getBlockRange(ctx, from, to)
+}
+
+func (e *ethNamespace) getBlockRange(ctx context.Context, from, to uint64) ([]*evmctypes.Block, error) {
+	if from > to {
+		return nil, ErrInvalidRange
+	}
+	var (
+		size     = to - from + 1
+		results  = make([]*evmctypes.Block, size)
+		elements = make([]rpc.BatchElem, size)
+	)
+	for i := range elements {
+		elements[i] = rpc.BatchElem{
+			Method: EthGetBlockByNumber.String(),
+			Args:   []interface{}{evmctypes.FormatNumber(from + uint64(i)), false},
+			Result: &results[i],
+		}
+	}
+	if err := e.c.batchCall(ctx, elements); err != nil {
+		return nil, err
+	}
+	for i, el := range elements {
+		if el.Error != nil {
+			return nil, el.Error
+		}
+		if results[i] == nil || results[i].Hash == "" {
+			return nil, fmt.Errorf("block %d not found", from+uint64(i))
+		}
+	}
+	return results, nil
 }
 
 func (e *ethNamespace) SubscribeNewHeads(

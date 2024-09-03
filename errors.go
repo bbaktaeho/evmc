@@ -14,4 +14,5 @@ var (
 	ErrFromRequired               = errors.New("from address is required")
 	ErrToRequired                 = errors.New("to address is required")
 	ErrTxRequired                 = errors.New("tx is required")
+	ErrInvalidRange               = errors.New("invalid range from > to")
 )
