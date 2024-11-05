@@ -73,13 +73,13 @@ func WithReqTimeout(timeout time.Duration) Options {
 
 func WithMaxBatchItems(items int) Options {
 	return optionFunc(func(o *options) {
-		o.connPool = items
+		o.maxBatchItems = items
 	})
 }
 
 func WithMaxBatchSize(size int) Options {
 	return optionFunc(func(o *options) {
-		o.connPool = size
+		o.maxBatchSize = size
 	})
 }
 
