@@ -34,6 +34,7 @@ type block struct {
 	BlobGasUsed           *string `json:"blobGasUsed,omitempty"`           // EIP-4844
 	ExcessBlobGas         *string `json:"excessBlobGas,omitempty"`         // EIP-4844
 	ParentBeaconBlockRoot *string `json:"parentBeaconBlockRoot,omitempty"` // EIP-4788
+	RequestsHash          *string `json:"requestsHash,omitempty"`          // EIP-7685
 
 	L1BlockNumber *uint64 `json:"l1BlockNumber,omitempty"` // Arbitrum
 	SendCount     *string `json:"sendCount,omitempty"`     // Arbitrum
@@ -74,6 +75,7 @@ type _block struct {
 	BlobGasUsed           *string `json:"blobGasUsed,omitempty"`
 	ExcessBlobGas         *string `json:"excessBlobGas,omitempty"`
 	ParentBeaconBlockRoot *string `json:"parentBeaconBlockRoot,omitempty"`
+	RequestsHash          *string `json:"requestsHash,omitempty"`
 
 	L1BlockNumber *string `json:"l1BlockNumber,omitempty"`
 	SendCount     *string `json:"sendCount,omitempty"`
@@ -160,6 +162,9 @@ func (_b *_block) unmarshal(b *block) error {
 	}
 	if _b.ParentBeaconBlockRoot != nil {
 		b.ParentBeaconBlockRoot = _b.ParentBeaconBlockRoot
+	}
+	if _b.RequestsHash != nil {
+		b.RequestsHash = _b.RequestsHash
 	}
 	if _b.L1BlockNumber != nil {
 		l1BlockNumber, err := hexutil.DecodeUint64(*_b.L1BlockNumber)

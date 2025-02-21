@@ -190,7 +190,7 @@ func (e *erc20Contract) transfer(
 	if wallet == nil {
 		return "", ErrWalletRequired
 	}
-	if err := tx.checkSendingTx(); err != nil {
+	if err := tx.valid(); err != nil {
 		return "", err
 	}
 	input, _ := evmcutils.GenerateTxInput(

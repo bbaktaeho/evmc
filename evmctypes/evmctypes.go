@@ -52,12 +52,13 @@ type Transaction struct {
 	S                string          `json:"s" validate:"required"`
 	YParity          *string         `json:"yParity,omitempty"`
 
-	ChainID              *string   `json:"chainId,omitempty"`              // EIP-155
-	AccessList           []*Access `json:"accessList,omitempty"`           // EIP-2930
-	MaxFeePerGas         *string   `json:"maxFeePerGas,omitempty"`         // EIP-1559
-	MaxPriorityFeePerGas *string   `json:"maxPriorityFeePerGas,omitempty"` // EIP-1559
-	MaxFeePerBlobGas     *string   `json:"maxFeePerBlobGas,omitempty"`     // EIP-4844
-	BlobVersionedHashes  []string  `json:"blobVersionedHashes,omitempty"`  // EIP-4844
+	ChainID              *string          `json:"chainId,omitempty"`              // EIP-155
+	AccessList           []*Access        `json:"accessList,omitempty"`           // EIP-2930
+	MaxFeePerGas         *string          `json:"maxFeePerGas,omitempty"`         // EIP-1559
+	MaxPriorityFeePerGas *string          `json:"maxPriorityFeePerGas,omitempty"` // EIP-1559
+	MaxFeePerBlobGas     *string          `json:"maxFeePerBlobGas,omitempty"`     // EIP-4844
+	BlobVersionedHashes  []string         `json:"blobVersionedHashes,omitempty"`  // EIP-4844
+	AuthorizationList    []*Authorization `json:"authorizationList,omitempty"`    // EIP-7702
 
 	L1BlockNumber *uint64 `json:"l1BlockNumber,omitempty"` // Arbitrum, Optimism
 
@@ -95,6 +96,15 @@ type AccessListResp struct {
 	AccessList []*Access `json:"accessList"`
 	Error      *string   `json:"error,omitempty"`
 	GasUsed    string    `json:"gasUsed"`
+}
+
+type Authorization struct {
+	ChainID string `json:"chainId" validate:"required"`
+	Nonce   string `json:"nonce" validate:"required"`
+	Address string `json:"address" validate:"required"`
+	YParity string `json:"yParity" validate:"required"`
+	R       string `json:"r" validate:"required"`
+	S       string `json:"s" validate:"required"`
 }
 
 type Receipt struct {
