@@ -9,51 +9,52 @@ import (
 
 func (t *Transaction) UnmarshalJSON(input []byte) error {
 	type Transaction struct {
-		BlockHash             *string   `json:"blockHash" validate:"required"`
-		BlockNumber           *string   `json:"blockNumber" validate:"-"`
-		From                  *string   `json:"from" validate:"required"`
-		Gas                   *string   `json:"gas" validate:"required"`
-		GasPrice              *string   `json:"gasPrice" validate:"required"`
-		Hash                  *string   `json:"hash" validate:"required"`
-		Input                 *string   `json:"input" validate:"required"`
-		Nonce                 *string   `json:"nonce" validate:"required"`
-		To                    *string   `json:"to" validate:"required"`
-		TransactionIndex      *string   `json:"transactionIndex" validate:"-"`
-		Value                 *string   `json:"value" validate:"required"`
-		Type                  *string   `json:"type" validate:"required"`
-		V                     *string   `json:"v" validate:"required"`
-		R                     *string   `json:"r" validate:"required"`
-		S                     *string   `json:"s" validate:"required"`
-		YParity               *string   `json:"yParity,omitempty"`
-		ChainID               *string   `json:"chainId,omitempty"`
-		AccessList            []*Access `json:"accessList,omitempty"`
-		MaxFeePerGas          *string   `json:"maxFeePerGas,omitempty"`
-		MaxPriorityFeePerGas  *string   `json:"maxPriorityFeePerGas,omitempty"`
-		MaxFeePerBlobGas      *string   `json:"maxFeePerBlobGas,omitempty"`
-		BlobVersionedHashes   []string  `json:"blobVersionedHashes,omitempty"`
-		L1BlockNumber         *string   `json:"l1BlockNumber,omitempty"`
-		RequestID             *string   `json:"requestId,omitempty"`
-		TicketID              *string   `json:"ticketId,omitempty"`
-		MaxRefund             *string   `json:"maxRefund,omitempty"`
-		SubmissionFeeRefund   *string   `json:"submissionFeeRefund,omitempty"`
-		RefundTo              *string   `json:"refundTo,omitempty"`
-		L1BaseFee             *string   `json:"l1BaseFee,omitempty"`
-		DepositValue          *string   `json:"depositValue,omitempty"`
-		RetryTo               *string   `json:"retryTo,omitempty"`
-		RetryValue            *string   `json:"retryValue,omitempty"`
-		RetryData             *string   `json:"retryData,omitempty"`
-		Beneficiary           *string   `json:"beneficiary,omitempty"`
-		MaxSubmissionFee      *string   `json:"maxSubmissionFee,omitempty"`
-		EffectiveGasPrice     *string   `json:"effectiveGasPrice,omitempty"`
-		QueueOrigin           *string   `json:"queueOrigin,omitempty"`
-		L1TxOrigin            *string   `json:"l1TxOrigin,omitempty"`
-		L1BlockTimestamp      *string   `json:"l1Timestamp,omitempty"`
-		Index                 *string   `json:"index,omitempty"`
-		QueueIndex            *string   `json:"queueIndex,omitempty"`
-		SourceHash            *string   `json:"sourceHash,omitempty"`
-		Mint                  *string   `json:"mint,omitempty"`
-		IsSystemTx            *bool     `json:"isSystemTx,omitempty"`
-		DepositReceiptVersion *string   `json:"depositReceiptVersion,omitempty"`
+		BlockHash             *string          `json:"blockHash" validate:"required"`
+		BlockNumber           *string          `json:"blockNumber" validate:"-"`
+		From                  *string          `json:"from" validate:"required"`
+		Gas                   *string          `json:"gas" validate:"required"`
+		GasPrice              *string          `json:"gasPrice" validate:"required"`
+		Hash                  *string          `json:"hash" validate:"required"`
+		Input                 *string          `json:"input" validate:"required"`
+		Nonce                 *string          `json:"nonce" validate:"required"`
+		To                    *string          `json:"to" validate:"required"`
+		TransactionIndex      *string          `json:"transactionIndex" validate:"-"`
+		Value                 *string          `json:"value" validate:"required"`
+		Type                  *string          `json:"type" validate:"required"`
+		V                     *string          `json:"v" validate:"required"`
+		R                     *string          `json:"r" validate:"required"`
+		S                     *string          `json:"s" validate:"required"`
+		YParity               *string          `json:"yParity,omitempty"`
+		ChainID               *string          `json:"chainId,omitempty"`
+		AccessList            []*Access        `json:"accessList,omitempty"`
+		MaxFeePerGas          *string          `json:"maxFeePerGas,omitempty"`
+		MaxPriorityFeePerGas  *string          `json:"maxPriorityFeePerGas,omitempty"`
+		MaxFeePerBlobGas      *string          `json:"maxFeePerBlobGas,omitempty"`
+		BlobVersionedHashes   []string         `json:"blobVersionedHashes,omitempty"`
+		AuthorizationList     []*Authorization `json:"authorizationList,omitempty"`
+		L1BlockNumber         *string          `json:"l1BlockNumber,omitempty"`
+		RequestID             *string          `json:"requestId,omitempty"`
+		TicketID              *string          `json:"ticketId,omitempty"`
+		MaxRefund             *string          `json:"maxRefund,omitempty"`
+		SubmissionFeeRefund   *string          `json:"submissionFeeRefund,omitempty"`
+		RefundTo              *string          `json:"refundTo,omitempty"`
+		L1BaseFee             *string          `json:"l1BaseFee,omitempty"`
+		DepositValue          *string          `json:"depositValue,omitempty"`
+		RetryTo               *string          `json:"retryTo,omitempty"`
+		RetryValue            *string          `json:"retryValue,omitempty"`
+		RetryData             *string          `json:"retryData,omitempty"`
+		Beneficiary           *string          `json:"beneficiary,omitempty"`
+		MaxSubmissionFee      *string          `json:"maxSubmissionFee,omitempty"`
+		EffectiveGasPrice     *string          `json:"effectiveGasPrice,omitempty"`
+		QueueOrigin           *string          `json:"queueOrigin,omitempty"`
+		L1TxOrigin            *string          `json:"l1TxOrigin,omitempty"`
+		L1BlockTimestamp      *string          `json:"l1Timestamp,omitempty"`
+		Index                 *string          `json:"index,omitempty"`
+		QueueIndex            *string          `json:"queueIndex,omitempty"`
+		SourceHash            *string          `json:"sourceHash,omitempty"`
+		Mint                  *string          `json:"mint,omitempty"`
+		IsSystemTx            *bool            `json:"isSystemTx,omitempty"`
+		DepositReceiptVersion *string          `json:"depositReceiptVersion,omitempty"`
 	}
 	var dec Transaction
 	if err := json.Unmarshal(input, &dec); err != nil {
@@ -136,6 +137,9 @@ func (t *Transaction) UnmarshalJSON(input []byte) error {
 	}
 	if dec.BlobVersionedHashes != nil {
 		t.BlobVersionedHashes = dec.BlobVersionedHashes
+	}
+	if dec.AuthorizationList != nil {
+		t.AuthorizationList = dec.AuthorizationList
 	}
 	if dec.L1BlockNumber != nil {
 		l1BlockNumber, err := hexutil.DecodeUint64(*dec.L1BlockNumber)
