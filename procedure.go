@@ -48,6 +48,7 @@ const (
 	EthGetTransactionReceiptsByBlock    Procedure = "eth_getTransactionReceiptsByBlock" // bor
 
 	DebugTraceBlockByNumber Procedure = "debug_traceBlockByNumber"
+	DebugTraceBlockByHash   Procedure = "debug_traceBlockByHash"
 	DebugTraceTransaction   Procedure = "debug_traceTransaction"
 
 	OtsGetContractCreator Procedure = "ots_getContractCreator" // erigon

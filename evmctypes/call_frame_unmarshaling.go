@@ -21,7 +21,10 @@ func (c *CallFrame) UnmarshalJSON(input []byte) error {
 		Logs         []*CallLog   `json:"logs,omitempty"`
 		Value        *string      `json:"value,omitempty"`
 		Type         *string      `json:"type"`
-		Index        *uint64      `json:"index"`
+
+		// Arbitrum
+		AfterEVMTransfers  []*EVMTransfer `json:"afterEVMTransfers,omitempty"`
+		BeforeEVMTransfers []*EVMTransfer `json:"beforeEVMTransfers,omitempty"`
 	}
 	var dec CallFrame0
 	if err := json.Unmarshal(input, &dec); err != nil {
@@ -68,8 +71,11 @@ func (c *CallFrame) UnmarshalJSON(input []byte) error {
 	if dec.Type != nil {
 		c.Type = *dec.Type
 	}
-	if dec.Index != nil {
-		c.Index = *dec.Index
+	if dec.AfterEVMTransfers != nil {
+		c.AfterEVMTransfers = dec.AfterEVMTransfers
+	}
+	if dec.BeforeEVMTransfers != nil {
+		c.BeforeEVMTransfers = dec.BeforeEVMTransfers
 	}
 	return nil
 }

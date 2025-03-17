@@ -10,35 +10,38 @@ import (
 func (f *FlatCallFrame) UnmarshalJSON(input []byte) error {
 	type FlatCallFrame struct {
 		Action *struct {
-			Author         *string "json:\"author,omitempty\""
-			RewardType     *string "json:\"rewardType,omitempty\""
-			Address        *string "json:\"address,omitempty\""
-			Balance        *string "json:\"balance,omitempty\""
-			CreationMethod *string "json:\"creationMethod,omitempty\""
-			RefundAddress  *string "json:\"refundAddress,omitempty\""
-			CallType       *string "json:\"callType,omitempty\""
-			From           *string "json:\"from,omitempty\""
-			Gas            *string "json:\"gas,omitempty\""
-			Input          *string "json:\"input,omitempty\""
-			To             *string "json:\"to,omitempty\""
-			Init           *string "json:\"init,omitempty\""
-			Value          *string "json:\"value,omitempty\""
+			Author         *string `json:"author,omitempty"`
+			RewardType     *string `json:"rewardType,omitempty"`
+			Address        *string `json:"address,omitempty"`
+			Balance        *string `json:"balance,omitempty"`
+			CreationMethod *string `json:"creationMethod,omitempty"`
+			RefundAddress  *string `json:"refundAddress,omitempty"`
+			CallType       *string `json:"callType,omitempty"`
+			From           *string `json:"from,omitempty"`
+			Gas            *string `json:"gas,omitempty"`
+			Input          *string `json:"input,omitempty"`
+			To             *string `json:"to,omitempty"`
+			Init           *string `json:"init,omitempty"`
+			Value          *string `json:"value,omitempty"`
 		} `json:"action"`
 		BlockHash   *string `json:"blockHash" validate:"required"`
 		BlockNumber *uint64 `json:"blockNumber" validate:"-"`
 		Error       *string `json:"error,omitempty"`
 		Result      *struct {
-			Address *string "json:\"address,omitempty\""
-			Code    *string "json:\"code,omitempty\""
-			GasUsed *string "json:\"gasUsed,omitempty\""
-			Output  *string "json:\"output,omitempty\""
+			Address *string `json:"address,omitempty"`
+			Code    *string `json:"code,omitempty"`
+			GasUsed *string `json:"gasUsed,omitempty"`
+			Output  *string `json:"output,omitempty"`
 		} `json:"result,omitempty"`
 		Subtraces           *uint64  `json:"subtraces" validate:"required"`
 		TraceAddress        []uint64 `json:"traceAddress" validate:"required"`
 		TransactionHash     *string  `json:"transactionHash" validate:"required"`
 		TransactionPosition *uint64  `json:"transactionPosition" validate:"-"`
 		Type                *string  `json:"type" validate:"required"`
-		Index               *uint64  `json:"index"`
+
+		// Arbitrum
+		AfterEVMTransfers  []*EVMTransfer `json:"afterEVMTransfers,omitempty"`
+		BeforeEVMTransfers []*EVMTransfer `json:"beforeEVMTransfers,omitempty"`
 	}
 	var dec FlatCallFrame
 	if err := json.Unmarshal(input, &dec); err != nil {
@@ -96,8 +99,11 @@ func (f *FlatCallFrame) UnmarshalJSON(input []byte) error {
 	if dec.Type != nil {
 		f.Type = *dec.Type
 	}
-	if dec.Index != nil {
-		f.Index = *dec.Index
+	if dec.AfterEVMTransfers != nil {
+		f.AfterEVMTransfers = dec.AfterEVMTransfers
+	}
+	if dec.BeforeEVMTransfers != nil {
+		f.BeforeEVMTransfers = dec.BeforeEVMTransfers
 	}
 	return nil
 }

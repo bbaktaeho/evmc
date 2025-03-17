@@ -174,19 +174,51 @@ type SubLog struct {
 	Topics  []string `json:"topics,omitempty"`
 }
 
-type debugTracer struct {
-	TxHash string  `json:"txHash"`
-	Error  *string `json:"error,omitempty"`
+type defaultTraceResult struct {
+	TxHash string      `json:"txHash"`
+	Error  interface{} `json:"error"` // geth is string, erigon is map[string]interface{}
 }
 
-type DebugCallTracer struct {
-	debugTracer
-	Result *CallFrame `json:"result"`
+type TraceResult struct {
+	defaultTraceResult
+	Result interface{} `json:"result,omitempty"`
 }
 
-type DebugFlatCallTracer struct {
-	debugTracer
-	Result *FlatCallFrame `json:"result"`
+type CallTracer struct {
+	defaultTraceResult
+	Result *CallFrame `json:"result,omitempty"`
+}
+
+type FlatCallTracer struct {
+	defaultTraceResult
+	Result []*FlatCallFrame `json:"result,omitempty"`
+}
+
+// TODO: WIP
+// DefaultFrame is a response in default tracer.
+//
+//nolint:unused
+type DefaultFrame struct {
+	Depth   int         `json:"depth"`
+	Gas     uint64      `json:"gas"`
+	GasCost uint64      `json:"gasCost"`
+	Memory  []string    `json:"memory"`
+	OP      string      `json:"op"`
+	PC      uint64      `json:"pc"`
+	Stack   []string    `json:"stack"`
+	Error   interface{} `json:"error"`
+	Storage interface{} `json:"storage"`
+}
+
+// nolint:unused
+type FourByteFrame map[string]uint64
+
+// Arbitrum
+type EVMTransfer struct {
+	From    *string `json:"from"`
+	To      *string `json:"to"`
+	Value   string  `json:"value"`
+	Purpose string  `json:"purpose"`
 }
 
 type CallFrame struct {
@@ -203,6 +235,10 @@ type CallFrame struct {
 	Value        *decimal.Decimal `json:"value,omitempty"`
 	Type         string           `json:"type"`
 	Index        uint64           `json:"index"` // custom index
+
+	// Arbitrum
+	AfterEVMTransfers  []*EVMTransfer `json:"afterEVMTransfers,omitempty"`
+	BeforeEVMTransfers []*EVMTransfer `json:"beforeEVMTransfers,omitempty"`
 }
 
 type CallLog struct {
@@ -229,7 +265,7 @@ type FlatCallFrame struct {
 		Value          *decimal.Decimal `json:"value,omitempty"`
 	} `json:"action"`
 	BlockHash   string  `json:"blockHash" validate:"required"`
-	BlockNumber uint64  `json:"blockNumber" validate:"-"`
+	BlockNumber uint64  `json:"blockNumber" validate:"required"`
 	Error       *string `json:"error,omitempty"`
 	Result      *struct {
 		Address *string `json:"address,omitempty"`
@@ -243,6 +279,10 @@ type FlatCallFrame struct {
 	TransactionPosition uint64   `json:"transactionPosition" validate:"-"`
 	Type                string   `json:"type" validate:"required"`
 	Index               uint64   `json:"index"` // custom index
+
+	// Arbitrum
+	AfterEVMTransfers  []*EVMTransfer `json:"afterEVMTransfers,omitempty"`
+	BeforeEVMTransfers []*EVMTransfer `json:"beforeEVMTransfers,omitempty"`
 }
 
 // TODO: erigon(parity) trace types
