@@ -33,7 +33,7 @@ func Test_ethNamespace(t *testing.T) {
 
 	t.Run("eth_blobBaseFee", func(t *testing.T) {
 		// TODO: skip this test if the node does not support the blobBaseFee method
-		// t.SkipNow()
+		t.SkipNow()
 		baseFee, err := client.eth.BlobBaseFee()
 		if err != nil {
 			t.Error(err)
