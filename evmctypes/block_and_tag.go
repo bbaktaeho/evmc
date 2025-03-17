@@ -16,6 +16,10 @@ const (
 	Finalized BlockAndTag = "finalized"
 )
 
+func (b BlockAndTag) Uint64() (uint64, error) {
+	return hexutil.DecodeUint64(string(b))
+}
+
 func (b BlockAndTag) String() string {
 	return string(b)
 }
