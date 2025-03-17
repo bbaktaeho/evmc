@@ -32,6 +32,32 @@ type erc20Contract struct {
 	ts   transactionSender
 }
 
+func GenerateERC20BalanceOf(owner string) string {
+	if owner[:2] == "0x" {
+		owner = owner[2:]
+	}
+	return fmt.Sprintf("%s%064s", erc20BalanceOfSig, owner)
+}
+
+func GenerateERC20Allowance(owner, spender string) string {
+	if owner[:2] == "0x" {
+		owner = owner[2:]
+	}
+	if spender[:2] == "0x" {
+		spender = spender[2:]
+	}
+	return fmt.Sprintf("%s%064s%064s", erc20AllowanceSig, owner, spender)
+}
+
+func GenerateERC20Transfer(recipient string, amount decimal.Decimal) string {
+	input, _ := evmcutils.GenerateTxInput(
+		erc20FuncSigTransfer,
+		evmcsoltypes.Address(recipient),
+		evmcsoltypes.Uint256(amount),
+	)
+	return input
+}
+
 func (e *erc20Contract) Name(tokenAddress string, blockAndTag evmctypes.BlockAndTag) (string, error) {
 	return e.name(context.Background(), tokenAddress, blockAndTag)
 }
@@ -160,6 +186,7 @@ func (e *erc20Contract) decimals(
 	return evmcsoltypes.ParseSolUintToDecimal(*result)
 }
 
+// TODO: implement
 func (e *erc20Contract) Approve(tx *Tx, wallet *Wallet, spender string, amount decimal.Decimal) {}
 
 // TODO: check gas price and base fee
@@ -193,12 +220,7 @@ func (e *erc20Contract) transfer(
 	if err := tx.valid(); err != nil {
 		return "", err
 	}
-	input, _ := evmcutils.GenerateTxInput(
-		erc20FuncSigTransfer,
-		evmcsoltypes.Address(recipient),
-		evmcsoltypes.Uint256(amount),
-	)
-	tx.Data = input
+	tx.Data = GenerateERC20Transfer(recipient, amount)
 	sendingTx, err := NewSendingTx(tx)
 	if err != nil {
 		return "", err
@@ -231,13 +253,10 @@ func (e *erc20Contract) balanceOf(
 	owner string,
 	blockAndTag evmctypes.BlockAndTag,
 ) (decimal.Decimal, error) {
-	if owner[:2] == "0x" {
-		owner = owner[2:]
-	}
 	var (
 		result = new(string)
 		params = []interface{}{
-			evmctypes.QueryParams{To: tokenAddress, Data: fmt.Sprintf("%s%064s", erc20BalanceOfSig, owner)},
+			evmctypes.QueryParams{To: tokenAddress, Data: GenerateERC20BalanceOf(owner)},
 			evmctypes.ParseBlockAndTag(blockAndTag),
 		}
 	)
@@ -273,16 +292,10 @@ func (e *erc20Contract) allowance(
 	spender string,
 	blockAndTag evmctypes.BlockAndTag,
 ) (decimal.Decimal, error) {
-	if owner[:2] == "0x" {
-		owner = owner[2:]
-	}
-	if spender[:2] == "0x" {
-		spender = spender[2:]
-	}
 	var (
 		result = new(string)
 		params = []interface{}{
-			evmctypes.QueryParams{To: tokenAddress, Data: fmt.Sprintf("%s%064s%064s", erc20AllowanceSig, owner, spender)},
+			evmctypes.QueryParams{To: tokenAddress, Data: GenerateERC20Allowance(owner, spender)},
 			evmctypes.ParseBlockAndTag(blockAndTag),
 		}
 	)
