@@ -7,8 +7,9 @@ const (
 	defaultReqTimeout      time.Duration = 1 * time.Minute
 	defaultIdleConnTimeout time.Duration = 2 * time.Minute
 
-	defaultMaxBatchItems int = 100
-	defaultMaxBatchSize  int = 30 * 1024 * 1024
+	defaultMaxBatchItems    int = 100
+	defaultMaxBatchSize     int = 30 * 1024 * 1024
+	defaultBatchCallWorkers int = 3
 
 	defaultWsReadBufferSize   int = 1024
 	defaultWsWriteBufferSize  int = 1024
@@ -19,11 +20,12 @@ const (
 )
 
 type options struct {
-	connPool        int
-	reqTimeout      time.Duration
-	idleConnTimeout time.Duration
-	maxBatchItems   int
-	maxBatchSize    int
+	connPool         int
+	reqTimeout       time.Duration
+	idleConnTimeout  time.Duration
+	maxBatchItems    int
+	maxBatchSize     int
+	batchCallWorkers int
 
 	wsReadBufferSize   int
 	wsWriteBufferSize  int
@@ -40,6 +42,7 @@ func newOps() *options {
 		idleConnTimeout:    defaultIdleConnTimeout,
 		maxBatchItems:      defaultMaxBatchItems,
 		maxBatchSize:       defaultMaxBatchSize,
+		batchCallWorkers:   defaultBatchCallWorkers,
 		wsReadBufferSize:   defaultWsReadBufferSize,
 		wsWriteBufferSize:  defaultWsWriteBufferSize,
 		wsMessageSizeLimit: defaultWsMessageSizeLimit,
@@ -80,6 +83,15 @@ func WithMaxBatchItems(items int) Options {
 func WithMaxBatchSize(size int) Options {
 	return optionFunc(func(o *options) {
 		o.maxBatchSize = size
+	})
+}
+
+func WithBatchCallWorkers(workers int) Options {
+	if workers < 1 {
+		workers = defaultBatchCallWorkers
+	}
+	return optionFunc(func(o *options) {
+		o.batchCallWorkers = workers
 	})
 }
 

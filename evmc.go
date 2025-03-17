@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
-	"sync"
 
 	"github.com/bbaktaeho/evmc/evmctypes"
 	"github.com/ethereum/go-ethereum/common/lru"
@@ -24,6 +23,7 @@ type clientInfo interface {
 }
 
 type caller interface {
+	BatchCallWithContext(ctx context.Context, elements []rpc.BatchElem, workers int) error
 	call(ctx context.Context, result interface{}, method Procedure, params ...interface{}) error
 	batchCall(ctx context.Context, elements []rpc.BatchElem) error
 }
@@ -44,10 +44,11 @@ type Evmc struct {
 	c           *rpc.Client
 	isWebsocket bool
 
-	chainID       uint64
-	nodeName      ClientName
-	nodeVersion   string
-	maxBatchItems int
+	chainID          uint64
+	nodeName         ClientName
+	nodeVersion      string
+	maxBatchItems    int
+	batchCallWorkers int
 
 	eth   *ethNamespace
 	web3  *web3Namespace
@@ -74,6 +75,10 @@ func httpClient(o *options) *http.Client {
 }
 
 func New(httpURL string, opts ...Options) (*Evmc, error) {
+	return NewWithContext(context.Background(), httpURL, opts...)
+}
+
+func NewWithContext(ctx context.Context, httpURL string, opts ...Options) (*Evmc, error) {
 	u, err := url.Parse(httpURL)
 	if err != nil {
 		return nil, err
@@ -81,7 +86,7 @@ func New(httpURL string, opts ...Options) (*Evmc, error) {
 	if u.Scheme != "http" && u.Scheme != "https" {
 		return nil, errors.New("invalid http scheme")
 	}
-	return newClient(context.Background(), httpURL, false, opts...)
+	return newClient(ctx, httpURL, false, opts...)
 }
 
 func NewWebsocket(ctx context.Context, wsURL string, opts ...Options) (*Evmc, error) {
@@ -118,10 +123,11 @@ func newClient(ctx context.Context, url string, isWs bool, opts ...Options) (*Ev
 	}
 
 	evmc := &Evmc{
-		c:             rpcClient,
-		isWebsocket:   isWs,
-		abiCache:      lru.NewCache[string, interface{}](10),
-		maxBatchItems: o.maxBatchItems,
+		c:                rpcClient,
+		isWebsocket:      isWs,
+		abiCache:         lru.NewCache[string, interface{}](10),
+		maxBatchItems:    o.maxBatchItems,
+		batchCallWorkers: o.batchCallWorkers,
 	}
 	evmc.eth = &ethNamespace{info: evmc, c: evmc, s: evmc, ts: evmc}
 	evmc.web3 = &web3Namespace{c: evmc, n: evmc}
@@ -176,6 +182,52 @@ func (e *Evmc) Contract() *contract {
 	return e.contract
 }
 
+// BatchCallWithContext is a batch call with context and workers.
+// If workers is less than 1, it will be set to 1.
+func (e *Evmc) BatchCallWithContext(ctx context.Context, elements []rpc.BatchElem, workers int) error {
+	if workers < 1 {
+		workers = e.batchCallWorkers
+	}
+	var (
+		elementsCh = make(chan []rpc.BatchElem, workers)
+		finishCh   = make(chan struct{}, workers)
+		errs       = make([]error, 0, workers)
+	)
+	for range workers {
+		go func() {
+			for es := range elementsCh {
+				if err := e.batchCall(ctx, es); err != nil {
+					errs = append(errs, err)
+					return
+				}
+			}
+			finishCh <- struct{}{}
+		}()
+	}
+	for i := 0; i < len(elements); i += e.maxBatchItems {
+		j := min(i+e.maxBatchItems, len(elements))
+		elementsCh <- elements[i:j]
+	}
+	close(elementsCh)
+	for i := 0; i < workers; i++ {
+		<-finishCh
+	}
+	if len(errs) > 0 {
+		errMsgs := make([]string, 0, len(errs))
+		for _, err := range errs {
+			errMsgs = append(errMsgs, err.Error())
+		}
+		return errors.New(strings.Join(errMsgs, ", "))
+	}
+	return nil
+}
+
+// BatchCall is a batch call with workers.
+// If workers is less than 1, it will be set to 1.
+func (e *Evmc) BatchCall(elements []rpc.BatchElem, workers int) error {
+	return e.BatchCallWithContext(context.Background(), elements, workers)
+}
+
 // func (e *Evmc) Trace() *traceNamespace {
 // 	return e.trace
 // }
@@ -211,45 +263,46 @@ func (e *Evmc) call(
 }
 
 func (e *Evmc) batchCall(ctx context.Context, elements []rpc.BatchElem) error {
-	var (
-		size      = len(elements)
-		loopCount = size / e.maxBatchItems
-		wg        = new(sync.WaitGroup)
-		errCh     = make(chan error)
-		errs      = make([]error, 0, 1)
-	)
-	if size%e.maxBatchItems != 0 {
-		loopCount++
-	}
-	go func() {
-		for e := range errCh {
-			errs = append(errs, e)
-		}
-	}()
-	for i := 0; i < loopCount; i++ {
-		low := e.maxBatchItems * i
-		high := e.maxBatchItems * (i + 1)
-		if high > size {
-			high = size
-		}
-		div := elements[low:high]
+	return e.c.BatchCallContext(ctx, elements)
+	// var (
+	// 	size      = len(elements)
+	// 	loopCount = size / e.maxBatchItems
+	// 	wg        = new(sync.WaitGroup)
+	// 	errCh     = make(chan error)
+	// 	errs      = make([]error, 0, 1)
+	// )
+	// if size%e.maxBatchItems != 0 {
+	// 	loopCount++
+	// }
+	// go func() {
+	// 	for e := range errCh {
+	// 		errs = append(errs, e)
+	// 	}
+	// }()
+	// for i := 0; i < loopCount; i++ {
+	// 	low := e.maxBatchItems * i
+	// 	high := e.maxBatchItems * (i + 1)
+	// 	if high > size {
+	// 		high = size
+	// 	}
+	// 	div := elements[low:high]
 
-		wg.Add(1)
-		go func(subElements []rpc.BatchElem) {
-			defer wg.Done()
+	// 	wg.Add(1)
+	// 	go func(subElements []rpc.BatchElem) {
+	// 		defer wg.Done()
 
-			if err := e.c.BatchCallContext(ctx, subElements); err != nil {
-				errCh <- err
-			}
-		}(div)
-	}
-	wg.Wait()
-	close(errCh)
+	// 		if err := e.c.BatchCallContext(ctx, subElements); err != nil {
+	// 			errCh <- err
+	// 		}
+	// 	}(div)
+	// }
+	// wg.Wait()
+	// close(errCh)
 
-	if len(errs) > 0 {
-		return errs[0]
-	}
-	return nil
+	// if len(errs) > 0 {
+	// 	return errs[0]
+	// }
+	// return nil
 }
 
 func (e *Evmc) subscribe(
