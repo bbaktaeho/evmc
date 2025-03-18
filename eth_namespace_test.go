@@ -17,8 +17,31 @@ func testEvmc() *Evmc {
 	return client
 }
 
-// v1.14.5
-// 2.59.0
+func Test_ethNamespace_GetBlockByNumber_uncles(t *testing.T) {
+	client := testEvmc()
+	block, err := client.Eth().GetBlockByNumber(15537381)
+	if err != nil {
+		t.Error(err)
+	} else {
+		assert.NotEmpty(t, block.Uncles)
+	}
+	for _, uncle := range block.UncleBlocks {
+		t.Log(uncle.Number, uncle.Hash)
+	}
+}
+
+func Test_ethNamespace_GetBlockByHash_uncles(t *testing.T) {
+	client := testEvmc()
+	block, err := client.Eth().GetBlockByHash("0x4e216c95f527e9ba0f1161a1c4609b893302c704f05a520da8141ca91878f63e")
+	if err != nil {
+		t.Error(err)
+	} else {
+		assert.NotEmpty(t, block.Uncles)
+	}
+	for _, uncle := range block.UncleBlocks {
+		t.Log(uncle.Number, uncle.Hash)
+	}
+}
 
 func Test_ethNamespace(t *testing.T) {
 	var (

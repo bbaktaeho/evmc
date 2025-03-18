@@ -26,7 +26,7 @@ type ethNamespace struct {
 }
 
 func (e *ethNamespace) GetBlockIncTxRange(from, to uint64) ([]*evmctypes.BlockIncTx, error) {
-	return e.getBlockIncTxRange(context.Background(), from, to)
+	return e.GetBlockIncTxRangeWithContext(context.Background(), from, to)
 }
 
 func (e *ethNamespace) GetBlockIncTxRangeWithContext(ctx context.Context, from, to uint64) ([]*evmctypes.BlockIncTx, error) {
@@ -49,7 +49,7 @@ func (e *ethNamespace) getBlockIncTxRange(ctx context.Context, from, to uint64) 
 			Result: &results[i],
 		}
 	}
-	if err := e.c.batchCall(ctx, elements); err != nil {
+	if err := e.c.BatchCallWithContext(ctx, elements, -1); err != nil {
 		return nil, err
 	}
 	for i, el := range elements {
@@ -59,12 +59,19 @@ func (e *ethNamespace) getBlockIncTxRange(ctx context.Context, from, to uint64) 
 		if results[i] == nil || results[i].Hash == "" {
 			return nil, fmt.Errorf("block %d not found", from+uint64(i))
 		}
+		if len(results[i].Uncles) > 0 {
+			uncleBlocks, err := e.getUncleBlocks(ctx, results[i].Number, results[i].Uncles)
+			if err != nil {
+				return nil, err
+			}
+			results[i].UncleBlocks = uncleBlocks
+		}
 	}
 	return results, nil
 }
 
 func (e *ethNamespace) GetBlockRange(from, to uint64) ([]*evmctypes.Block, error) {
-	return e.getBlockRange(context.Background(), from, to)
+	return e.GetBlockRangeWithContext(context.Background(), from, to)
 }
 
 func (e *ethNamespace) GetBlockRangeWithContext(ctx context.Context, from, to uint64) ([]*evmctypes.Block, error) {
@@ -77,28 +84,35 @@ func (e *ethNamespace) getBlockRange(ctx context.Context, from, to uint64) ([]*e
 	}
 	var (
 		size     = to - from + 1
-		results  = make([]*evmctypes.Block, size)
+		blocks   = make([]*evmctypes.Block, size)
 		elements = make([]rpc.BatchElem, size)
 	)
 	for i := range elements {
 		elements[i] = rpc.BatchElem{
 			Method: EthGetBlockByNumber.String(),
 			Args:   []interface{}{evmctypes.FormatNumber(from + uint64(i)), false},
-			Result: &results[i],
+			Result: &blocks[i],
 		}
 	}
-	if err := e.c.batchCall(ctx, elements); err != nil {
+	if err := e.c.BatchCallWithContext(ctx, elements, -1); err != nil {
 		return nil, err
 	}
 	for i, el := range elements {
 		if el.Error != nil {
 			return nil, el.Error
 		}
-		if results[i] == nil || results[i].Hash == "" {
+		if blocks[i] == nil || blocks[i].Hash == "" {
 			return nil, fmt.Errorf("block %d not found", from+uint64(i))
 		}
+		if len(blocks[i].Uncles) > 0 {
+			uncleBlocks, err := e.getUncleBlocks(ctx, blocks[i].Number, blocks[i].Uncles)
+			if err != nil {
+				return nil, err
+			}
+			blocks[i].UncleBlocks = uncleBlocks
+		}
 	}
-	return results, nil
+	return blocks, nil
 }
 
 func (e *ethNamespace) SubscribeNewHeads(
@@ -135,7 +149,7 @@ func (e *ethNamespace) subscribe(ctx context.Context, ch interface{}, args ...in
 
 // BlobBaseFee returns the base fee per gas for the next block in the current block.
 func (e *ethNamespace) BlobBaseFee() (decimal.Decimal, error) {
-	return e.blobBaseFee(context.Background())
+	return e.BlobBaseFeeWithContext(context.Background())
 }
 
 // BlobBaseFeeWithContext returns the base fee per gas for the next block in the current block.
@@ -152,7 +166,7 @@ func (e *ethNamespace) blobBaseFee(ctx context.Context) (decimal.Decimal, error)
 }
 
 func (e *ethNamespace) CreateAccessList(tx *Tx) (*evmctypes.AccessListResp, error) {
-	return e.createAccessList(context.Background(), tx)
+	return e.CreateAccessListWithContext(context.Background(), tx)
 }
 
 func (e *ethNamespace) CreateAccessListWithContext(ctx context.Context, tx *Tx) (*evmctypes.AccessListResp, error) {
@@ -172,7 +186,7 @@ func (e *ethNamespace) createAccessList(ctx context.Context, tx *Tx) (*evmctypes
 }
 
 func (e *ethNamespace) FeeHistory(blockCount uint64, lastBlock evmctypes.BlockAndTag, rewardPercentiles []float64) (*evmctypes.FeeHistory, error) {
-	return e.feeHistory(context.Background(), blockCount, lastBlock, rewardPercentiles)
+	return e.FeeHistoryWithContext(context.Background(), blockCount, lastBlock, rewardPercentiles)
 }
 
 func (e *ethNamespace) FeeHistoryWithContext(
@@ -199,7 +213,7 @@ func (e *ethNamespace) feeHistory(
 }
 
 func (e *ethNamespace) BlockTransactionCountByHash(hash string) (uint64, error) {
-	return e.blockTransactionCountByHash(context.Background(), hash)
+	return e.BlockTransactionCountByHashWithContext(context.Background(), hash)
 }
 
 func (e *ethNamespace) BlockTransactionCountByHashWithContext(ctx context.Context, hash string) (uint64, error) {
@@ -215,7 +229,7 @@ func (e *ethNamespace) blockTransactionCountByHash(ctx context.Context, hash str
 }
 
 func (e *ethNamespace) BlockTransactionCountByNumber(number uint64) (uint64, error) {
-	return e.blockTransactionCountByNumber(context.Background(), number)
+	return e.BlockTransactionCountByNumberWithContext(context.Background(), number)
 }
 
 func (e *ethNamespace) BlockTransactionCountByNumberWithContext(ctx context.Context, number uint64) (uint64, error) {
@@ -231,7 +245,7 @@ func (e *ethNamespace) blockTransactionCountByNumber(ctx context.Context, number
 }
 
 func (e *ethNamespace) ChainID() (uint64, error) {
-	return e.chainID(context.Background())
+	return e.ChainIDWithContext(context.Background())
 }
 
 func (e *ethNamespace) ChainIDWithContext(ctx context.Context) (uint64, error) {
@@ -251,7 +265,7 @@ func (e *ethNamespace) chainID(ctx context.Context) (uint64, error) {
 }
 
 func (e *ethNamespace) GetStorageAt(address, position string, blockAndTag evmctypes.BlockAndTag) (string, error) {
-	return e.getStorageAt(context.Background(), address, position, blockAndTag)
+	return e.GetStorageAtWithContext(context.Background(), address, position, blockAndTag)
 }
 
 func (e *ethNamespace) GetStorageAtWithContext(
@@ -277,7 +291,7 @@ func (e *ethNamespace) getStorageAt(
 }
 
 func (e *ethNamespace) BlockNumber() (uint64, error) {
-	return e.blockNumber(context.Background())
+	return e.BlockNumberWithContext(context.Background())
 }
 
 func (e *ethNamespace) BlockNumberWithContext(ctx context.Context) (uint64, error) {
@@ -293,7 +307,7 @@ func (e *ethNamespace) blockNumber(ctx context.Context) (uint64, error) {
 }
 
 func (e *ethNamespace) GetCode(address string, blockAndTag evmctypes.BlockAndTag) (string, error) {
-	return e.getCode(context.Background(), address, blockAndTag)
+	return e.GetCodeWithContext(context.Background(), address, blockAndTag)
 }
 
 func (e *ethNamespace) GetCodeWithContext(ctx context.Context, address string, blockAndTag evmctypes.BlockAndTag) (string, error) {
@@ -313,68 +327,80 @@ func (e *ethNamespace) getCode(
 }
 
 func (e *ethNamespace) GetBlockByTag(tag evmctypes.BlockAndTag) (*evmctypes.Block, error) {
-	return e.getBlockByTag(context.Background(), tag)
+	return e.GetBlockByTagWithContext(context.Background(), tag)
 }
 
 func (e *ethNamespace) GetBlockByTagWithContext(ctx context.Context, tag evmctypes.BlockAndTag) (*evmctypes.Block, error) {
-	return e.getBlockByTag(ctx, tag)
-}
-
-func (e *ethNamespace) getBlockByTag(ctx context.Context, tag evmctypes.BlockAndTag) (*evmctypes.Block, error) {
 	block := new(evmctypes.Block)
 	if err := e.getBlockByNumber(ctx, block, tag, false); err != nil {
 		return nil, err
+	}
+	if len(block.Uncles) > 0 {
+		uncleBlocks, err := e.getUncleBlocks(ctx, block.Number, block.Uncles)
+		if err != nil {
+			return nil, err
+		}
+		block.UncleBlocks = uncleBlocks
 	}
 	return block, nil
 }
 
 func (e *ethNamespace) GetBlockIncTxByTag(tag evmctypes.BlockAndTag) (*evmctypes.BlockIncTx, error) {
-	return e.getBlockIncTxByTag(context.Background(), tag)
+	return e.GetBlockByIncTxTagWithContext(context.Background(), tag)
 }
 
 func (e *ethNamespace) GetBlockByIncTxTagWithContext(ctx context.Context, tag evmctypes.BlockAndTag) (*evmctypes.BlockIncTx, error) {
-	return e.getBlockIncTxByTag(ctx, tag)
-}
-
-func (e *ethNamespace) getBlockIncTxByTag(ctx context.Context, tag evmctypes.BlockAndTag) (*evmctypes.BlockIncTx, error) {
 	block := new(evmctypes.BlockIncTx)
 	if err := e.getBlockByNumber(ctx, block, tag, true); err != nil {
 		return nil, err
+	}
+	if len(block.Uncles) > 0 {
+		uncleBlocks, err := e.getUncleBlocks(ctx, block.Number, block.Uncles)
+		if err != nil {
+			return nil, err
+		}
+		block.UncleBlocks = uncleBlocks
 	}
 	return block, nil
 }
 
 func (e *ethNamespace) GetBlockByNumber(number uint64) (*evmctypes.Block, error) {
-	return e.getBlock(context.Background(), number)
+	return e.GetBlockByNumberWithContext(context.Background(), number)
 }
 
 func (e *ethNamespace) GetBlockByNumberWithContext(ctx context.Context, number uint64) (*evmctypes.Block, error) {
-	return e.getBlock(ctx, number)
-}
-
-func (e *ethNamespace) getBlock(ctx context.Context, number uint64) (*evmctypes.Block, error) {
-	result := new(evmctypes.Block)
-	if err := e.getBlockByNumber(ctx, result, evmctypes.FormatNumber(number), false); err != nil {
+	block := new(evmctypes.Block)
+	if err := e.getBlockByNumber(ctx, block, evmctypes.FormatNumber(number), false); err != nil {
 		return nil, err
 	}
-	return result, nil
+	if len(block.Uncles) > 0 {
+		uncleBlocks, err := e.getUncleBlocks(ctx, block.Number, block.Uncles)
+		if err != nil {
+			return nil, err
+		}
+		block.UncleBlocks = uncleBlocks
+	}
+	return block, nil
 }
 
 func (e *ethNamespace) GetBlockIncTxByNumber(number uint64) (*evmctypes.BlockIncTx, error) {
-	return e.getBlockIncTxByNumber(context.Background(), number)
+	return e.GetBlockIncTxByNumberWithContext(context.Background(), number)
 }
 
 func (e *ethNamespace) GetBlockIncTxByNumberWithContext(
 	ctx context.Context,
 	number uint64,
 ) (*evmctypes.BlockIncTx, error) {
-	return e.getBlockIncTxByNumber(ctx, number)
-}
-
-func (e *ethNamespace) getBlockIncTxByNumber(ctx context.Context, number uint64) (*evmctypes.BlockIncTx, error) {
 	block := new(evmctypes.BlockIncTx)
 	if err := e.getBlockByNumber(ctx, block, evmctypes.FormatNumber(number), true); err != nil {
 		return nil, err
+	}
+	if len(block.Uncles) > 0 {
+		uncleBlocks, err := e.getUncleBlocks(ctx, block.Number, block.Uncles)
+		if err != nil {
+			return nil, err
+		}
+		block.UncleBlocks = uncleBlocks
 	}
 	return block, nil
 }
@@ -396,11 +422,7 @@ func (e *ethNamespace) getBlockByNumber(
 }
 
 func (e *ethNamespace) GetBlockByHash(hash string) (*evmctypes.Block, error) {
-	block := new(evmctypes.Block)
-	if err := e.getBlockByHash(context.Background(), block, hash, false); err != nil {
-		return nil, err
-	}
-	return block, nil
+	return e.GetBlockByHashWithContext(context.Background(), hash)
 }
 
 func (e *ethNamespace) GetBlockByHashWithContext(ctx context.Context, hash string) (*evmctypes.Block, error) {
@@ -408,24 +430,31 @@ func (e *ethNamespace) GetBlockByHashWithContext(ctx context.Context, hash strin
 	if err := e.getBlockByHash(ctx, block, hash, false); err != nil {
 		return nil, err
 	}
+	if len(block.Uncles) > 0 {
+		uncleBlocks, err := e.getUncleBlocks(ctx, block.Number, block.Uncles)
+		if err != nil {
+			return nil, err
+		}
+		block.UncleBlocks = uncleBlocks
+	}
 	return block, nil
 }
 
 func (e *ethNamespace) GetBlockIncTxByHash(hash string) (*evmctypes.BlockIncTx, error) {
-	return e.getBlockIncTxByHash(context.Background(), hash)
+	return e.GetBlockIncTxByHashWithContext(context.Background(), hash)
 }
 
-func (e *ethNamespace) GetBlockIncTxByHashWithContext(
-	ctx context.Context,
-	hash string,
-) (*evmctypes.BlockIncTx, error) {
-	return e.getBlockIncTxByHash(ctx, hash)
-}
-
-func (e *ethNamespace) getBlockIncTxByHash(ctx context.Context, hash string) (*evmctypes.BlockIncTx, error) {
+func (e *ethNamespace) GetBlockIncTxByHashWithContext(ctx context.Context, hash string) (*evmctypes.BlockIncTx, error) {
 	block := new(evmctypes.BlockIncTx)
 	if err := e.getBlockByHash(ctx, block, hash, true); err != nil {
 		return nil, err
+	}
+	if len(block.Uncles) > 0 {
+		uncleBlocks, err := e.getUncleBlocks(ctx, block.Number, block.Uncles)
+		if err != nil {
+			return nil, err
+		}
+		block.UncleBlocks = uncleBlocks
 	}
 	return block, nil
 }
@@ -436,6 +465,33 @@ func (e *ethNamespace) getBlockByHash(ctx context.Context, result interface{}, h
 		return err
 	}
 	return nil
+}
+
+func (e *ethNamespace) getUncleBlocks(ctx context.Context, blockNumber uint64, uncles []string) ([]*evmctypes.Block, error) {
+	var (
+		size        = len(uncles)
+		elements    = make([]rpc.BatchElem, size)
+		uncleBlocks = make([]*evmctypes.Block, size)
+	)
+	for i := range elements {
+		elements[i] = rpc.BatchElem{
+			Method: EthGetUncleByBlockNumberAndIndex.String(),
+			Args:   []interface{}{hexutil.EncodeUint64(blockNumber), hexutil.EncodeUint64(uint64(i))},
+			Result: &uncleBlocks[i],
+		}
+	}
+	if err := e.c.batchCall(ctx, elements); err != nil {
+		return nil, err
+	}
+	for i, elem := range elements {
+		if elem.Error != nil {
+			return nil, elem.Error
+		}
+		if uncleBlocks[i].Hash == "" {
+			return nil, fmt.Errorf("%d, %d, %s uncle does not exist", blockNumber, i, uncles[i])
+		}
+	}
+	return uncleBlocks, nil
 }
 
 func (e *ethNamespace) GetTransactionByHash(hash string) (*evmctypes.Transaction, error) {

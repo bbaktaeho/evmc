@@ -224,7 +224,7 @@ func (b *BlockIncTx) UnmarshalJSON(input []byte) error {
 		_block
 		Transactions []*Transaction `json:"transactions"`
 		Withdrawals  []*Withdrawal  `json:"withdrawals,omitempty"`
-		UncleBlocks  []*BlockIncTx  `json:"uncleBlocks,omitempty"`
+		UncleBlocks  []*Block       `json:"uncleBlocks,omitempty"`
 	}
 	var dec blockIncTx
 	if err := json.Unmarshal(input, &dec); err != nil {

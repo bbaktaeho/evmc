@@ -23,7 +23,7 @@ type Block struct {
 type BlockIncTx struct {
 	block
 	Transactions []*Transaction `json:"transactions" validate:""`
-	UncleBlocks  []*BlockIncTx  `json:"uncleBlocks,omitempty"`
+	UncleBlocks  []*Block       `json:"uncleBlocks,omitempty"`
 	Withdrawals  []*Withdrawal  `json:"withdrawals,omitempty"` // EIP-4895
 }
 
