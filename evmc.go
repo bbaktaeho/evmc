@@ -195,13 +195,15 @@ func (e *Evmc) BatchCallWithContext(ctx context.Context, elements []rpc.BatchEle
 	)
 	for i := 0; i < workers; i++ {
 		go func(workerID int) {
+			defer func() {
+				finishCh <- struct{}{}
+			}()
 			for es := range elementsCh {
 				if err := e.batchCall(ctx, es); err != nil {
 					errs[workerID] = err
 					return
 				}
 			}
-			finishCh <- struct{}{}
 		}(i)
 	}
 	for i := 0; i < len(elements); i += e.maxBatchItems {
