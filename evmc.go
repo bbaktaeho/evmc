@@ -212,12 +212,10 @@ func (e *Evmc) BatchCallWithContext(ctx context.Context, elements []rpc.BatchEle
 	for i := 0; i < workers; i++ {
 		<-finishCh
 	}
-	if len(errs) > 0 {
-		errMsgs := make([]string, 0, len(errs))
-		for _, err := range errs {
-			errMsgs = append(errMsgs, err.Error())
+	for _, err := range errs {
+		if err != nil {
+			return err
 		}
-		return errors.New(strings.Join(errMsgs, ", "))
 	}
 	return nil
 }
