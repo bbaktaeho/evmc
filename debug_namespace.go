@@ -73,6 +73,9 @@ type TraceConfig struct {
 }
 
 func assignIndexCalls(callFrame *evmctypes.CallFrame) {
+	if callFrame == nil {
+		return
+	}
 	var index uint64
 	callFrame.Index = index // default 0
 	assignIndexCall(&index, callFrame.Calls)
@@ -90,6 +93,9 @@ func assignIndexCall(index *uint64, calls []*evmctypes.CallFrame) {
 
 func assignIndexFlatCalls(flatCalls []*evmctypes.FlatCallTracer) {
 	for _, flatCall := range flatCalls {
+		if len(flatCall.Result) == 0 {
+			continue
+		}
 		for j, call := range flatCall.Result {
 			call.Index = uint64(j)
 		}
