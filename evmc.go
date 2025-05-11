@@ -55,6 +55,7 @@ type Evmc struct {
 	debug *debugNamespace
 	// trace *traceNamespace
 	// ots   *otsNamespace
+	kaia *kaiaNamespace
 
 	contract *contract
 	erc20    *erc20Contract
@@ -132,6 +133,7 @@ func newClient(ctx context.Context, url string, isWs bool, opts ...Options) (*Ev
 	evmc.eth = &ethNamespace{info: evmc, c: evmc, s: evmc, ts: evmc}
 	evmc.web3 = &web3Namespace{c: evmc, n: evmc}
 	evmc.debug = &debugNamespace{c: evmc}
+	evmc.kaia = &kaiaNamespace{c: evmc}
 	evmc.contract = &contract{c: evmc}
 	evmc.erc20 = &erc20Contract{info: evmc, c: evmc, ts: evmc}
 
