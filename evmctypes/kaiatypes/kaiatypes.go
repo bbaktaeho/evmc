@@ -1,6 +1,10 @@
 package kaiatypes
 
-import "github.com/shopspring/decimal"
+import (
+	"math/big"
+
+	"github.com/shopspring/decimal"
+)
 
 type Header struct {
 	block
@@ -105,12 +109,12 @@ type Log struct {
 }
 
 type Rewards struct {
-	BurntFee int64              `json:"burntFee" validate:"required"`
-	Kgf      int64              `json:"kgf" validate:"required"`
-	Kir      int64              `json:"kir" validate:"required"`
-	Minted   float64            `json:"minted" validate:"required"`
-	Proposer float64            `json:"proposer" validate:"required"`
-	Rewards  map[string]float64 `json:"rewards" validate:"required"`
-	Stakers  int64              `json:"stakers" validate:"required"`
-	TotalFee int64              `json:"totalFee" validate:"required"`
+	BurntFee *big.Int            `json:"burntFee" validate:"required"`
+	Kgf      *big.Int            `json:"kgf" validate:"required"`
+	Kir      *big.Int            `json:"kir" validate:"required"`
+	Minted   *big.Int            `json:"minted" validate:"required"`
+	Proposer *big.Int            `json:"proposer" validate:"required"`
+	Rewards  map[string]*big.Int `json:"rewards" validate:"required"`
+	Stakers  *big.Int            `json:"stakers" validate:"required"`
+	TotalFee *big.Int            `json:"totalFee" validate:"required"`
 }
