@@ -45,14 +45,17 @@ func Test_kaiaNamespace_GetBlockIncTxRange(t *testing.T) {
 
 func Test_kaiaNamespace_GetBlockByHash(t *testing.T) {
 	ns := newTestKaiaNamespace()
-	hash := "0xba647d41423faeebe8a7c64737d284fc2eba6f0388a3e1ebf6243db509ec1577" // 테스트용 블록 해시
+	hash := "0x0e696ddb2e525893e03a3ee62f7582ffe253e5aeefe2ca569f8ebf0b9622a736"
 	block, err := ns.GetBlockByHashIncTx(hash)
 	assert.NoError(t, err)
 	assert.NotNil(t, block)
-	// json indent
-	json, err := json.MarshalIndent(block, "", "  ")
+	assert.Equal(t, hash, block.Hash)
+	assert.Equal(t, len(block.Transactions), 1)
+	fmt.Println(block.Number)
+	assert.Equal(t, block.Number, uint64(184997666))
+	_, err = json.MarshalIndent(block, "", "  ")
 	assert.NoError(t, err)
-	t.Logf("block: %s", string(json))
+
 }
 
 func Test_kaiaNamespace_GetBlockByNumber(t *testing.T) {
