@@ -154,7 +154,7 @@ func (b *Block) UnmarshalJSON(input []byte) error {
 	return nil
 }
 
-func (b *BlockIncTxs) UnmarshalJSON(input []byte) error {
+func (b *BlockIncTx) UnmarshalJSON(input []byte) error {
 	type block struct {
 		_block
 		Transactions []*Transaction `json:"transactions"`

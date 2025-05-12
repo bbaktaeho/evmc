@@ -11,7 +11,7 @@ type Block struct {
 	Transactions []string `json:"transactions"`
 }
 
-type BlockIncTxs struct {
+type BlockIncTx struct {
 	block
 	Transactions []*Transaction `json:"transactions"`
 }

@@ -16,21 +16,21 @@ type kaiaNamespace struct {
 	c caller
 }
 
-func (k *kaiaNamespace) GetBlockIncTxRange(from, to uint64) ([]*kaiatypes.BlockIncTxs, error) {
+func (k *kaiaNamespace) GetBlockIncTxRange(from, to uint64) ([]*kaiatypes.BlockIncTx, error) {
 	return k.GetBlockIncTxRangeWithContext(context.Background(), from, to)
 }
 
-func (k *kaiaNamespace) GetBlockIncTxRangeWithContext(ctx context.Context, from, to uint64) ([]*kaiatypes.BlockIncTxs, error) {
+func (k *kaiaNamespace) GetBlockIncTxRangeWithContext(ctx context.Context, from, to uint64) ([]*kaiatypes.BlockIncTx, error) {
 	return k.getBlockIncTxRange(ctx, from, to)
 }
 
-func (k *kaiaNamespace) getBlockIncTxRange(ctx context.Context, from, to uint64) ([]*kaiatypes.BlockIncTxs, error) {
+func (k *kaiaNamespace) getBlockIncTxRange(ctx context.Context, from, to uint64) ([]*kaiatypes.BlockIncTx, error) {
 	if from > to {
 		return nil, ErrInvalidRange
 	}
 	var (
 		size     = to - from + 1
-		results  = make([]*kaiatypes.BlockIncTxs, size)
+		results  = make([]*kaiatypes.BlockIncTx, size)
 		elements = make([]rpc.BatchElem, size)
 	)
 	for i := range elements {
@@ -87,13 +87,13 @@ func (k *kaiaNamespace) GetBlockByHashWithContext(ctx context.Context, hash stri
 }
 
 // GetBlockByHashIncTx returns information about a block by hash, including transactions.
-func (k *kaiaNamespace) GetBlockByHashIncTx(hash string) (*kaiatypes.BlockIncTxs, error) {
+func (k *kaiaNamespace) GetBlockByHashIncTx(hash string) (*kaiatypes.BlockIncTx, error) {
 	return k.GetBlockByHashIncTxWithContext(context.Background(), hash)
 }
 
 // GetBlockByHashIncTxWithContext returns information about a block by hash, including transactions.
-func (k *kaiaNamespace) GetBlockByHashIncTxWithContext(ctx context.Context, hash string) (*kaiatypes.BlockIncTxs, error) {
-	block := new(kaiatypes.BlockIncTxs)
+func (k *kaiaNamespace) GetBlockByHashIncTxWithContext(ctx context.Context, hash string) (*kaiatypes.BlockIncTx, error) {
+	block := new(kaiatypes.BlockIncTx)
 	if err := k.getBlockByHash(ctx, block, hash, true); err != nil {
 		return nil, err
 	}
@@ -123,13 +123,13 @@ func (k *kaiaNamespace) GetBlockByNumberWithContext(ctx context.Context, blockNu
 }
 
 // GetBlockByNumberIncTx returns information about a block by block number, including transactions.
-func (k *kaiaNamespace) GetBlockByNumberIncTx(blockNumber uint64) (*kaiatypes.BlockIncTxs, error) {
+func (k *kaiaNamespace) GetBlockByNumberIncTx(blockNumber uint64) (*kaiatypes.BlockIncTx, error) {
 	return k.GetBlockByNumberIncTxWithContext(context.Background(), blockNumber)
 }
 
 // GetBlockByNumberIncTxWithContext returns information about a block by block number, including transactions.
-func (k *kaiaNamespace) GetBlockByNumberIncTxWithContext(ctx context.Context, blockNumber uint64) (*kaiatypes.BlockIncTxs, error) {
-	block := new(kaiatypes.BlockIncTxs)
+func (k *kaiaNamespace) GetBlockByNumberIncTxWithContext(ctx context.Context, blockNumber uint64) (*kaiatypes.BlockIncTx, error) {
+	block := new(kaiatypes.BlockIncTx)
 	if err := k.getBlockByNumber(ctx, block, evmctypes.FormatNumber(blockNumber), true); err != nil {
 		return nil, err
 	}
