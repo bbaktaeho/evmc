@@ -17,8 +17,8 @@ import (
 // TODO: backoff retry
 
 type clientInfo interface {
-	ChainID() uint64
-	NodeClient() (name, version string)
+	ChainID() (uint64, error)
+	NodeClient() (name, version string, err error)
 	IsWebsocket() bool
 }
 
@@ -44,9 +44,6 @@ type Evmc struct {
 	c           *rpc.Client
 	isWebsocket bool
 
-	chainID          uint64
-	nodeName         ClientName
-	nodeVersion      string
 	maxBatchItems    int
 	batchCallWorkers int
 
@@ -55,6 +52,7 @@ type Evmc struct {
 	debug *debugNamespace
 	// trace *traceNamespace
 	// ots   *otsNamespace
+	kaia *kaiaNamespace
 
 	contract *contract
 	erc20    *erc20Contract
@@ -130,22 +128,11 @@ func newClient(ctx context.Context, url string, isWs bool, opts ...Options) (*Ev
 		batchCallWorkers: o.batchCallWorkers,
 	}
 	evmc.eth = &ethNamespace{info: evmc, c: evmc, s: evmc, ts: evmc}
-	evmc.web3 = &web3Namespace{c: evmc, n: evmc}
+	evmc.web3 = &web3Namespace{c: evmc}
 	evmc.debug = &debugNamespace{c: evmc}
+	evmc.kaia = &kaiaNamespace{c: evmc}
 	evmc.contract = &contract{c: evmc}
 	evmc.erc20 = &erc20Contract{info: evmc, c: evmc, ts: evmc}
-
-	chainID, err := evmc.eth.ChainID()
-	if err != nil {
-		return nil, err
-	}
-	evmc.chainID = chainID
-
-	nodeClient, err := evmc.web3.ClientVersion()
-	if err != nil {
-		return nil, err
-	}
-	evmc.setNode(nodeClient)
 
 	return evmc, nil
 }
@@ -158,12 +145,22 @@ func (e *Evmc) IsWebsocket() bool {
 	return e.isWebsocket
 }
 
-func (e *Evmc) ChainID() uint64 {
-	return e.chainID
+func (e *Evmc) ChainID() (uint64, error) {
+	return e.eth.ChainID()
 }
 
-func (e *Evmc) NodeClient() (name, version string) {
-	return e.nodeName.String(), e.nodeVersion
+func (e *Evmc) NodeClient() (name, version string, err error) {
+	cv, err := e.web3.ClientVersion()
+	if err != nil {
+		return "", "", err
+	}
+	cvarr := strings.Split(cv, "/")
+	if len(cvarr) < 2 {
+		return
+	}
+	name = cvarr[0]
+	version = cvarr[1]
+	return
 }
 
 func (e *Evmc) Web3() *web3Namespace {
@@ -183,7 +180,7 @@ func (e *Evmc) Contract() *contract {
 }
 
 // BatchCallWithContext is a batch call with context and workers.
-// If workers is less than 1, it will be set to 1.
+// If workers is less than 1, it will be set to batchCallWorkers.
 func (e *Evmc) BatchCallWithContext(ctx context.Context, elements []rpc.BatchElem, workers int) error {
 	if workers < 1 {
 		workers = e.batchCallWorkers
@@ -324,13 +321,4 @@ func (e *Evmc) sendRawTransaction(ctx context.Context, rawTx string) (string, er
 		return "", err
 	}
 	return *result, nil
-}
-
-func (e *Evmc) setNode(cv string) {
-	cvarr := strings.Split(cv, "/")
-	if len(cvarr) < 2 {
-		return
-	}
-	e.nodeName = ClientName(cvarr[0])
-	e.nodeVersion = cvarr[1]
 }

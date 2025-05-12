@@ -10,6 +10,10 @@ const (
 
 type Procedure string
 
+func (p Procedure) String() string {
+	return string(p)
+}
+
 const (
 	Web3ClientVersion Procedure = "web3_clientVersion"
 
@@ -58,6 +62,44 @@ const (
 	ArbitraceBlock Procedure = "arbtrace_block" // arbitrum
 )
 
-func (p Procedure) String() string {
-	return string(p)
-}
+const (
+	KaiaBlockNumber                            Procedure = "kaia_blockNumber"
+	KaiaGetBlockByHash                         Procedure = "kaia_getBlockByHash"
+	KaiaGetBlockByNumber                       Procedure = "kaia_getBlockByNumber"
+	KaiaGetBlockReceipts                       Procedure = "kaia_getBlockReceipts"
+	KaiaGetBlockTransactionCountByHash         Procedure = "kaia_getBlockTransactionCountByHash"
+	KaiaGetBlockTransactionCountByNumber       Procedure = "kaia_getBlockTransactionCountByNumber"
+	KaiaGetBlockWithConsensusInfoByHash        Procedure = "kaia_getBlockWithConsensusInfoByHash"
+	KaiaGetBlockWithConsensusInfoByNumber      Procedure = "kaia_getBlockWithConsensusInfoByNumber"
+	KaiaGetBlockWithConsensusInfoByNumberRange Procedure = "kaia_getBlockWithConsensusInfoByNumberRange"
+	KaiaGetCommittee                           Procedure = "kaia_getCommittee"
+	KaiaGetCommitteeSize                       Procedure = "kaia_getCommitteeSize"
+	KaiaGetCouncil                             Procedure = "kaia_getCouncil"
+	KaiaGetCouncilSize                         Procedure = "kaia_getCouncilSize"
+	KaiaGetHeaderByHash                        Procedure = "kaia_getHeaderByHash"
+	KaiaGetHeaderByNumber                      Procedure = "kaia_getHeaderByNumber"
+	KaiaGetRewards                             Procedure = "kaia_getRewards"
+	KaiaGetStorageAt                           Procedure = "kaia_getStorageAt"
+	KaiaSyncing                                Procedure = "kaia_syncing"
+	KaiaCall                                   Procedure = "kaia_call"
+	KaiaCreateAccessList                       Procedure = "kaia_createAccessList"
+	KaiaEstimateComputationCost                Procedure = "kaia_estimateComputationCost"
+	KaiaEstimateGas                            Procedure = "kaia_estimateGas"
+	KaiaGetDecodedAnchoringTransactionByHash   Procedure = "kaia_getDecodedAnchoringTransactionByHash"
+	KaiaGetRawTransactionByBlockHashAndIndex   Procedure = "kaia_getRawTransactionByBlockHashAndIndex"
+	KaiaGetRawTransactionByBlockNumberAndIndex Procedure = "kaia_getRawTransactionByBlockNumberAndIndex"
+	KaiaGetRawTransactionByHash                Procedure = "kaia_getRawTransactionByHash"
+	KaiaGetTransactionByBlockHashAndIndex      Procedure = "kaia_getTransactionByBlockHashAndIndex"
+	KaiaGetTransactionByBlockNumberAndIndex    Procedure = "kaia_getTransactionByBlockNumberAndIndex"
+	KaiaGetTransactionByHash                   Procedure = "kaia_getTransactionByHash"
+	KaiaGetTransactionBySenderTxHash           Procedure = "kaia_getTransactionBySenderTxHash"
+	KaiaGetTransactionReceipt                  Procedure = "kaia_getTransactionReceipt"
+	KaiaGetTransactionReceiptBySenderTxHash    Procedure = "kaia_getTransactionReceiptBySenderTxHash"
+	KaiaPendingTransactions                    Procedure = "kaia_pendingTransactions"
+	KaiaResend                                 Procedure = "kaia_resend"
+	KaiaSendRawTransaction                     Procedure = "kaia_sendRawTransaction"
+	KaiaSendTransaction                        Procedure = "kaia_sendTransaction"
+	KaiaSendTransactionAsFeePayer              Procedure = "kaia_sendTransactionAsFeePayer"
+	KaiaSignTransaction                        Procedure = "kaia_signTransaction"
+	KaiaSignTransactionAsFeePayer              Procedure = "kaia_signTransactionAsFeePayer"
+)

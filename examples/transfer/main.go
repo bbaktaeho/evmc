@@ -15,7 +15,7 @@ const (
 )
 
 func main() {
-	client, err := evmc.New("https://ethereum-mainnet.nodit.io")
+	client, err := evmc.New("https://ethereum-sepolia.nodit.io")
 	if err != nil {
 		panic(err)
 	}
@@ -54,7 +54,7 @@ func main() {
 		panic(err)
 	}
 
-	hash, err := client.Eth().SendTransaction(sendingTx, wallet)
+	hash, err := client.Eth().SendTransaction(evmc.EthereumSepolia.Uint64(), sendingTx, wallet)
 	if err != nil {
 		panic(err)
 	}
@@ -84,7 +84,7 @@ func main() {
 		panic(err)
 	}
 
-	hash, err = client.Eth().SendTransaction(sendingTx, wallet)
+	hash, err = client.Eth().SendTransaction(evmc.EthereumSepolia.Uint64(), sendingTx, wallet)
 	if err != nil {
 		panic(err)
 	}

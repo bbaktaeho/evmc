@@ -25,9 +25,14 @@ func nodeInfoExample(client *evmc.Evmc) {
 	}
 	fmt.Println("client version:", cv)
 
-	// caching
-	chainID = client.ChainID()
-	nodeName, nodeVersion := client.NodeClient()
+	chainID, err = client.ChainID()
+	if err != nil {
+		panic(err)
+	}
+	nodeName, nodeVersion, err := client.NodeClient()
+	if err != nil {
+		panic(err)
+	}
 	fmt.Println("chain id:", chainID, "name:", nodeName, "version:", nodeVersion)
 
 	isSyncing, syncing, err := client.Eth().Syncing()
