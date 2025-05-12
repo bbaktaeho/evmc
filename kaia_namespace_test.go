@@ -104,3 +104,15 @@ func Test_kaiaNamespace_GetRewards(t *testing.T) {
 	assert.NoError(t, err)
 	t.Logf("rewards: %s", string(json))
 }
+
+func Test_kaiaNamespace_GetRewardsRange(t *testing.T) {
+	ns := newTestKaiaNamespace()
+	startBlock := uint64(184930558)
+	endBlock := uint64(184930759)
+	resp, err := ns.GetRewardsRange(startBlock, endBlock)
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Equal(t, len(resp), int(endBlock-startBlock+1))
+	_, err = json.MarshalIndent(resp, "", "  ")
+	assert.NoError(t, err)
+}

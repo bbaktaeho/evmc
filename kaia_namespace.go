@@ -180,6 +180,42 @@ func (k *kaiaNamespace) getTransactionReceipt(ctx context.Context, hash string) 
 	return result, nil
 }
 
+// GetRewardsRange returns the rewards for a range of blocks.
+func (k *kaiaNamespace) GetRewardsRange(from, to uint64) ([]*kaiatypes.Rewards, error) {
+	return k.GetRewardsRangeWithContext(context.Background(), from, to)
+}
+
+// GetRewardsRangeWithContext returns the rewards for a range of blocks.
+func (k *kaiaNamespace) GetRewardsRangeWithContext(ctx context.Context, from, to uint64) ([]*kaiatypes.Rewards, error) {
+	if from > to {
+		return nil, ErrInvalidRange
+	}
+	var (
+		size     = to - from + 1
+		results  = make([]*kaiatypes.Rewards, size)
+		elements = make([]rpc.BatchElem, size)
+	)
+	for i := range elements {
+		elements[i] = rpc.BatchElem{
+			Method: KaiaGetRewards.String(),
+			Args:   []interface{}{evmctypes.FormatNumber(from + uint64(i))},
+			Result: &results[i],
+		}
+	}
+	if err := k.c.BatchCallWithContext(ctx, elements, -1); err != nil {
+		return nil, err
+	}
+	for i, el := range elements {
+		if el.Error != nil {
+			return nil, el.Error
+		}
+		if results[i] == nil {
+			return nil, fmt.Errorf("rewards for block %d not found", from+uint64(i))
+		}
+	}
+	return results, nil
+}
+
 // GetRewards returns the rewards for a block by block number.
 func (k *kaiaNamespace) GetRewards(blockNumber uint64) (*kaiatypes.Rewards, error) {
 	return k.GetRewardsWithContext(context.Background(), blockNumber)
