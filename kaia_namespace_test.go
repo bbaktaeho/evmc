@@ -1,7 +1,9 @@
 package evmc
 
 import (
+	"context"
 	"encoding/json"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -28,10 +30,23 @@ func Test_kaiaNamespace_BlockNumber(t *testing.T) {
 	t.Logf("latest block number: %d", latest)
 }
 
+func Test_kaiaNamespace_GetBlockIncTxRange(t *testing.T) {
+	ns := newTestKaiaNamespace()
+	startBlock := uint64(184994449)
+	endBlock := uint64(184994450)
+	blocks, err := ns.getBlockIncTxRange(context.Background(), startBlock, endBlock)
+	assert.NoError(t, err)
+	assert.NotNil(t, blocks)
+	// json indent
+	json, err := json.MarshalIndent(blocks, "", "  ")
+	assert.NoError(t, err)
+	t.Logf("blocks: %s", string(json))
+}
+
 func Test_kaiaNamespace_GetBlockByHash(t *testing.T) {
 	ns := newTestKaiaNamespace()
-	hash := "0x436c8e9a24ce624d7083c560049b5a9499626ddddc5e5d77992afeca7eb58cf7" // 테스트용 블록 해시
-	block, err := ns.GetBlockByHash(hash, false)
+	hash := "0xba647d41423faeebe8a7c64737d284fc2eba6f0388a3e1ebf6243db509ec1577" // 테스트용 블록 해시
+	block, err := ns.GetBlockByHashIncTx(hash)
 	assert.NoError(t, err)
 	assert.NotNil(t, block)
 	// json indent
@@ -42,26 +57,26 @@ func Test_kaiaNamespace_GetBlockByHash(t *testing.T) {
 
 func Test_kaiaNamespace_GetBlockByNumber(t *testing.T) {
 	ns := newTestKaiaNamespace()
-	number := uint64(100)
-	block, err := ns.GetBlockByNumber(number, false)
+	number := uint64(184994449)
+	block, err := ns.GetBlockByNumberIncTx(number)
 	assert.NoError(t, err)
 	assert.NotNil(t, block)
 	// json indent
-	json, err := json.MarshalIndent(block, "", "  ")
+	data, err := json.MarshalIndent(block, "", "  ")
 	assert.NoError(t, err)
-	t.Logf("block: %s", string(json))
+	fmt.Println(string(data))
 }
 
 func Test_kaiaNamespace_GetBlockReceipts(t *testing.T) {
 	ns := newTestKaiaNamespace()
-	number := uint64(184929811)
+	number := uint64(184994449)
 	receipts, err := ns.GetBlockReceipts(number)
 	assert.NoError(t, err)
 	assert.NotNil(t, receipts)
-	// json indent
-	json, err := json.MarshalIndent(receipts, "", "  ")
+	// data indent
+	data, err := json.MarshalIndent(receipts, "", "  ")
 	assert.NoError(t, err)
-	t.Logf("receipts: %s", string(json))
+	fmt.Println(string(data))
 }
 
 func Test_kaiaNamespace_GetTransactionReceipt(t *testing.T) {

@@ -1,140 +1,116 @@
 package kaiatypes
 
-// 블록 헤더 타입
-// https://github.com/kaiachain/kaia-sdk/blob/dev/web3rpc/rpc-specs/components/schemas/common/Common.yaml 참고
-// https://github.com/kaiachain/kaia-sdk/blob/dev/web3rpc/rpc-specs/components/schemas/common/KaiaTransactionTypes.yaml 참고
+import "github.com/shopspring/decimal"
+
 type Header struct {
-	Number           string   `json:"number"`
-	Hash             string   `json:"hash"`
-	ParentHash       string   `json:"parentHash"`
-	Nonce            string   `json:"nonce"`
-	Sha3Uncles       string   `json:"sha3Uncles"`
-	LogsBloom        string   `json:"logsBloom"`
-	TransactionsRoot string   `json:"transactionsRoot"`
-	StateRoot        string   `json:"stateRoot"`
-	ReceiptsRoot     string   `json:"receiptsRoot"`
-	Miner            string   `json:"miner"`
-	Difficulty       string   `json:"difficulty"`
-	TotalDifficulty  string   `json:"totalDifficulty"`
-	ExtraData        string   `json:"extraData"`
-	Size             string   `json:"size"`
-	GasLimit         string   `json:"gasLimit"`
-	GasUsed          string   `json:"gasUsed"`
-	Timestamp        string   `json:"timestamp"`
-	BaseFeePerGas    string   `json:"baseFeePerGas,omitempty"`
-	Proposer         string   `json:"proposer,omitempty"`
-	Committee        []string `json:"committee,omitempty"`
+	block
 }
 
-// 블록 타입 (트랜잭션 해시만 포함)
 type Block struct {
-	Header
+	block
 	Transactions []string `json:"transactions"`
-	Uncles       []string `json:"uncles"`
 }
 
-// 블록 타입 (트랜잭션 전체 객체 포함)
 type BlockIncTxs struct {
-	Header
-	Transactions []Transaction `json:"transactions"`
-	Uncles       []string      `json:"uncles"`
+	block
+	Transactions []*Transaction `json:"transactions"`
 }
 
-// 트랜잭션 타입
 type Transaction struct {
-	Hash                 string        `json:"hash"`
-	Nonce                string        `json:"nonce"`
-	BlockHash            string        `json:"blockHash"`
-	BlockNumber          string        `json:"blockNumber"`
-	TransactionIndex     string        `json:"transactionIndex"`
-	From                 string        `json:"from"`
-	To                   string        `json:"to"`
-	Value                string        `json:"value"`
-	GasPrice             string        `json:"gasPrice"`
-	Gas                  string        `json:"gas"`
-	Input                string        `json:"input"`
-	V                    string        `json:"v"`
-	R                    string        `json:"r"`
-	S                    string        `json:"s"`
-	Type                 string        `json:"type,omitempty"`
-	TxType               string        `json:"txType,omitempty"`
-	FeePayer             string        `json:"feePayer,omitempty"`
-	FeePayerSignatures   []Signature   `json:"feePayerSignatures,omitempty"`
-	Signatures           []Signature   `json:"signatures,omitempty"`
-	ChainId              string        `json:"chainId,omitempty"`
-	AccessList           []AccessTuple `json:"accessList,omitempty"`
-	MaxFeePerGas         string        `json:"maxFeePerGas,omitempty"`
-	MaxPriorityFeePerGas string        `json:"maxPriorityFeePerGas,omitempty"`
+	BlockHash          string          `json:"blockHash" validate:"required"`
+	BlockNumber        uint64          `json:"blockNumber" validate:"-"`
+	CodeFormat         string          `json:"codeFormat,omitempty"`
+	FeePayer           string          `json:"feePayer,omitempty"`
+	FeePayerSignatures []*Signature    `json:"feePayerSignatures,omitempty"`
+	FeeRatio           string          `json:"feeRatio,omitempty"`
+	From               string          `json:"from" validate:"required"`
+	Gas                string          `json:"gas" validate:"required"`
+	GasPrice           string          `json:"gasPrice" validate:"required"`
+	Hash               string          `json:"hash" validate:"required"`
+	HumanReadable      bool            `json:"humanReadable,omitempty"`
+	Key                string          `json:"key,omitempty"`
+	Input              string          `json:"input"`
+	Nonce              string          `json:"nonce" validate:"required"`
+	SenderTxHash       string          `json:"senderTxHash" validate:"required"`
+	Signatures         []*Signature    `json:"signatures" validate:"required"`
+	To                 string          `json:"to" validate:"required"`
+	TransactionIndex   uint64          `json:"transactionIndex" validate:"-"`
+	Type               string          `json:"type" validate:"required"`
+	TypeInt            uint64          `json:"typeInt" validate:"required"`
+	Value              decimal.Decimal `json:"value" validate:"required"`
+
+	ChainID              *string   `json:"chainId,omitempty"`              // EIP-155
+	AccessList           []*Access `json:"accessList,omitempty"`           // EIP-2930
+	MaxFeePerGas         *string   `json:"maxFeePerGas,omitempty"`         // EIP-1559
+	MaxPriorityFeePerGas *string   `json:"maxPriorityFeePerGas,omitempty"` // EIP-1559
 }
 
-// 트랜잭션 서명 타입
 type Signature struct {
-	V string `json:"v"`
-	R string `json:"r"`
-	S string `json:"s"`
+	V string `json:"v" validate:"required"`
+	R string `json:"r" validate:"required"`
+	S string `json:"s" validate:"required"`
 }
 
-// 트랜잭션 영수증(Receipt) 타입
+type Access struct {
+	Address     string   `json:"address" validate:"required"`
+	StorageKeys []string `json:"storageKeys" validate:"required"`
+}
+
 type Receipt struct {
-	TransactionHash    string      `json:"transactionHash"`
-	TransactionIndex   string      `json:"transactionIndex"`
-	BlockHash          string      `json:"blockHash"`
-	BlockNumber        string      `json:"blockNumber"`
-	From               string      `json:"from"`
-	To                 string      `json:"to"`
-	CumulativeGasUsed  string      `json:"cumulativeGasUsed"`
-	GasUsed            string      `json:"gasUsed"`
-	ContractAddress    string      `json:"contractAddress,omitempty"`
-	Logs               []Log       `json:"logs"`
-	LogsBloom          string      `json:"logsBloom"`
-	Status             string      `json:"status"`
-	Type               string      `json:"type,omitempty"`
-	EffectiveGasPrice  string      `json:"effectiveGasPrice,omitempty"`
-	FeePayer           string      `json:"feePayer,omitempty"`
-	FeePayerSignatures []Signature `json:"feePayerSignatures,omitempty"`
-	TxType             string      `json:"txType,omitempty"`
-	ChainId            string      `json:"chainId,omitempty"`
-	Root               string      `json:"root,omitempty"`
-	RevertReason       string      `json:"revertReason,omitempty"`
-	RevertReasonHex    string      `json:"revertReasonHex,omitempty"`
+	BlockHash          string       `json:"blockHash" validate:"required"`
+	BlockNumber        uint64       `json:"blockNumber" validate:"-"`
+	CodeFormat         string       `json:"codeFormat,omitempty"`
+	ContractAddress    string       `json:"contractAddress,omitempty"`
+	FeePayer           string       `json:"feePayer,omitempty"`
+	FeePayerSignatures []*Signature `json:"feePayerSignatures,omitempty"`
+	FeeRatio           string       `json:"feeRatio,omitempty"`
+	From               string       `json:"from" validate:"required"`
+	Gas                string       `json:"gas" validate:"required"`
+	EffectiveGasPrice  string       `json:"effectiveGasPrice" validate:"required"`
+	GasPrice           string       `json:"gasPrice" validate:"required"`
+	GasUsed            string       `json:"gasUsed" validate:"required"`
+	HumanReadable      bool         `json:"humanReadable,omitempty"`
+	Key                string       `json:"key,omitempty"`
+	Logs               []*Log       `json:"logs" validate:"required"`
+	LogsBloom          string       `json:"logsBloom"`
+	Nonce              string       `json:"nonce" validate:"required"`
+	SenderTxHash       string       `json:"senderTxHash" validate:"required"`
+	Signatures         []*Signature `json:"signatures" validate:"required"`
+	Status             string       `json:"status" validate:"required"`
+	TxError            string       `json:"txError,omitempty"`
+	To                 string       `json:"to" validate:"required"`
+	TransactionHash    string       `json:"transactionHash" validate:"required"`
+	TransactionIndex   uint64       `json:"transactionIndex" validate:"-"`
+	Type               string       `json:"type" validate:"required"`
+	TypeInt            uint64       `json:"typeInt" validate:"required"`
+	Value              string       `json:"value" validate:"required"`
+
+	Input                string    `json:"input"`
+	ChainID              *string   `json:"chainId,omitempty"`              // EIP-155
+	AccessList           []*Access `json:"accessList,omitempty"`           // EIP-2930
+	MaxFeePerGas         *string   `json:"maxFeePerGas,omitempty"`         // EIP-1559
+	MaxPriorityFeePerGas *string   `json:"maxPriorityFeePerGas,omitempty"` // EIP-1559
 }
 
-// 로그(Log) 타입
 type Log struct {
-	Address     string   `json:"address"`
-	Topics      []string `json:"topics"`
-	Data        string   `json:"data"`
-	BlockNumber string   `json:"blockNumber"`
-	TxHash      string   `json:"transactionHash"`
-	TxIndex     string   `json:"transactionIndex"`
-	BlockHash   string   `json:"blockHash"`
-	LogIndex    string   `json:"logIndex"`
-	Removed     bool     `json:"removed"`
-}
-
-// 필요에 따라 아래 타입은 유지/삭제
-// type Reward struct { ... }
-// type Committee struct { ... }
-// type Council struct { ... }
-// type SendTransactionRequest struct { ... }
-// type SendTransactionResponse struct { ... }
-// type ResendRequest struct { ... }
-// type ResendResponse struct { ... }
-// type PendingTransaction struct { ... }
-// type DecodedAnchoringTransaction struct { ... }
-
-type AccessTuple struct {
-	Address     string   `json:"address"`
-	StorageKeys []string `json:"storageKeys"`
+	Address          string   `json:"address" validate:"required"`
+	Topics           []string `json:"topics" validate:"required"`
+	Data             string   `json:"data" validate:"required"`
+	BlockNumber      uint64   `json:"blockNumber" validate:"-"`
+	TransactionHash  string   `json:"transactionHash" validate:"required"`
+	TransactionIndex uint64   `json:"transactionIndex" validate:"-"`
+	BlockHash        string   `json:"blockHash" validate:"required"`
+	LogIndex         uint64   `json:"logIndex" validate:"-"`
+	Removed          bool     `json:"removed" validate:"-"`
 }
 
 type Rewards struct {
-	BurntFee int64              `json:"burntFee"`
-	KGF      int64              `json:"kgf"`
-	KIR      int64              `json:"kir"`
-	Minted   float64            `json:"minted"`
-	Proposer float64            `json:"proposer"`
-	Rewards  map[string]float64 `json:"rewards"`
-	Stakers  int64              `json:"stakers"`
-	TotalFee int64              `json:"totalFee"`
+	BurntFee int64              `json:"burntFee" validate:"required"`
+	Kgf      int64              `json:"kgf" validate:"required"`
+	Kir      int64              `json:"kir" validate:"required"`
+	Minted   float64            `json:"minted" validate:"required"`
+	Proposer float64            `json:"proposer" validate:"required"`
+	Rewards  map[string]float64 `json:"rewards" validate:"required"`
+	Stakers  int64              `json:"stakers" validate:"required"`
+	TotalFee int64              `json:"totalFee" validate:"required"`
 }
