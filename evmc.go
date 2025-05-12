@@ -171,6 +171,10 @@ func (e *Evmc) Eth() *ethNamespace {
 	return e.eth
 }
 
+func (e *Evmc) Kaia() *kaiaNamespace {
+	return e.kaia
+}
+
 func (e *Evmc) Debug() *debugNamespace {
 	return e.debug
 }
