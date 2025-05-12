@@ -42,6 +42,7 @@ type Transaction struct {
 	Type               string          `json:"type" validate:"required"`
 	TypeInt            uint64          `json:"typeInt" validate:"required"`
 	Value              decimal.Decimal `json:"value" validate:"required"`
+	InputJSON          interface{}     `json:"inputJSON,omitempty"`
 
 	ChainID              *string   `json:"chainId,omitempty"`              // EIP-155
 	AccessList           []*Access `json:"accessList,omitempty"`           // EIP-2930

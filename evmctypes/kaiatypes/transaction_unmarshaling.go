@@ -30,6 +30,7 @@ func (t *Transaction) UnmarshalJSON(input []byte) error {
 		Type                 *string      `json:"type"`
 		TypeInt              *uint64      `json:"typeInt"`
 		Value                *string      `json:"value"`
+		InputJSON            interface{}  `json:"inputJSON,omitempty"`
 		ChainID              *string      `json:"chainId,omitempty"`              // EIP-155
 		AccessList           []*Access    `json:"accessList,omitempty"`           // EIP-2930
 		MaxFeePerGas         *string      `json:"maxFeePerGas,omitempty"`         // EIP-1559
@@ -113,6 +114,9 @@ func (t *Transaction) UnmarshalJSON(input []byte) error {
 			return err
 		}
 		t.Value = decimal.NewFromBigInt(valueBig, 0)
+	}
+	if dec.InputJSON != nil {
+		t.InputJSON = dec.InputJSON
 	}
 	if dec.ChainID != nil {
 		t.ChainID = dec.ChainID

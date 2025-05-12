@@ -144,6 +144,21 @@ func (k *kaiaNamespace) getBlockByNumber(ctx context.Context, result interface{}
 	return nil
 }
 
+func (k *kaiaNamespace) GetTransactionByHash(hash string) (*kaiatypes.Transaction, error) {
+	return k.GetTransactionByHashWithContext(context.Background(), hash)
+}
+
+func (k *kaiaNamespace) GetTransactionByHashWithContext(ctx context.Context, hash string) (*kaiatypes.Transaction, error) {
+	result := new(kaiatypes.Transaction)
+	if err := k.c.call(ctx, result, KaiaGetTransactionByHash, hash); err != nil {
+		return nil, err
+	}
+	if result == nil || result.Hash == "" {
+		return nil, fmt.Errorf("transaction %s not found", hash)
+	}
+	return result, nil
+}
+
 // GetBlockReceipts returns the receipts for all transactions in a block.
 func (k *kaiaNamespace) GetBlockReceipts(blockNumber uint64) ([]*kaiatypes.Receipt, error) {
 	return k.GetBlockReceiptsWithContext(context.Background(), blockNumber)

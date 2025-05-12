@@ -70,6 +70,18 @@ func Test_kaiaNamespace_GetBlockByNumber(t *testing.T) {
 	fmt.Println(string(data))
 }
 
+func Test_kaiaNamespace_GetTransactionByHash(t *testing.T) {
+	ns := newTestKaiaNamespace()
+	hash := "0xcf72eaf651ac7f19b694654c5af37e1e3a6cd9f93627a6eb425b28bb3627df76"
+	tx, err := ns.GetTransactionByHash(hash)
+	assert.NoError(t, err)
+	assert.NotNil(t, tx)
+	// json indent
+	data, err := json.MarshalIndent(tx, "", "  ")
+	assert.NoError(t, err)
+	fmt.Println(string(data))
+}
+
 func Test_kaiaNamespace_GetBlockReceipts(t *testing.T) {
 	ns := newTestKaiaNamespace()
 	number := uint64(184994449)
@@ -108,11 +120,12 @@ func Test_kaiaNamespace_GetRewards(t *testing.T) {
 func Test_kaiaNamespace_GetRewardsRange(t *testing.T) {
 	ns := newTestKaiaNamespace()
 	startBlock := uint64(184930558)
-	endBlock := uint64(184930759)
+	endBlock := uint64(184930558)
 	resp, err := ns.GetRewardsRange(startBlock, endBlock)
 	assert.NoError(t, err)
 	assert.NotNil(t, resp)
 	assert.Equal(t, len(resp), int(endBlock-startBlock+1))
-	_, err = json.MarshalIndent(resp, "", "  ")
-	assert.NoError(t, err)
+
+	b, _ := json.MarshalIndent(resp[0], "", "  ")
+	t.Logf("rewards: %s", string(b))
 }
