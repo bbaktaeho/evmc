@@ -110,8 +110,8 @@ type Log struct {
 
 type Rewards struct {
 	BurntFee *big.Int            `json:"burntFee" validate:"required"`
-	Kgf      *big.Int            `json:"kgf" validate:"required"`
-	Kir      *big.Int            `json:"kir" validate:"required"`
+	Kif      *big.Int            `json:"kif" validate:"required"`
+	Kef      *big.Int            `json:"kef" validate:"required"`
 	Minted   *big.Int            `json:"minted" validate:"required"`
 	Proposer *big.Int            `json:"proposer" validate:"required"`
 	Rewards  map[string]*big.Int `json:"rewards" validate:"required"`
