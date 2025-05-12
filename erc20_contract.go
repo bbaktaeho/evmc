@@ -225,7 +225,11 @@ func (e *erc20Contract) transfer(
 	if err != nil {
 		return "", err
 	}
-	_, rawTx, err := wallet.SignTx(sendingTx, e.info.ChainID())
+	chainID, err := e.info.ChainID()
+	if err != nil {
+		return "", err
+	}
+	_, rawTx, err := wallet.SignTx(sendingTx, chainID)
 	if err != nil {
 		return "", err
 	}

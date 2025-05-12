@@ -637,15 +637,8 @@ func (e *ethNamespace) GetBlockReceiptsWithContext(ctx context.Context, number u
 }
 
 func (e *ethNamespace) getBlockReceipts(ctx context.Context, number uint64) ([]*evmctypes.Receipt, error) {
-	var (
-		result        = new([]*evmctypes.Receipt)
-		method        = EthGetBlockReceipts
-		clientName, _ = e.info.NodeClient()
-	)
-	if ClientName(clientName) == Bor {
-		method = EthGetTransactionReceiptsByBlock
-	}
-	if err := e.c.call(ctx, result, method, hexutil.EncodeUint64(number)); err != nil {
+	var result = new([]*evmctypes.Receipt)
+	if err := e.c.call(ctx, result, EthGetBlockReceipts, hexutil.EncodeUint64(number)); err != nil {
 		return nil, err
 	}
 	return *result, nil
@@ -715,24 +708,26 @@ func (e *ethNamespace) syncing(ctx context.Context) (bool, *evmctypes.Syncing, e
 	return true, resultSyncing, nil
 }
 
-func (e *ethNamespace) SendTransaction(sendingTx *SendingTx, wallet *Wallet) (string, error) {
-	return e.sendTransaction(context.Background(), sendingTx, wallet)
+func (e *ethNamespace) SendTransaction(chainID uint64, sendingTx *SendingTx, wallet *Wallet) (string, error) {
+	return e.sendTransaction(context.Background(), chainID, sendingTx, wallet)
 }
 
 func (e *ethNamespace) SendTransactionWithContext(
 	ctx context.Context,
+	chainID uint64,
 	sendingTx *SendingTx,
 	wallet *Wallet,
 ) (string, error) {
-	return e.sendTransaction(ctx, sendingTx, wallet)
+	return e.sendTransaction(ctx, chainID, sendingTx, wallet)
 }
 
 func (e *ethNamespace) sendTransaction(
 	ctx context.Context,
+	chainID uint64,
 	sendingTx *SendingTx,
 	wallet *Wallet,
 ) (string, error) {
-	_, rawTx, err := wallet.SignTx(sendingTx, e.info.ChainID())
+	_, rawTx, err := wallet.SignTx(sendingTx, chainID)
 	if err != nil {
 		return "", err
 	}
