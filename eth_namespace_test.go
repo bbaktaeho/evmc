@@ -8,17 +8,39 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func testEvmc() *Evmc {
-	rpcURL := "https://ethereum-mainnet.nodit.io/<api-key>"
-	client, err := New(rpcURL)
+func testEvmc(url string) *Evmc {
+	client, err := New(url)
 	if err != nil {
 		panic(err)
 	}
 	return client
 }
 
+func Test_ethNamespace_GetBlockByNumber(t *testing.T) {
+	t.Parallel()
+	t.Run("BSC 2025-05", func(t *testing.T) {
+		client := testEvmc("https://bsc-dataseed1.binance.org/")
+		block, err := client.Eth().GetBlockByNumber(50153974)
+		if err != nil {
+			t.Fatal(err)
+		}
+		assert.NotNil(t, block.MilliTimestamp)
+		assert.True(t, *block.MilliTimestamp > 1000000000000)
+	})
+
+	t.Run("BSC Genesis Block", func(t *testing.T) {
+		client := testEvmc("https://bsc-dataseed1.binance.org/")
+		block, err := client.Eth().GetBlockByNumber(0)
+		if err != nil {
+			t.Fatal(err)
+		}
+		assert.NotNil(t, block.MilliTimestamp)
+		assert.True(t, *block.MilliTimestamp > 1000000000000)
+	})
+}
+
 func Test_ethNamespace_GetBlockByNumber_uncles(t *testing.T) {
-	client := testEvmc()
+	client := testEvmc("")
 	block, err := client.Eth().GetBlockByNumber(15537381)
 	if err != nil {
 		t.Error(err)
@@ -31,7 +53,7 @@ func Test_ethNamespace_GetBlockByNumber_uncles(t *testing.T) {
 }
 
 func Test_ethNamespace_GetBlockByHash_uncles(t *testing.T) {
-	client := testEvmc()
+	client := testEvmc("")
 	block, err := client.Eth().GetBlockByHash("0x4e216c95f527e9ba0f1161a1c4609b893302c704f05a520da8141ca91878f63e")
 	if err != nil {
 		t.Error(err)
@@ -45,7 +67,7 @@ func Test_ethNamespace_GetBlockByHash_uncles(t *testing.T) {
 
 func Test_ethNamespace(t *testing.T) {
 	var (
-		client          = testEvmc()
+		client          = testEvmc("")
 		testBlockNumber = uint64(20445681)
 		testBlockHash   = "0xbd3c4cf74090e6a08285ae016df4c268220cb14fef1653de38348b5745956838"
 		txCount         = 1163

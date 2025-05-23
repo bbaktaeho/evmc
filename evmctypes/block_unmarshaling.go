@@ -39,6 +39,8 @@ type block struct {
 	L1BlockNumber *uint64 `json:"l1BlockNumber,omitempty"` // Arbitrum
 	SendCount     *string `json:"sendCount,omitempty"`     // Arbitrum
 	SendRoot      *string `json:"sendRoot,omitempty"`      // Arbitrum
+
+	MilliTimestamp *uint64 `json:"milliTimestamp,omitempty"` // BSC
 }
 
 func (b *block) NextBaseFee() decimal.Decimal {
@@ -80,6 +82,8 @@ type _block struct {
 	L1BlockNumber *string `json:"l1BlockNumber,omitempty"`
 	SendCount     *string `json:"sendCount,omitempty"`
 	SendRoot      *string `json:"sendRoot,omitempty"`
+
+	MilliTimestamp *string `json:"milliTimestamp,omitempty"`
 }
 
 func (_b *_block) unmarshal(b *block) error {
@@ -178,6 +182,13 @@ func (_b *_block) unmarshal(b *block) error {
 	}
 	if _b.SendRoot != nil {
 		b.SendRoot = _b.SendRoot
+	}
+	if _b.MilliTimestamp != nil {
+		milliTimestamp, err := hexutil.DecodeUint64(*_b.MilliTimestamp)
+		if err != nil {
+			return err
+		}
+		b.MilliTimestamp = &milliTimestamp
 	}
 	return nil
 }
