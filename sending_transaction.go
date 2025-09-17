@@ -49,6 +49,9 @@ func (t *Tx) parseCallMsg() (map[string]interface{}, error) {
 			"storageKeys": storageKeys,
 		}
 	}
+	if t.From == "" {
+		t.From = ZeroAddress
+	}
 	if t.To == "" {
 		return nil, ErrToRequired
 	}
