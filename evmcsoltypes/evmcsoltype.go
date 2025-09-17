@@ -35,6 +35,14 @@ var (
 
 type SolType interface{}
 
+func Bool(b bool) SolType {
+	res, err := solBoolArgs.Pack(b)
+	if err != nil {
+		panic(err)
+	}
+	return res
+}
+
 func Int256(d decimal.Decimal) SolType {
 	res, err := solUint256Args.Pack(d.BigInt())
 	if err != nil {
@@ -83,6 +91,18 @@ func AddressArr(addresses []string) SolType {
 		panic(err)
 	}
 	return res
+}
+
+func ParseBool(solReturn string) (bool, error) {
+	b, err := hexutil.Decode(solReturn)
+	if err != nil {
+		return false, err
+	}
+	unpacked, err := solBoolArgs.Unpack(b)
+	if err != nil {
+		return false, err
+	}
+	return *abi.ConvertType(unpacked[0], new(bool)).(*bool), nil
 }
 
 func ParseSolStringToString(solReturn string) (string, error) {
