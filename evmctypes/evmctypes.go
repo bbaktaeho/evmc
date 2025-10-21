@@ -1,6 +1,8 @@
 package evmctypes
 
 import (
+	"encoding/json"
+
 	"github.com/shopspring/decimal"
 )
 
@@ -151,6 +153,8 @@ type Log struct {
 	BlockHash        string   `json:"blockHash" validate:"required"`
 	LogIndex         uint64   `json:"logIndex" validate:"-"`
 	Removed          bool     `json:"removed" validate:"-"`
+
+	BlockTimestamp uint64 `json:"blockTimestamp" validate:"-"`
 }
 
 type LogFilter struct {
@@ -192,6 +196,61 @@ type CallTracer struct {
 type FlatCallTracer struct {
 	defaultTraceResult
 	Result []*FlatCallFrame `json:"result,omitempty"`
+}
+
+type PrestateTracer struct {
+	defaultTraceResult
+	Result json.RawMessage `json:"result,omitempty"`
+}
+
+type PrestateResult struct {
+	json.RawMessage
+}
+
+func (p *PrestateResult) ParseFrame() (PrestateFrame, error) {
+	if len(p.RawMessage) == 0 || string(p.RawMessage) == "null" {
+		return nil, nil
+	}
+	var frame PrestateFrame
+	if err := json.Unmarshal(p.RawMessage, &frame); err != nil {
+		return nil, err
+	}
+	return frame, nil
+}
+
+func (p *PrestateResult) ParseDiffFrame() (*PrestateDiffFrame, error) {
+	if len(p.RawMessage) == 0 || string(p.RawMessage) == "null" {
+		return nil, nil
+	}
+	var diffFrame PrestateDiffFrame
+	if err := json.Unmarshal(p.RawMessage, &diffFrame); err != nil {
+		return nil, err
+	}
+	return &diffFrame, nil
+}
+
+// ParseFrames parses the result as PrestateFrame
+func (p *PrestateTracer) ParseFrames() (PrestateFrame, error) {
+	if len(p.Result) == 0 || string(p.Result) == "null" {
+		return nil, nil
+	}
+	var frame PrestateFrame
+	if err := json.Unmarshal(p.Result, &frame); err != nil {
+		return nil, err
+	}
+	return frame, nil
+}
+
+func (p *PrestateTracer) ParseDiffFrames() (*PrestateDiffFrame, error) {
+	if len(p.Result) == 0 || string(p.Result) == "null" {
+		return nil, nil
+	}
+	var diffFrame PrestateDiffFrame
+	if err := json.Unmarshal(p.Result, &diffFrame); err != nil {
+		return nil, err
+	}
+	diffFrame.TxHash = p.TxHash
+	return &diffFrame, nil
 }
 
 // TODO: WIP
@@ -283,6 +342,22 @@ type FlatCallFrame struct {
 	// Arbitrum
 	AfterEVMTransfers  []*EVMTransfer `json:"afterEVMTransfers,omitempty"`
 	BeforeEVMTransfers []*EVMTransfer `json:"beforeEVMTransfers,omitempty"`
+}
+
+type PrestateFrame map[string]*PrestateAccount
+
+type PrestateDiffFrame struct {
+	TxHash string        `json:"txHash,omitempty"` // Only by BlockByNumber
+	Pre    PrestateFrame `json:"pre,omitempty"`
+	Post   PrestateFrame `json:"post,omitempty"`
+}
+
+type PrestateAccount struct {
+	Balance  *decimal.Decimal  `json:"balance,omitempty"`
+	Code     string            `json:"code,omitempty"`
+	CodeHash string            `json:"codeHash,omitempty"`
+	Nonce    uint64            `json:"nonce,omitempty"`
+	Storage  map[string]string `json:"storage,omitempty"`
 }
 
 // TODO: erigon(parity) trace types

@@ -53,6 +53,17 @@ type FlatCallTracerConfig struct {
 	IncludePrecompiles bool `json:"includePrecompiles"`
 }
 
+type PrestateTracerConfig struct {
+	// If true, this tracer will return state modifications
+	DiffMode bool `json:"diffMode"`
+	// If true, this tracer will not return the contract code
+	DisableCode bool `json:"disableCode"`
+	// If true, this tracer will not return the contract storage
+	DisableStorage bool `json:"disableStorage"`
+	// If true, this tracer will return empty state objects
+	IncludeEmpty bool `json:"includeEmpty"`
+}
+
 type TraceConfig struct {
 	*DefaultTraceConfig
 
@@ -221,6 +232,54 @@ func (d *debugNamespace) traceBlockByNumber_flatCallTracer(
 	}
 	assignIndexFlatCalls(flatCallTracers)
 	return flatCallTracers, nil
+}
+
+func (d *debugNamespace) TraceBlockByNumberWithContext_prestateTracer(
+	ctx context.Context,
+	blockNumber uint64,
+	timeout time.Duration,
+	reexec *uint64,
+	cfg *PrestateTracerConfig,
+) (
+	[]*evmctypes.PrestateTracer,
+	error,
+) {
+	return d.traceBlockByNumber_prestateTracer(ctx, blockNumber, timeout, reexec, cfg)
+}
+
+func (d *debugNamespace) TraceBlockByNumber_prestateTracer(
+	blockNumber uint64,
+	timeout time.Duration,
+	reexec *uint64,
+	cfg *PrestateTracerConfig,
+) (
+	[]*evmctypes.PrestateTracer,
+	error,
+) {
+	return d.traceBlockByNumber_prestateTracer(context.Background(), blockNumber, timeout, reexec, cfg)
+}
+
+func (d *debugNamespace) traceBlockByNumber_prestateTracer(
+	ctx context.Context,
+	blockNumber uint64,
+	timeout time.Duration,
+	reexec *uint64,
+	cfg *PrestateTracerConfig,
+) (
+	[]*evmctypes.PrestateTracer,
+	error,
+) {
+	var (
+		prestateTracers = []*evmctypes.PrestateTracer{}
+		traceCfg        = TraceConfig{Tracer: PrestateTracer, Timeout: timeout.String(), Reexec: reexec}
+	)
+	if cfg != nil {
+		traceCfg.TracerConfig = *cfg
+	}
+	if err := d.traceBlockByNumber(ctx, blockNumber, &traceCfg, &prestateTracers); err != nil {
+		return nil, err
+	}
+	return prestateTracers, nil
 }
 
 func (d *debugNamespace) traceBlockByNumber(
@@ -435,7 +494,7 @@ func (d *debugNamespace) TraceTransaction_flatCallTracer(
 	reexec *uint64,
 	cfg *FlatCallTracerConfig,
 ) (
-	*evmctypes.FlatCallTracer,
+	[]*evmctypes.FlatCallFrame,
 	error,
 ) {
 	return d.TraceTransactionWithContext_flatCallTracer(context.Background(), hash, timeout, reexec, cfg)
@@ -448,21 +507,55 @@ func (d *debugNamespace) TraceTransactionWithContext_flatCallTracer(
 	reexec *uint64,
 	cfg *FlatCallTracerConfig,
 ) (
-	*evmctypes.FlatCallTracer,
+	[]*evmctypes.FlatCallFrame,
 	error,
 ) {
 	var (
-		flatCallTracer = &evmctypes.FlatCallTracer{}
+		flatCallFrames = []*evmctypes.FlatCallFrame{}
 		traceCfg       = TraceConfig{Tracer: FlatCallTracer, Timeout: timeout.String(), Reexec: reexec}
 	)
 	if cfg != nil {
 		traceCfg.TracerConfig = *cfg
 	}
-	if err := d.traceTransaction(ctx, hash, &traceCfg, flatCallTracer); err != nil {
+	if err := d.traceTransaction(ctx, hash, &traceCfg, &flatCallFrames); err != nil {
 		return nil, err
 	}
-	assignIndexFlatCalls([]*evmctypes.FlatCallTracer{flatCallTracer})
-	return flatCallTracer, nil
+	return flatCallFrames, nil
+}
+
+func (d *debugNamespace) TraceTransaction_prestateTracer(
+	hash string,
+	timeout time.Duration,
+	reexec *uint64,
+	cfg *PrestateTracerConfig,
+) (
+	*evmctypes.PrestateResult,
+	error,
+) {
+	return d.TraceTransactionWithContext_prestateTracer(context.Background(), hash, timeout, reexec, cfg)
+}
+
+func (d *debugNamespace) TraceTransactionWithContext_prestateTracer(
+	ctx context.Context,
+	hash string,
+	timeout time.Duration,
+	reexec *uint64,
+	cfg *PrestateTracerConfig,
+) (
+	*evmctypes.PrestateResult,
+	error,
+) {
+	var (
+		prestateResult = &evmctypes.PrestateResult{}
+		traceCfg       = TraceConfig{Tracer: PrestateTracer, Timeout: timeout.String(), Reexec: reexec}
+	)
+	if cfg != nil {
+		traceCfg.TracerConfig = cfg
+	}
+	if err := d.traceTransaction(ctx, hash, &traceCfg, prestateResult); err != nil {
+		return nil, err
+	}
+	return prestateResult, nil
 }
 
 func (d *debugNamespace) traceTransaction(

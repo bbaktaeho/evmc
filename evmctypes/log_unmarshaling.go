@@ -18,6 +18,7 @@ func (l *Log) UnmarshalJSON(input []byte) error {
 		BlockHash        *string  `json:"blockHash" validate:"required"`
 		LogIndex         *string  `json:"logIndex" validate:"-"`
 		Removed          *bool    `json:"removed" validate:"-"`
+		BlockTimestamp   *string  `json:"blockTimestamp" validate:"-"`
 	}
 	var dec Log
 	if err := json.Unmarshal(input, &dec); err != nil {
@@ -61,6 +62,13 @@ func (l *Log) UnmarshalJSON(input []byte) error {
 	}
 	if dec.Removed != nil {
 		l.Removed = *dec.Removed
+	}
+	if dec.BlockTimestamp != nil {
+		blockTimestamp, err := hexutil.DecodeUint64(*dec.BlockTimestamp)
+		if err != nil {
+			return err
+		}
+		l.BlockTimestamp = blockTimestamp
 	}
 	return nil
 }

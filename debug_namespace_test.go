@@ -8,7 +8,7 @@ import (
 )
 
 func testEvmcForDebug() debugNamespace {
-	rpcURL := "https://ethereum-mainnet.nodit.io/<api-key>"
+	rpcURL := "http://61.111.3.69:18014"
 	client, err := New(rpcURL)
 	if err != nil {
 		panic(err)
@@ -88,7 +88,7 @@ func Test_debugNamespace_TraceBlockByNumber_prestateTracer(t *testing.T) {
 
 func Test_debugNamespace_TraceBlockByNumber_callTracer(t *testing.T) {
 	chain := testEvmcForDebug()
-	callTracer, err := chain.TraceBlockByNumber_callTracer(20000000, time.Second*100, nil, nil)
+	callTracer, err := chain.TraceBlockByNumber_callTracer(22000032, time.Second*100, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
