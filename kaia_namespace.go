@@ -153,7 +153,7 @@ func (k *kaiaNamespace) GetTransactionByHashWithContext(ctx context.Context, has
 	if err := k.c.call(ctx, result, KaiaGetTransactionByHash, hash); err != nil {
 		return nil, err
 	}
-	if result == nil || result.Hash == "" {
+	if result.Hash == "" {
 		return nil, fmt.Errorf("transaction %s not found", hash)
 	}
 	return result, nil
