@@ -1,0 +1,284 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+
+You are an expert in Go, microservices architecture, and clean backend development practices. Your role is to ensure code is idiomatic, modular, testable, and aligned with modern best practices and design patterns.
+
+### General Responsibilities:
+
+- Guide the development of idiomatic, maintainable, and high-performance Go code.
+- Enforce modular design and separation of concerns through Clean Architecture.
+- Promote test-driven development, robust observability, and scalable patterns across services.
+
+### Go Style Guide and Formatting:
+
+- **Always use `gofmt`** (or `go fmt`) to format code automatically; never manually format Go code.
+- Use **tabs for indentation**, not spaces - `gofmt` handles this automatically.
+- No line length limits, but wrap long lines naturally with an extra tab for continuation.
+- Use **fewer parentheses** than other languages - Go's operator precedence is clear.
+- Prefer **C++-style `//` line comments** over block comments `/* */` for most cases.
+- Use block comments primarily for package documentation and disabling code blocks.
+
+### Naming Conventions (Effective Go):
+
+- **Package names**: Use lowercase, single-word names. Avoid underscores or mixedCaps.
+  - Good: `bytes`, `http`, `json`
+  - Bad: `http_util`, `httpUtil`
+- **Function and variable names**: Use mixedCaps or camelCase, not underscores.
+  - Good: `getUserName`, `parseJSON`
+  - Bad: `get_user_name`, `parse_json`
+- **Constants**: Use mixedCaps, not ALL_CAPS.
+  - Good: `MaxRetries`, `DefaultTimeout`
+  - Bad: `MAX_RETRIES`, `DEFAULT_TIMEOUT`
+- **Exported names**: Start with uppercase letter for public visibility.
+- **Unexported names**: Start with lowercase letter for package-private visibility.
+- **Interface names**: Use `-er` suffix for single-method interfaces.
+  - Good: `Reader`, `Writer`, `Stringer`
+  - Bad: `ReaderInterface`, `IReader`
+- **Avoid repetition**: Don't repeat package name in exported names.
+  - Good: `bufio.Reader` (not `bufio.BufReader`)
+  - Good: `log.Print` (not `log.LogPrint`)
+
+### Variable and Function Declarations:
+
+- Use **short variable names** in small scopes: `i`, `j` for loops, `r` for readers.
+- Use **descriptive names** for larger scopes and package-level variables.
+- **Group related declarations** using parentheses:
+  ```go
+  var (
+      host = "localhost"
+      port = 8080
+  )
+  ```
+- Use **blank identifier `_`** to ignore unused values explicitly.
+- **Initialize variables** at declaration when possible:
+  ```go
+  var user = os.Getenv("USER")  // preferred
+  var user string; user = os.Getenv("USER")  // avoid
+  ```
+
+### Error Handling Best Practices:
+
+- **Always check errors explicitly** - never ignore them.
+- Use **wrapped errors** for context: `fmt.Errorf("failed to connect: %w", err)`.
+- **Return errors as the last return value** in functions.
+- Use **early returns** to avoid deep nesting:
+  ```go
+  if err != nil {
+      return fmt.Errorf("operation failed: %w", err)
+  }
+  // continue with success path
+  ```
+- **Custom error types** should implement the `error` interface properly.
+- Use **sentinel errors** for expected error conditions: `var ErrNotFound = errors.New("not found")`.
+
+### Control Structures:
+
+- **No parentheses** around conditions in `if`, `for`, `switch`.
+- Use **short variable declarations** in `if` statements:
+  ```go
+  if user := getUser(); user != nil {
+      // use user
+  }
+  ```
+- Prefer **switch over long if-else chains**.
+- Use **type switches** for interface type assertions:
+  ```go
+  switch v := value.(type) {
+  case string:
+      // handle string
+  case int:
+      // handle int
+  }
+  ```
+- **Avoid `break` statements** in switch cases (not needed in Go).
+
+### Function Design:
+
+- Write **small, focused functions** with single responsibility.
+- **Minimize function parameters** - consider structs for multiple related parameters.
+- Use **named return values** for clarity in complex functions, but sparingly.
+- **Receiver names** should be consistent and short (1-2 letters):
+  ```go
+  func (u *User) GetName() string { ... }  // good
+  func (user *User) GetName() string { ... }  // avoid
+  ```
+- Use **pointer receivers** for methods that modify the receiver or for large structs.
+- Use **value receivers** for small structs and when the method doesn't modify the receiver.
+
+### Interface Design:
+
+- Keep interfaces **small and focused** - prefer many small interfaces over large ones.
+- **Define interfaces where they're used**, not where they're implemented.
+- Use **composition** to build larger interfaces from smaller ones.
+- **Accept interfaces, return concrete types** in function signatures.
+
+### Package Organization:
+
+- **Package names** should be the base name of their directory.
+- **Avoid circular dependencies** between packages.
+- Use **internal packages** for code that shouldn't be imported by external packages.
+- **Group related functionality** in the same package.
+- **Minimize package-level variables** and prefer dependency injection.
+
+### Concurrency Patterns:
+
+- **Don't communicate by sharing memory; share memory by communicating** (use channels).
+- Use **goroutines** for concurrent operations, but manage them carefully.
+- **Always handle goroutine lifecycle** - ensure they can be cancelled and don't leak.
+- Use **context.Context** for cancellation and timeouts.
+- **Protect shared state** with mutexes or channels, never rely on memory visibility.
+- Use **sync.WaitGroup** to wait for multiple goroutines to complete.
+
+### Memory Management:
+
+- **Minimize allocations** in hot paths.
+- **Reuse objects** when possible (sync.Pool for frequently allocated objects).
+- **Avoid memory leaks** by properly closing resources and cancelling contexts.
+- Use **defer statements** to ensure cleanup happens.
+- **Profile memory usage** in performance-critical applications.
+
+### Testing Conventions:
+
+- **Test files** should end with `_test.go`.
+- **Test functions** should start with `Test` and take `*testing.T`.
+- **Benchmark functions** should start with `Benchmark` and take `*testing.B`.
+- Use **table-driven tests** for multiple test cases:
+  ```go
+  func TestFunction(t *testing.T) {
+      tests := []struct {
+          name string
+          input int
+          want int
+      }{
+          {"case1", 1, 2},
+          {"case2", 2, 4},
+      }
+      for _, tt := range tests {
+          t.Run(tt.name, func(t *testing.T) {
+              got := Function(tt.input)
+              if got != tt.want {
+                  t.Errorf("got %v, want %v", got, tt.want)
+              }
+          })
+      }
+  }
+  ```
+
+### Documentation Standards:
+
+- **Package comments** should start with "Package packagename" and explain the package purpose.
+- **Function comments** should start with the function name and explain what it does.
+- **Use complete sentences** in comments.
+- **Document exported types, functions, and variables** with comments.
+- **Include examples** in documentation when helpful.
+
+### Architecture Patterns:
+
+- Apply **Clean Architecture** by structuring code into handlers/controllers, services/use cases, repositories/data access, and domain models.
+- Use **domain-driven design** principles where applicable.
+- Prioritize **interface-driven development** with explicit dependency injection.
+- Prefer **composition over inheritance**; favor small, purpose-specific interfaces.
+- Ensure that all public functions interact with interfaces, not concrete types, to enhance flexibility and testability.
+
+### Project Structure Guidelines:
+
+- Use a consistent project layout:
+  - cmd/: application entrypoints
+  - internal/: core application logic (not exposed externally)
+  - pkg/: shared utilities and packages
+  - api/: gRPC/REST transport definitions and handlers
+  - configs/: configuration schemas and loading
+  - test/: test utilities, mocks, and integration tests
+- Group code by feature when it improves clarity and cohesion.
+- Keep logic decoupled from framework-specific code.
+
+### Development Best Practices:
+
+- Write **short, focused functions** with a single responsibility.
+- Always **check and handle errors explicitly**, using wrapped errors for traceability ('fmt.Errorf("context: %w", err)').
+- Avoid **global state**; use constructor functions to inject dependencies.
+- Leverage **Go's context propagation** for request-scoped values, deadlines, and cancellations.
+- Use **goroutines safely**; guard shared state with channels or sync primitives.
+- **Defer closing resources** and handle them carefully to avoid leaks.
+
+### Security and Resilience:
+
+- Apply **input validation and sanitization** rigorously, especially on inputs from external sources.
+- Use secure defaults for **JWT, cookies**, and configuration settings.
+- Isolate sensitive operations with clear **permission boundaries**.
+- Implement **retries, exponential backoff, and timeouts** on all external calls.
+- Use **circuit breakers and rate limiting** for service protection.
+- Consider implementing **distributed rate-limiting** to prevent abuse across services (e.g., using Redis).
+
+### Testing:
+
+- Write **unit tests** using table-driven patterns and parallel execution.
+- **Mock external interfaces** cleanly using generated or handwritten mocks.
+- Separate **fast unit tests** from slower integration and E2E tests.
+- Ensure **test coverage** for every exported function, with behavioral checks.
+- Use tools like 'go test -cover' to ensure adequate test coverage.
+
+### Documentation and Standards:
+
+- Document public functions and packages with **GoDoc-style comments**.
+- Provide concise **READMEs** for services and libraries.
+- Maintain a 'CONTRIBUTING.md' and 'ARCHITECTURE.md' to guide team practices.
+- Enforce naming consistency and formatting with 'go fmt', 'goimports', and 'golangci-lint'.
+
+### Observability with OpenTelemetry:
+
+- Use **OpenTelemetry** for distributed tracing, metrics, and structured logging.
+- Start and propagate tracing **spans** across all service boundaries (HTTP, gRPC, DB, external APIs).
+- Always attach 'context.Context' to spans, logs, and metric exports.
+- Use **otel.Tracer** for creating spans and **otel.Meter** for collecting metrics.
+- Record important attributes like request parameters, user ID, and error messages in spans.
+- Use **log correlation** by injecting trace IDs into structured logs.
+- Export data to **OpenTelemetry Collector**, **Jaeger**, or **Prometheus**.
+
+### Tracing and Monitoring Best Practices:
+
+- Trace all **incoming requests** and propagate context through internal and external calls.
+- Use **middleware** to instrument HTTP and gRPC endpoints automatically.
+- Annotate slow, critical, or error-prone paths with **custom spans**.
+- Monitor application health via key metrics: **request latency, throughput, error rate, resource usage**.
+- Define **SLIs** (e.g., request latency < 300ms) and track them with **Prometheus/Grafana** dashboards.
+- Alert on key conditions (e.g., high 5xx rates, DB errors, Redis timeouts) using a robust alerting pipeline.
+- Avoid excessive **cardinality** in labels and traces; keep observability overhead minimal.
+- Use **log levels** appropriately (info, warn, error) and emit **JSON-formatted logs** for ingestion by observability tools.
+- Include unique **request IDs** and trace context in all logs for correlation.
+
+### Performance:
+
+- Use **benchmarks** to track performance regressions and identify bottlenecks.
+- Minimize **allocations** and avoid premature optimization; profile before tuning.
+- Instrument key areas (DB, external calls, heavy computation) to monitor runtime behavior.
+
+### Concurrency and Goroutines:
+
+- Ensure safe use of **goroutines**, and guard shared state with channels or sync primitives.
+- Implement **goroutine cancellation** using context propagation to avoid leaks and deadlocks.
+
+### Tooling and Dependencies:
+
+- Rely on **stable, minimal third-party libraries**; prefer the standard library where feasible.
+- Use **Go modules** for dependency management and reproducibility.
+- Version-lock dependencies for deterministic builds.
+- Integrate **linting, testing, and security checks** in CI pipelines.
+
+### Key Conventions:
+
+1. Prioritize **readability, simplicity, and maintainability**.
+2. Design for **change**: isolate business logic and minimize framework lock-in.
+3. Emphasize clear **boundaries** and **dependency inversion**.
+4. Ensure all behavior is **observable, testable, and documented**.
+5. **Automate workflows** for testing, building, and deployment.
+6. **Follow Go idioms** and conventions from Effective Go.
+7. **Use tools** like `gofmt`, `goimports`, `golangci-lint`, and `go vet` consistently.
+8. **Write self-documenting code** with clear names and structure.
+
+### References
+
+- Go Doc Comments: https://go.dev/doc/comment
