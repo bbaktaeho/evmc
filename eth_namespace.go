@@ -414,11 +414,7 @@ func (e *ethNamespace) getBlockByNumber(
 	if number == evmctypes.Pending {
 		return ErrPendingBlockNotSupported
 	}
-	params := []interface{}{number.String(), incTx}
-	if err := e.c.call(ctx, result, EthGetBlockByNumber, params...); err != nil {
-		return err
-	}
-	return nil
+	return e.c.call(ctx, result, EthGetBlockByNumber, number.String(), incTx)
 }
 
 func (e *ethNamespace) GetBlockByHash(hash string) (*evmctypes.Block, error) {
@@ -460,11 +456,7 @@ func (e *ethNamespace) GetBlockIncTxByHashWithContext(ctx context.Context, hash 
 }
 
 func (e *ethNamespace) getBlockByHash(ctx context.Context, result interface{}, hash string, incTx bool) error {
-	params := []interface{}{hash, incTx}
-	if err := e.c.call(ctx, result, EthGetBlockByHash, params...); err != nil {
-		return err
-	}
-	return nil
+	return e.c.call(ctx, result, EthGetBlockByHash, hash, incTx)
 }
 
 func (e *ethNamespace) getUncleBlocks(ctx context.Context, blockNumber uint64, uncles []string) ([]*evmctypes.Block, error) {

@@ -63,13 +63,14 @@ type Evmc struct {
 }
 
 func httpClient(o *options) *http.Client {
-	transport := http.DefaultTransport.(*http.Transport)
-	transport.MaxIdleConns = o.connPool
-	transport.MaxIdleConnsPerHost = o.connPool
-	transport.MaxConnsPerHost = o.connPool
-	transport.IdleConnTimeout = o.idleConnTimeout
-	transport.DisableKeepAlives = false
-	return &http.Client{Transport: transport, Timeout: o.reqTimeout}
+	// Clone the default transport to avoid mutating the global http.DefaultTransport.
+	base := http.DefaultTransport.(*http.Transport).Clone()
+	base.MaxIdleConns = o.connPool
+	base.MaxIdleConnsPerHost = o.connPool
+	base.MaxConnsPerHost = o.connPool
+	base.IdleConnTimeout = o.idleConnTimeout
+	base.DisableKeepAlives = false
+	return &http.Client{Transport: base, Timeout: o.reqTimeout}
 }
 
 func New(httpURL string, opts ...Options) (*Evmc, error) {
@@ -229,14 +230,6 @@ func (e *Evmc) BatchCall(elements []rpc.BatchElem, workers int) error {
 	return e.BatchCallWithContext(context.Background(), elements, workers)
 }
 
-// func (e *Evmc) Trace() *traceNamespace {
-// 	return e.trace
-// }
-
-// func (e *Evmc) Ots() *otsNamespace {
-// 	return e.ots
-// }
-
 func (e *Evmc) ERC20() *erc20Contract {
 	return e.erc20
 }
@@ -249,61 +242,17 @@ func (e *Evmc) ERC1155() *erc1155Contract {
 	return e.erc1155
 }
 
-// func (e *Evmc) Ots() {}
-
 func (e *Evmc) call(
 	ctx context.Context,
 	result interface{},
 	method Procedure,
 	params ...interface{},
 ) error {
-	if err := e.c.CallContext(ctx, result, method.String(), params...); err != nil {
-		return err
-	}
-	return nil
+	return e.c.CallContext(ctx, result, method.String(), params...)
 }
 
 func (e *Evmc) batchCall(ctx context.Context, elements []rpc.BatchElem) error {
 	return e.c.BatchCallContext(ctx, elements)
-	// var (
-	// 	size      = len(elements)
-	// 	loopCount = size / e.maxBatchItems
-	// 	wg        = new(sync.WaitGroup)
-	// 	errCh     = make(chan error)
-	// 	errs      = make([]error, 0, 1)
-	// )
-	// if size%e.maxBatchItems != 0 {
-	// 	loopCount++
-	// }
-	// go func() {
-	// 	for e := range errCh {
-	// 		errs = append(errs, e)
-	// 	}
-	// }()
-	// for i := 0; i < loopCount; i++ {
-	// 	low := e.maxBatchItems * i
-	// 	high := e.maxBatchItems * (i + 1)
-	// 	if high > size {
-	// 		high = size
-	// 	}
-	// 	div := elements[low:high]
-
-	// 	wg.Add(1)
-	// 	go func(subElements []rpc.BatchElem) {
-	// 		defer wg.Done()
-
-	// 		if err := e.c.BatchCallContext(ctx, subElements); err != nil {
-	// 			errCh <- err
-	// 		}
-	// 	}(div)
-	// }
-	// wg.Wait()
-	// close(errCh)
-
-	// if len(errs) > 0 {
-	// 	return errs[0]
-	// }
-	// return nil
 }
 
 func (e *Evmc) subscribe(

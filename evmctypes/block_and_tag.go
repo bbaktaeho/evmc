@@ -1,10 +1,6 @@
 package evmctypes
 
-import (
-	"reflect"
-
-	"github.com/ethereum/go-ethereum/common/hexutil"
-)
+import "github.com/ethereum/go-ethereum/common/hexutil"
 
 type BlockAndTag string
 
@@ -24,17 +20,20 @@ func (b BlockAndTag) String() string {
 	return string(b)
 }
 
+// FormatNumber returns a BlockAndTag representing the given block number in hex.
 func FormatNumber(number uint64) BlockAndTag {
 	return BlockAndTag(hexutil.EncodeUint64(number))
 }
 
-func ParseBlockAndTag(blockAndTag interface{}) string {
-	if reflect.TypeOf(blockAndTag).Kind() != reflect.String {
+// ParseBlockAndTag returns the string form of a block tag or number.
+// If v is a BlockAndTag or string, it is returned as-is; otherwise "latest" is returned.
+func ParseBlockAndTag(v interface{}) string {
+	switch val := v.(type) {
+	case BlockAndTag:
+		return val.String()
+	case string:
+		return val
+	default:
 		return Latest.String()
 	}
-	tag, ok := blockAndTag.(BlockAndTag)
-	if !ok {
-		return blockAndTag.(string)
-	}
-	return tag.String()
 }

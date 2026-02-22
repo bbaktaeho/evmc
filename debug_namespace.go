@@ -292,10 +292,7 @@ func (d *debugNamespace) traceBlockByNumber(
 	if traceCfg != nil {
 		params = append(params, *traceCfg)
 	}
-	if err := d.c.call(ctx, result, DebugTraceBlockByNumber, params...); err != nil {
-		return err
-	}
-	return nil
+	return d.c.call(ctx, result, DebugTraceBlockByNumber, params...)
 }
 
 func (d *debugNamespace) TraceBlockByHashWithContext(
@@ -427,10 +424,7 @@ func (d *debugNamespace) traceBlockByHash(
 	if traceCfg != nil {
 		params = append(params, *traceCfg)
 	}
-	if err := d.c.call(ctx, result, DebugTraceBlockByHash, params...); err != nil {
-		return err
-	}
-	return nil
+	return d.c.call(ctx, result, DebugTraceBlockByHash, params...)
 }
 
 func (d *debugNamespace) TraceTransaction(hash string, cfg *TraceConfig) (interface{}, error) {
@@ -568,8 +562,5 @@ func (d *debugNamespace) traceTransaction(
 	if traceCfg != nil {
 		params = append(params, *traceCfg)
 	}
-	if err := d.c.call(ctx, result, DebugTraceTransaction, params...); err != nil {
-		return err
-	}
-	return nil
+	return d.c.call(ctx, result, DebugTraceTransaction, params...)
 }

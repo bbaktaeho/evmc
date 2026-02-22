@@ -14,7 +14,7 @@ func TestPrestateAccount_UnmarshalJSON(t *testing.T) {
 		"balance":  "0xde0b6b3a7640000", // 1 ETH in wei
 		"code":     "0x60806040",
 		"codeHash": "0x1234567890abcdef",
-		"nonce":    "0xa", // 10 in decimal
+		"nonce":    uint64(10), // geth returns nonce as integer
 		"storage": map[string]string{
 			"0x0": "0x1",
 			"0x1": "0x2",
@@ -51,7 +51,7 @@ func TestPrestateAccount_UnmarshalJSON(t *testing.T) {
 func TestPrestateAccount_UnmarshalJSON_MinimalFields(t *testing.T) {
 	// Test with only required/minimal fields
 	raw := map[string]interface{}{
-		"nonce": "0x0",
+		"nonce": uint64(0),
 	}
 
 	account := new(PrestateAccount)
@@ -75,11 +75,11 @@ func TestPrestateTracer_UnmarshalJSON_StandardMode(t *testing.T) {
 		"result": map[string]interface{}{
 			"0x0000000000000000000000000000000000000001": map[string]interface{}{
 				"balance": "0xde0b6b3a7640000",
-				"nonce":   "0x1",
+				"nonce":   uint64(1),
 			},
 			"0x0000000000000000000000000000000000000002": map[string]interface{}{
 				"balance": "0x1bc16d674ec80000",
-				"nonce":   "0x5",
+				"nonce":   uint64(5),
 				"code":    "0x60806040",
 				"storage": map[string]string{
 					"0x0": "0x1",
@@ -135,17 +135,17 @@ func TestPrestateTracer_UnmarshalJSON_DiffMode(t *testing.T) {
 			"pre": map[string]interface{}{
 				"0x0000000000000000000000000000000000000001": map[string]interface{}{
 					"balance": "0xde0b6b3a7640000",
-					"nonce":   "0x1",
+					"nonce":   uint64(1),
 				},
 			},
 			"post": map[string]interface{}{
 				"0x0000000000000000000000000000000000000001": map[string]interface{}{
 					"balance": "0xd2f13f7789f0000", // Changed balance
-					"nonce":   "0x2",               // Incremented nonce
+					"nonce":   uint64(2),           // Incremented nonce
 				},
 				"0x0000000000000000000000000000000000000002": map[string]interface{}{
 					"balance": "0x16345785d8a0000", // New account
-					"nonce":   "0x1",
+					"nonce":   uint64(1),
 				},
 			},
 		},
@@ -195,7 +195,6 @@ func TestPrestateTracer_UnmarshalJSON_DiffMode(t *testing.T) {
 
 func TestPrestateTracer_UnmarshalJSON_WithError(t *testing.T) {
 	t.Run("with null result", func(t *testing.T) {
-		// Test with error field and null result
 		raw := map[string]interface{}{
 			"txHash": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
 			"error":  "execution reverted",
@@ -216,7 +215,6 @@ func TestPrestateTracer_UnmarshalJSON_WithError(t *testing.T) {
 	})
 
 	t.Run("without result field", func(t *testing.T) {
-		// Test with error field and no result field
 		jsonStr := `{
 			"txHash": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
 			"error": "execution reverted"
@@ -268,7 +266,6 @@ func TestPrestateTracer_ParseResult(t *testing.T) {
 	})
 
 	t.Run("null result", func(t *testing.T) {
-		// Test JSON null value
 		tracer := &PrestateTracer{
 			Result: json.RawMessage("null"),
 		}
@@ -296,10 +293,9 @@ func TestPrestateTracer_ParseResult(t *testing.T) {
 }
 
 func TestPrestateAccount_EmptyStorage(t *testing.T) {
-	// Test with empty storage map
 	raw := map[string]interface{}{
 		"balance": "0x0",
-		"nonce":   "0x0",
+		"nonce":   uint64(0),
 		"storage": map[string]string{},
 	}
 
@@ -315,10 +311,9 @@ func TestPrestateAccount_EmptyStorage(t *testing.T) {
 }
 
 func TestPrestateAccount_LargeBalance(t *testing.T) {
-	// Test with very large balance
 	raw := map[string]interface{}{
 		"balance": "0x152d02c7e14af6800000", // 100000 ETH
-		"nonce":   "0x0",
+		"nonce":   uint64(0),
 	}
 
 	account := new(PrestateAccount)
@@ -332,29 +327,33 @@ func TestPrestateAccount_LargeBalance(t *testing.T) {
 	assert.True(t, account.Balance.Equal(expectedBalance))
 }
 
-func TestPrestateTracer_UnmarshalJSON_DirectResult(t *testing.T) {
-	t.Run("direct prestate result", func(t *testing.T) {
-		// Test direct result format (what debug_traceTransaction actually returns)
-		jsonStr := `{
-			"0x0000000000000000000000000000000000000001": {
-				"balance": "0xde0b6b3a7640000",
-				"nonce": "0x1"
+func TestPrestateTracer_UnmarshalJSON_WithResult(t *testing.T) {
+	t.Run("result as prestate map", func(t *testing.T) {
+		// PrestateTracer with result field containing account map
+		raw := map[string]interface{}{
+			"txHash": "0xabc",
+			"result": map[string]interface{}{
+				"0x0000000000000000000000000000000000000001": map[string]interface{}{
+					"balance": "0xde0b6b3a7640000",
+					"nonce":   uint64(1),
+				},
+				"0x0000000000000000000000000000000000000002": map[string]interface{}{
+					"balance": "0x1bc16d674ec80000",
+					"nonce":   uint64(5),
+					"code":    "0x60806040",
+				},
 			},
-			"0x0000000000000000000000000000000000000002": {
-				"balance": "0x1bc16d674ec80000",
-				"nonce": "0x5",
-				"code": "0x60806040"
-			}
-		}`
+		}
 
 		tracer := new(PrestateTracer)
-		err := json.Unmarshal([]byte(jsonStr), tracer)
+		rawBytes, err := json.Marshal(raw)
+		require.NoError(t, err)
+		err = json.Unmarshal(rawBytes, tracer)
 		require.NoError(t, err)
 
-		// Result should be stored as RawMessage
+		assert.Equal(t, "0xabc", tracer.TxHash)
 		assert.NotNil(t, tracer.Result)
 
-		// Should be able to parse as PrestateFrame
 		frame, err := tracer.ParseFrames()
 		require.NoError(t, err)
 		require.NotNil(t, frame)
@@ -365,31 +364,34 @@ func TestPrestateTracer_UnmarshalJSON_DirectResult(t *testing.T) {
 		assert.Equal(t, uint64(1), account1.Nonce)
 	})
 
-	t.Run("direct diff mode result", func(t *testing.T) {
-		// Test direct diff mode result
-		jsonStr := `{
-			"pre": {
-				"0x0000000000000000000000000000000000000001": {
-					"balance": "0xde0b6b3a7640000",
-					"nonce": "0x1"
-				}
+	t.Run("result as diff mode map", func(t *testing.T) {
+		raw := map[string]interface{}{
+			"txHash": "0xdef",
+			"result": map[string]interface{}{
+				"pre": map[string]interface{}{
+					"0x0000000000000000000000000000000000000001": map[string]interface{}{
+						"balance": "0xde0b6b3a7640000",
+						"nonce":   uint64(1),
+					},
+				},
+				"post": map[string]interface{}{
+					"0x0000000000000000000000000000000000000001": map[string]interface{}{
+						"balance": "0xd2f13f7789f0000",
+						"nonce":   uint64(2),
+					},
+				},
 			},
-			"post": {
-				"0x0000000000000000000000000000000000000001": {
-					"balance": "0xd2f13f7789f0000",
-					"nonce": "0x2"
-				}
-			}
-		}`
+		}
 
 		tracer := new(PrestateTracer)
-		err := json.Unmarshal([]byte(jsonStr), tracer)
+		rawBytes, err := json.Marshal(raw)
+		require.NoError(t, err)
+		err = json.Unmarshal(rawBytes, tracer)
 		require.NoError(t, err)
 
-		// Result should be stored as RawMessage
+		assert.Equal(t, "0xdef", tracer.TxHash)
 		assert.NotNil(t, tracer.Result)
 
-		// Should be able to parse as PrestateDiffFrame
 		diffFrame, err := tracer.ParseDiffFrames()
 		require.NoError(t, err)
 		require.NotNil(t, diffFrame)
