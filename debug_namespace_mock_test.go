@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/bbaktaeho/evmc/evmctypes"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -151,4 +152,82 @@ func Test_debugNamespace_mock_TraceTransaction_prestateTracer(t *testing.T) {
 	result, err := client.Debug().TraceTransaction_prestateTracer("0xtxhash", 0, nil, nil)
 	require.NoError(t, err)
 	require.NotNil(t, result)
+}
+
+func Test_debugNamespace_mock_GetRawHeader(t *testing.T) {
+	client := testWithMock(t, "debug_getRawHeader", func(params json.RawMessage) interface{} {
+		return "0xf9020aa0"
+	})
+	raw, err := client.Debug().GetRawHeader(evmctypes.Latest)
+	require.NoError(t, err)
+	assert.Equal(t, "0xf9020aa0", raw)
+}
+
+func Test_debugNamespace_mock_GetRawBlock(t *testing.T) {
+	client := testWithMock(t, "debug_getRawBlock", func(params json.RawMessage) interface{} {
+		return "0xf9020af9"
+	})
+	raw, err := client.Debug().GetRawBlock(evmctypes.Latest)
+	require.NoError(t, err)
+	assert.Equal(t, "0xf9020af9", raw)
+}
+
+func Test_debugNamespace_mock_GetRawTransaction(t *testing.T) {
+	client := testWithMock(t, "debug_getRawTransaction", func(params json.RawMessage) interface{} {
+		return "0x02f8748201"
+	})
+	raw, err := client.Debug().GetRawTransaction("0xtxhash")
+	require.NoError(t, err)
+	assert.Equal(t, "0x02f8748201", raw)
+}
+
+func Test_debugNamespace_mock_GetRawReceipts(t *testing.T) {
+	client := testWithMock(t, "debug_getRawReceipts", func(params json.RawMessage) interface{} {
+		return []string{"0xf9010a", "0xf9020b"}
+	})
+	receipts, err := client.Debug().GetRawReceipts(evmctypes.Latest)
+	require.NoError(t, err)
+	require.Len(t, receipts, 2)
+	assert.Equal(t, "0xf9010a", receipts[0])
+	assert.Equal(t, "0xf9020b", receipts[1])
+}
+
+func Test_debugNamespace_mock_GetBadBlocks(t *testing.T) {
+	client := testWithMock(t, "debug_getBadBlocks", func(params json.RawMessage) interface{} {
+		return []map[string]interface{}{
+			{
+				"hash": "0xbadblockhash",
+				"rlp":  "0xf9020a",
+				"block": map[string]interface{}{
+					"number":           "0x1",
+					"hash":             "0xbadblockhash",
+					"parentHash":       "0x0000000000000000000000000000000000000000000000000000000000000000",
+					"nonce":            "0x0000000000000000",
+					"mixHash":          "0x0000000000000000000000000000000000000000000000000000000000000000",
+					"sha3Uncles":       "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+					"logsBloom":        "0x00000000",
+					"stateRoot":        "0xabcd",
+					"miner":            "0x1234567890123456789012345678901234567890",
+					"difficulty":       "0x0",
+					"extraData":        "0x",
+					"gasLimit":         "0x1c9c380",
+					"gasUsed":          "0x0",
+					"timestamp":        "0x64",
+					"transactionsRoot": "0xabc",
+					"receiptsRoot":     "0xdef",
+					"totalDifficulty":  "0x0",
+					"size":             "0x200",
+					"uncles":           []string{},
+					"transactions":     []string{},
+				},
+			},
+		}
+	})
+	badBlocks, err := client.Debug().GetBadBlocks()
+	require.NoError(t, err)
+	require.Len(t, badBlocks, 1)
+	assert.Equal(t, "0xbadblockhash", badBlocks[0].Hash)
+	assert.Equal(t, "0xf9020a", badBlocks[0].RLP)
+	require.NotNil(t, badBlocks[0].Block)
+	assert.Equal(t, uint64(1), badBlocks[0].Block.Number)
 }

@@ -212,6 +212,38 @@ func (e *ethNamespace) feeHistory(
 	return result, nil
 }
 
+func (e *ethNamespace) UncleCountByBlockHash(hash string) (uint64, error) {
+	return e.UncleCountByBlockHashWithContext(context.Background(), hash)
+}
+
+func (e *ethNamespace) UncleCountByBlockHashWithContext(ctx context.Context, hash string) (uint64, error) {
+	return e.uncleCountByBlockHash(ctx, hash)
+}
+
+func (e *ethNamespace) uncleCountByBlockHash(ctx context.Context, hash string) (uint64, error) {
+	result := new(string)
+	if err := e.c.call(ctx, result, EthGetUncleCountByBlockHash, hash); err != nil {
+		return 0, err
+	}
+	return hexutil.MustDecodeUint64(*result), nil
+}
+
+func (e *ethNamespace) UncleCountByBlockNumber(number uint64) (uint64, error) {
+	return e.UncleCountByBlockNumberWithContext(context.Background(), number)
+}
+
+func (e *ethNamespace) UncleCountByBlockNumberWithContext(ctx context.Context, number uint64) (uint64, error) {
+	return e.uncleCountByBlockNumber(ctx, number)
+}
+
+func (e *ethNamespace) uncleCountByBlockNumber(ctx context.Context, number uint64) (uint64, error) {
+	result := new(string)
+	if err := e.c.call(ctx, result, EthGetUncleCountByBlockNumber, evmctypes.FormatNumber(number)); err != nil {
+		return 0, err
+	}
+	return hexutil.MustDecodeUint64(*result), nil
+}
+
 func (e *ethNamespace) BlockTransactionCountByHash(hash string) (uint64, error) {
 	return e.BlockTransactionCountByHashWithContext(context.Background(), hash)
 }
@@ -262,6 +294,38 @@ func (e *ethNamespace) chainID(ctx context.Context) (uint64, error) {
 		return 0, err
 	}
 	return id, nil
+}
+
+func (e *ethNamespace) SimulateV1(payload *evmctypes.SimulatePayload, blockAndTag evmctypes.BlockAndTag) ([]*evmctypes.SimulateBlockResult, error) {
+	return e.simulateV1(context.Background(), payload, blockAndTag)
+}
+
+func (e *ethNamespace) SimulateV1WithContext(ctx context.Context, payload *evmctypes.SimulatePayload, blockAndTag evmctypes.BlockAndTag) ([]*evmctypes.SimulateBlockResult, error) {
+	return e.simulateV1(ctx, payload, blockAndTag)
+}
+
+func (e *ethNamespace) simulateV1(ctx context.Context, payload *evmctypes.SimulatePayload, blockAndTag evmctypes.BlockAndTag) ([]*evmctypes.SimulateBlockResult, error) {
+	result := new([]*evmctypes.SimulateBlockResult)
+	if err := e.c.call(ctx, result, EthSimulateV1, payload, blockAndTag.String()); err != nil {
+		return nil, err
+	}
+	return *result, nil
+}
+
+func (e *ethNamespace) GetProof(address string, storageKeys []string, blockAndTag evmctypes.BlockAndTag) (*evmctypes.AccountProof, error) {
+	return e.getProof(context.Background(), address, storageKeys, blockAndTag)
+}
+
+func (e *ethNamespace) GetProofWithContext(ctx context.Context, address string, storageKeys []string, blockAndTag evmctypes.BlockAndTag) (*evmctypes.AccountProof, error) {
+	return e.getProof(ctx, address, storageKeys, blockAndTag)
+}
+
+func (e *ethNamespace) getProof(ctx context.Context, address string, storageKeys []string, blockAndTag evmctypes.BlockAndTag) (*evmctypes.AccountProof, error) {
+	result := new(evmctypes.AccountProof)
+	if err := e.c.call(ctx, result, EthGetProof, address, storageKeys, blockAndTag.String()); err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 func (e *ethNamespace) GetStorageAt(address, position string, blockAndTag evmctypes.BlockAndTag) (string, error) {
@@ -497,6 +561,38 @@ func (e *ethNamespace) GetTransactionByHashWithContext(ctx context.Context, hash
 func (e *ethNamespace) getTransactionByHash(ctx context.Context, hash string) (*evmctypes.Transaction, error) {
 	tx := new(evmctypes.Transaction)
 	if err := e.c.call(ctx, tx, EthGetTransactionByHash, hash); err != nil {
+		return nil, err
+	}
+	return tx, nil
+}
+
+func (e *ethNamespace) GetTransactionByBlockHashAndIndex(blockHash string, index uint64) (*evmctypes.Transaction, error) {
+	return e.getTransactionByBlockHashAndIndex(context.Background(), blockHash, index)
+}
+
+func (e *ethNamespace) GetTransactionByBlockHashAndIndexWithContext(ctx context.Context, blockHash string, index uint64) (*evmctypes.Transaction, error) {
+	return e.getTransactionByBlockHashAndIndex(ctx, blockHash, index)
+}
+
+func (e *ethNamespace) getTransactionByBlockHashAndIndex(ctx context.Context, blockHash string, index uint64) (*evmctypes.Transaction, error) {
+	tx := new(evmctypes.Transaction)
+	if err := e.c.call(ctx, tx, EthGetTransactionByBlockHashAndIndex, blockHash, hexutil.EncodeUint64(index)); err != nil {
+		return nil, err
+	}
+	return tx, nil
+}
+
+func (e *ethNamespace) GetTransactionByBlockNumberAndIndex(number uint64, index uint64) (*evmctypes.Transaction, error) {
+	return e.getTransactionByBlockNumberAndIndex(context.Background(), number, index)
+}
+
+func (e *ethNamespace) GetTransactionByBlockNumberAndIndexWithContext(ctx context.Context, number uint64, index uint64) (*evmctypes.Transaction, error) {
+	return e.getTransactionByBlockNumberAndIndex(ctx, number, index)
+}
+
+func (e *ethNamespace) getTransactionByBlockNumberAndIndex(ctx context.Context, number uint64, index uint64) (*evmctypes.Transaction, error) {
+	tx := new(evmctypes.Transaction)
+	if err := e.c.call(ctx, tx, EthGetTransactionByBlockNumberAndIndex, evmctypes.FormatNumber(number), hexutil.EncodeUint64(index)); err != nil {
 		return nil, err
 	}
 	return tx, nil

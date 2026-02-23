@@ -481,3 +481,150 @@ func Test_ethNamespace_mock_SendRawTransaction(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, "0xsentTxHash", txHash)
 }
+
+func Test_ethNamespace_mock_SimulateV1(t *testing.T) {
+	client := testWithMock(t, "eth_simulateV1", func(params json.RawMessage) interface{} {
+		return []map[string]interface{}{
+			{
+				"number":           "0x1",
+				"hash":             "0xsimhash",
+				"parentHash":       "0x0000000000000000000000000000000000000000000000000000000000000000",
+				"nonce":            "0x0000000000000000",
+				"mixHash":          "0x0000000000000000000000000000000000000000000000000000000000000000",
+				"sha3Uncles":       "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+				"logsBloom":        "0x00000000",
+				"stateRoot":        "0xabcd",
+				"miner":            "0x1234567890123456789012345678901234567890",
+				"difficulty":       "0x0",
+				"extraData":        "0x",
+				"gasLimit":         "0x1c9c380",
+				"gasUsed":          "0x5208",
+				"timestamp":        "0x64",
+				"transactionsRoot": "0xabc",
+				"receiptsRoot":     "0xdef",
+				"totalDifficulty":  "0x0",
+				"size":             "0x200",
+				"uncles":           []string{},
+				"transactions":     []string{},
+				"calls": []map[string]interface{}{
+					{
+						"returnData": "0x",
+						"logs":       []interface{}{},
+						"gasUsed":    "0x5208",
+						"status":     "0x1",
+					},
+				},
+			},
+		}
+	})
+	to := "0xto"
+	input := "0x"
+	payload := &evmctypes.SimulatePayload{
+		BlockStateCalls: []*evmctypes.BlockStateCall{
+			{
+				Calls: []*evmctypes.SimulateCall{
+					{To: &to, Input: &input},
+				},
+			},
+		},
+	}
+	results, err := client.Eth().SimulateV1(payload, evmctypes.Latest)
+	require.NoError(t, err)
+	require.Len(t, results, 1)
+	assert.Equal(t, uint64(1), results[0].Number)
+	require.Len(t, results[0].Calls, 1)
+	assert.Equal(t, "0x1", results[0].Calls[0].Status)
+}
+
+func Test_ethNamespace_mock_GetProof(t *testing.T) {
+	client := testWithMock(t, "eth_getProof", func(params json.RawMessage) interface{} {
+		return map[string]interface{}{
+			"address":      "0xaddr",
+			"accountProof": []string{"0xproof1", "0xproof2"},
+			"balance":      "0xde0b6b3a7640000",
+			"codeHash":     "0xcodehash",
+			"nonce":        "0x1",
+			"storageHash":  "0xstoragehash",
+			"storageProof": []map[string]interface{}{
+				{
+					"key":   "0x0",
+					"value": "0x1",
+					"proof": []string{"0xsproof1"},
+				},
+			},
+		}
+	})
+	proof, err := client.Eth().GetProof("0xaddr", []string{"0x0"}, evmctypes.Latest)
+	require.NoError(t, err)
+	assert.Equal(t, "0xaddr", proof.Address)
+	assert.Equal(t, "0xde0b6b3a7640000", proof.Balance)
+	assert.Equal(t, "0x1", proof.Nonce)
+	assert.Len(t, proof.AccountProof, 2)
+	require.Len(t, proof.StorageProof, 1)
+	assert.Equal(t, "0x0", proof.StorageProof[0].Key)
+	assert.Equal(t, "0x1", proof.StorageProof[0].Value)
+}
+
+func Test_ethNamespace_mock_UncleCountByBlockHash(t *testing.T) {
+	client := testWithMock(t, "eth_getUncleCountByBlockHash", func(params json.RawMessage) interface{} {
+		// 0x2 = 2 uncles
+		return "0x2"
+	})
+	count, err := client.Eth().UncleCountByBlockHash("0xblockhash")
+	require.NoError(t, err)
+	assert.Equal(t, uint64(2), count)
+}
+
+func Test_ethNamespace_mock_UncleCountByBlockNumber(t *testing.T) {
+	client := testWithMock(t, "eth_getUncleCountByBlockNumber", func(params json.RawMessage) interface{} {
+		// 0x1 = 1 uncle
+		return "0x1"
+	})
+	count, err := client.Eth().UncleCountByBlockNumber(100)
+	require.NoError(t, err)
+	assert.Equal(t, uint64(1), count)
+}
+
+func txJSON(blockHash string, blockNumber string, txHash string, index string) map[string]interface{} {
+	return map[string]interface{}{
+		"blockHash":        blockHash,
+		"blockNumber":      blockNumber,
+		"from":             "0xfrom",
+		"gas":              "0x5208",
+		"gasPrice":         "0x3b9aca00",
+		"hash":             txHash,
+		"input":            "0x",
+		"nonce":            "0x0",
+		"to":               "0xto",
+		"transactionIndex": index,
+		"value":            "0x0",
+		"type":             "0x0",
+		"v":                "0x1",
+		"r":                "0x1",
+		"s":                "0x1",
+	}
+}
+
+func Test_ethNamespace_mock_GetTransactionByBlockHashAndIndex(t *testing.T) {
+	client := testWithMock(t, "eth_getTransactionByBlockHashAndIndex", func(params json.RawMessage) interface{} {
+		return txJSON("0xblockhash", "0x1", "0xtxhash", "0x0")
+	})
+	tx, err := client.Eth().GetTransactionByBlockHashAndIndex("0xblockhash", 0)
+	require.NoError(t, err)
+	assert.Equal(t, "0xtxhash", tx.Hash)
+	assert.Equal(t, uint64(0), tx.TransactionIndex)
+	assert.Equal(t, uint64(1), tx.BlockNumber)
+}
+
+func Test_ethNamespace_mock_GetTransactionByBlockNumberAndIndex(t *testing.T) {
+	client := testWithMock(t, "eth_getTransactionByBlockNumberAndIndex", func(params json.RawMessage) interface{} {
+		var args []interface{}
+		json.Unmarshal(params, &args)
+		blockNum := args[0].(string)
+		return txJSON("0xblockhash", blockNum, "0xtxhash", "0x1")
+	})
+	tx, err := client.Eth().GetTransactionByBlockNumberAndIndex(100, 1)
+	require.NoError(t, err)
+	assert.Equal(t, "0xtxhash", tx.Hash)
+	assert.Equal(t, uint64(1), tx.TransactionIndex)
+}
