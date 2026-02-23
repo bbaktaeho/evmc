@@ -564,3 +564,83 @@ func (d *debugNamespace) traceTransaction(
 	}
 	return d.c.call(ctx, result, DebugTraceTransaction, params...)
 }
+
+func (d *debugNamespace) GetRawHeader(blockAndTag evmctypes.BlockAndTag) (string, error) {
+	return d.GetRawHeaderWithContext(context.Background(), blockAndTag)
+}
+
+func (d *debugNamespace) GetRawHeaderWithContext(ctx context.Context, blockAndTag evmctypes.BlockAndTag) (string, error) {
+	return d.getRawHeader(ctx, blockAndTag)
+}
+
+func (d *debugNamespace) getRawHeader(ctx context.Context, blockAndTag evmctypes.BlockAndTag) (string, error) {
+	result := new(string)
+	if err := d.c.call(ctx, result, DebugGetRawHeader, blockAndTag.String()); err != nil {
+		return "", err
+	}
+	return *result, nil
+}
+
+func (d *debugNamespace) GetRawBlock(blockAndTag evmctypes.BlockAndTag) (string, error) {
+	return d.GetRawBlockWithContext(context.Background(), blockAndTag)
+}
+
+func (d *debugNamespace) GetRawBlockWithContext(ctx context.Context, blockAndTag evmctypes.BlockAndTag) (string, error) {
+	return d.getRawBlock(ctx, blockAndTag)
+}
+
+func (d *debugNamespace) getRawBlock(ctx context.Context, blockAndTag evmctypes.BlockAndTag) (string, error) {
+	result := new(string)
+	if err := d.c.call(ctx, result, DebugGetRawBlock, blockAndTag.String()); err != nil {
+		return "", err
+	}
+	return *result, nil
+}
+
+func (d *debugNamespace) GetRawTransaction(hash string) (string, error) {
+	return d.GetRawTransactionWithContext(context.Background(), hash)
+}
+
+func (d *debugNamespace) GetRawTransactionWithContext(ctx context.Context, hash string) (string, error) {
+	return d.getRawTransaction(ctx, hash)
+}
+
+func (d *debugNamespace) getRawTransaction(ctx context.Context, hash string) (string, error) {
+	result := new(string)
+	if err := d.c.call(ctx, result, DebugGetRawTransaction, hash); err != nil {
+		return "", err
+	}
+	return *result, nil
+}
+
+func (d *debugNamespace) GetRawReceipts(blockAndTag evmctypes.BlockAndTag) ([]string, error) {
+	return d.GetRawReceiptsWithContext(context.Background(), blockAndTag)
+}
+
+func (d *debugNamespace) GetRawReceiptsWithContext(ctx context.Context, blockAndTag evmctypes.BlockAndTag) ([]string, error) {
+	return d.getRawReceipts(ctx, blockAndTag)
+}
+
+func (d *debugNamespace) getRawReceipts(ctx context.Context, blockAndTag evmctypes.BlockAndTag) ([]string, error) {
+	result := new([]string)
+	if err := d.c.call(ctx, result, DebugGetRawReceipts, blockAndTag.String()); err != nil {
+		return nil, err
+	}
+	return *result, nil
+}
+
+func (d *debugNamespace) GetBadBlocks() ([]*evmctypes.BadBlock, error) {
+	return d.GetBadBlocksWithContext(context.Background())
+}
+
+func (d *debugNamespace) GetBadBlocksWithContext(ctx context.Context) ([]*evmctypes.BadBlock, error) {
+	return d.getBadBlocks(ctx)
+}
+
+func (d *debugNamespace) getBadBlocks(ctx context.Context) ([]*evmctypes.BadBlock, error) {
+	result := new([]*evmctypes.BadBlock)
+	if err := d.c.call(ctx, result, DebugGetBadBlocks); err != nil {
+		return nil, err
+	}
+	return *result, nil
+}

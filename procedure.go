@@ -45,8 +45,14 @@ const (
 	EthSendRawTransaction               Procedure = "eth_sendRawTransaction"
 	EthMaxPriorityFeePerGas             Procedure = "eth_maxPriorityFeePerGas"
 	EthSyncing                          Procedure = "eth_syncing"
-	EthGetTransactionByHash             Procedure = "eth_getTransactionByHash"
-	EthGetStorageAt                     Procedure = "eth_getStorageAt"
+	EthGetTransactionByHash                    Procedure = "eth_getTransactionByHash"
+	EthGetTransactionByBlockHashAndIndex       Procedure = "eth_getTransactionByBlockHashAndIndex"
+	EthGetTransactionByBlockNumberAndIndex     Procedure = "eth_getTransactionByBlockNumberAndIndex"
+	EthGetUncleCountByBlockHash                Procedure = "eth_getUncleCountByBlockHash"
+	EthGetUncleCountByBlockNumber              Procedure = "eth_getUncleCountByBlockNumber"
+	EthGetProof                                Procedure = "eth_getProof"
+	EthSimulateV1                              Procedure = "eth_simulateV1"
+	EthGetStorageAt                            Procedure = "eth_getStorageAt"
 	EthGetLogs                          Procedure = "eth_getLogs"
 	EthGetTransactionCount              Procedure = "eth_getTransactionCount"
 	EthGetTransactionReceiptsByBlock    Procedure = "eth_getTransactionReceiptsByBlock" // bor
@@ -54,6 +60,12 @@ const (
 	DebugTraceBlockByNumber Procedure = "debug_traceBlockByNumber"
 	DebugTraceBlockByHash   Procedure = "debug_traceBlockByHash"
 	DebugTraceTransaction   Procedure = "debug_traceTransaction"
+
+	DebugGetRawHeader      Procedure = "debug_getRawHeader"
+	DebugGetRawBlock       Procedure = "debug_getRawBlock"
+	DebugGetRawTransaction Procedure = "debug_getRawTransaction"
+	DebugGetRawReceipts    Procedure = "debug_getRawReceipts"
+	DebugGetBadBlocks      Procedure = "debug_getBadBlocks"
 
 	OtsGetContractCreator Procedure = "ots_getContractCreator" // erigon
 	TraceBlock            Procedure = "trace_block"            // erigon

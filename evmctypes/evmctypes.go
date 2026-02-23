@@ -392,6 +392,99 @@ type Trace struct {
 	Index               uint64   `json:"index"` // custom index
 }
 
+// SimulateBlockOverride defines fields to override in simulated block headers.
+type SimulateBlockOverride struct {
+	BlockNumber  *string `json:"number,omitempty"`
+	Time         *string `json:"time,omitempty"`
+	Gas          *string `json:"gas,omitempty"`
+	FeeRecipient *string `json:"feeRecipient,omitempty"`
+	PrevRandao   *string `json:"prevRandao,omitempty"`
+	BaseFeePerGas *string `json:"baseFeePerGas,omitempty"`
+	BlobBaseFee  *string `json:"blobBaseFee,omitempty"`
+}
+
+// SimulateStateOverride defines per-account state overrides for simulation.
+type SimulateStateOverride map[string]*SimulateAccountOverride
+
+// SimulateAccountOverride overrides a single account's state for simulation.
+type SimulateAccountOverride struct {
+	Balance   *string           `json:"balance,omitempty"`
+	Nonce     *uint64           `json:"nonce,omitempty"`
+	Code      *string           `json:"code,omitempty"`
+	State     map[string]string `json:"state,omitempty"`
+	StateDiff map[string]string `json:"stateDiff,omitempty"`
+}
+
+// SimulateCall represents a single call to simulate within a block.
+type SimulateCall struct {
+	From                 *string `json:"from,omitempty"`
+	To                   *string `json:"to,omitempty"`
+	Gas                  *string `json:"gas,omitempty"`
+	GasPrice             *string `json:"gasPrice,omitempty"`
+	MaxFeePerGas         *string `json:"maxFeePerGas,omitempty"`
+	MaxPriorityFeePerGas *string `json:"maxPriorityFeePerGas,omitempty"`
+	Value                *string `json:"value,omitempty"`
+	Input                *string `json:"input,omitempty"`
+	Nonce                *string `json:"nonce,omitempty"`
+}
+
+// BlockStateCall defines calls and overrides for a single simulated block.
+type BlockStateCall struct {
+	BlockOverrides *SimulateBlockOverride `json:"blockOverrides,omitempty"`
+	StateOverrides SimulateStateOverride  `json:"stateOverrides,omitempty"`
+	Calls          []*SimulateCall        `json:"calls"`
+}
+
+// SimulatePayload is the input for eth_simulateV1.
+type SimulatePayload struct {
+	BlockStateCalls       []*BlockStateCall `json:"blockStateCalls"`
+	TraceTransfers        bool              `json:"traceTransfers,omitempty"`
+	Validation            bool              `json:"validation,omitempty"`
+	ReturnFullTransactions bool             `json:"returnFullTransactions,omitempty"`
+}
+
+// SimulateCallResult holds the result of a single simulated call.
+type SimulateCallResult struct {
+	ReturnData string `json:"returnData"`
+	Logs       []*Log `json:"logs"`
+	GasUsed    string `json:"gasUsed"`
+	Status     string `json:"status"`
+	Error      *struct {
+		Code    int    `json:"code"`
+		Message string `json:"message"`
+	} `json:"error,omitempty"`
+}
+
+// SimulateBlockResult holds the result of a single simulated block.
+type SimulateBlockResult struct {
+	block
+	Calls        []*SimulateCallResult `json:"calls"`
+	Transactions interface{}           `json:"transactions"`
+	Withdrawals  []*Withdrawal         `json:"withdrawals,omitempty"`
+}
+
+type StorageProof struct {
+	Key   string   `json:"key"`
+	Value string   `json:"value"`
+	Proof []string `json:"proof"`
+}
+
+type AccountProof struct {
+	Address      string          `json:"address"`
+	AccountProof []string        `json:"accountProof"`
+	Balance      string          `json:"balance"`
+	CodeHash     string          `json:"codeHash"`
+	Nonce        string          `json:"nonce"`
+	StorageHash  string          `json:"storageHash"`
+	StorageProof []*StorageProof `json:"storageProof"`
+}
+
+type BadBlock struct {
+	Block *Block `json:"block"`
+	Hash  string `json:"hash"`
+	RLP   string `json:"rlp"`
+}
+
 type ContractCreator struct {
 	TransactionHash string `json:"hash"`
 	Creator         string `json:"creator"`
