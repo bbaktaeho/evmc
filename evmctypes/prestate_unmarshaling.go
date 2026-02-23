@@ -7,21 +7,21 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-// UnmarshalJSON unmarshals PrestateAccount from JSON.
+// UnmarshalJSON implements json.Unmarshaler for PrestateAccount.
+// Balance is decoded from a hex string to decimal.Decimal.
+// Nonce is an integer (not hex) as returned by geth.
 func (pa *PrestateAccount) UnmarshalJSON(input []byte) error {
-	type PrestateAccount0 struct {
+	type wire struct {
 		Balance  *string           `json:"balance,omitempty"`
 		Code     *string           `json:"code,omitempty"`
 		CodeHash *string           `json:"codeHash,omitempty"`
 		Nonce    *uint64           `json:"nonce,omitempty"`
 		Storage  map[string]string `json:"storage,omitempty"`
 	}
-	var dec PrestateAccount0
+	var dec wire
 	if err := json.Unmarshal(input, &dec); err != nil {
 		return err
 	}
-
-	// Decode balance from hex string to decimal
 	if dec.Balance != nil {
 		balanceBig, err := hexutil.DecodeBig(*dec.Balance)
 		if err != nil {
@@ -30,26 +30,17 @@ func (pa *PrestateAccount) UnmarshalJSON(input []byte) error {
 		balance := decimal.NewFromBigInt(balanceBig, 0)
 		pa.Balance = &balance
 	}
-
-	// Copy code
 	if dec.Code != nil {
 		pa.Code = *dec.Code
 	}
-
-	// Copy codeHash
 	if dec.CodeHash != nil {
 		pa.CodeHash = *dec.CodeHash
 	}
-
-	// Decode nonce from hex string to uint64
 	if dec.Nonce != nil {
 		pa.Nonce = *dec.Nonce
 	}
-
-	// Copy storage map
 	if dec.Storage != nil {
 		pa.Storage = dec.Storage
 	}
-
 	return nil
 }

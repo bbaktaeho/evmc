@@ -65,9 +65,36 @@ func TestGenerateTxInput(t *testing.T) {
 			want: "0x91ca8b56000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000020000000000000000000000000a3f6849f78076aefadf113f5bed87720274ddc00000000000000000000000000a3f6849f78076aefadf113f5bed87720274ddc0",
 		},
 		{
-			name: "error",
+			name: "no args",
+			args: args{
+				funcSig: "totalSupply()",
+				args:    []evmcsoltypes.SolType{},
+			},
+			want: "0x18160ddd",
+		},
+		{
+			name: "balanceOf",
+			args: args{
+				funcSig: "balanceOf(address)",
+				args: []evmcsoltypes.SolType{
+					evmcsoltypes.Address("0x0a3f6849f78076aefaDf113F5BED87720274dDC0"),
+				},
+			},
+			want: "0x70a082310000000000000000000000000a3f6849f78076aefadf113f5bed87720274ddc0",
+		},
+		{
+			name: "error invalid sig",
 			args: args{
 				funcSig: "invalid",
+				args:    []evmcsoltypes.SolType{},
+			},
+			want:    "",
+			wantErr: true,
+		},
+		{
+			name: "error no parentheses",
+			args: args{
+				funcSig: "transfer address uint256",
 				args:    []evmcsoltypes.SolType{},
 			},
 			want:    "",
@@ -109,6 +136,14 @@ func TestGenerateLogTopic(t *testing.T) {
 				eventSig: "Approval(address,address,uint256)",
 			},
 			want: "0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925",
+		},
+		{
+			name: "error invalid sig",
+			args: args{
+				eventSig: "invalid",
+			},
+			want:    "",
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
