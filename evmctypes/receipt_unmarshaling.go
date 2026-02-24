@@ -7,26 +7,28 @@ import (
 )
 
 func (r *Receipt) UnmarshalJSON(input []byte) error {
-	type Receipt struct {
-		BlockHash             *string `json:"blockHash" validate:"required"`
-		BlockNumber           *string `json:"blockNumber" validate:"-"`
-		TransactionHash       *string `json:"transactionHash" validate:"required"`
-		TransactionIndex      *string `json:"transactionIndex" validate:"-"`
-		From                  *string `json:"from" validate:"required"`
-		To                    *string `json:"to" validate:"required"`
-		GasUsed               *string `json:"gasUsed" validate:"required"`
-		CumulativeGasUsed     *string `json:"cumulativeGasUsed" validate:"required"`
+	type receiptWire struct {
+		// hex→uint64 후처리 대상
+		BlockNumber      *string `json:"blockNumber"`
+		TransactionIndex *string `json:"transactionIndex"`
+		L1BlockNumber    *string `json:"l1BlockNumber,omitempty"`
+		// 나머지: 단순 string 직접 할당
+		BlockHash             string  `json:"blockHash"`
+		TransactionHash       string  `json:"transactionHash"`
+		From                  string  `json:"from"`
+		To                    string  `json:"to"`
+		GasUsed               string  `json:"gasUsed"`
+		CumulativeGasUsed     string  `json:"cumulativeGasUsed"`
 		ContractAddress       *string `json:"contractAddress,omitempty"`
-		Logs                  []*Log  `json:"logs" validate:"required"`
-		Type                  *string `json:"type" validate:"required"`
-		EffectiveGasPrice     *string `json:"effectiveGasPrice" validate:"required"`
+		Logs                  []*Log  `json:"logs"`
+		Type                  string  `json:"type"`
+		EffectiveGasPrice     string  `json:"effectiveGasPrice"`
 		Root                  *string `json:"root,omitempty"`
 		Status                *string `json:"status,omitempty"`
-		LogsBloom             *string `json:"logsBloom"`
+		LogsBloom             string  `json:"logsBloom"`
 		BlobGasPrice          *string `json:"blobGasPrice,omitempty"`
 		BlobGasUsed           *string `json:"blobGasUsed,omitempty"`
 		GasUsedForL1          *string `json:"gasUsedForL1,omitempty"`
-		L1BlockNumber         *string `json:"l1BlockNumber,omitempty"`
 		L1GasPrice            *string `json:"l1GasPrice,omitempty"`
 		L1GasUsed             *string `json:"l1GasUsed,omitempty"`
 		L1FeeScalar           *string `json:"l1FeeScalar,omitempty"`
@@ -37,22 +39,45 @@ func (r *Receipt) UnmarshalJSON(input []byte) error {
 		L1BaseFeeScalar       *string `json:"l1BaseFeeScalar,omitempty"`
 		L1BlobBaseFeeScalar   *string `json:"l1BlobBaseFeeScalar,omitempty"`
 	}
-	var dec Receipt
+	var dec receiptWire
 	if err := json.Unmarshal(input, &dec); err != nil {
 		return err
 	}
-	if dec.BlockHash != nil {
-		r.BlockHash = *dec.BlockHash
-	}
+
+	// 단순 string 필드 직접 할당
+	r.BlockHash = dec.BlockHash
+	r.TransactionHash = dec.TransactionHash
+	r.From = dec.From
+	r.To = dec.To
+	r.GasUsed = dec.GasUsed
+	r.CumulativeGasUsed = dec.CumulativeGasUsed
+	r.ContractAddress = dec.ContractAddress
+	r.Logs = dec.Logs
+	r.Type = dec.Type
+	r.EffectiveGasPrice = dec.EffectiveGasPrice
+	r.Root = dec.Root
+	r.Status = dec.Status
+	r.LogsBloom = dec.LogsBloom
+	r.BlobGasPrice = dec.BlobGasPrice
+	r.BlobGasUsed = dec.BlobGasUsed
+	r.GasUsedForL1 = dec.GasUsedForL1
+	r.L1GasPrice = dec.L1GasPrice
+	r.L1GasUsed = dec.L1GasUsed
+	r.L1FeeScalar = dec.L1FeeScalar
+	r.L1Fee = dec.L1Fee
+	r.DepositNonce = dec.DepositNonce
+	r.DepositReceiptVersion = dec.DepositReceiptVersion
+	r.L1BlobBaseFee = dec.L1BlobBaseFee
+	r.L1BaseFeeScalar = dec.L1BaseFeeScalar
+	r.L1BlobBaseFeeScalar = dec.L1BlobBaseFeeScalar
+
+	// hex→uint64 특수 처리
 	if dec.BlockNumber != nil {
 		blockNumber, err := hexutil.DecodeUint64(*dec.BlockNumber)
 		if err != nil {
 			return err
 		}
 		r.BlockNumber = blockNumber
-	}
-	if dec.TransactionHash != nil {
-		r.TransactionHash = *dec.TransactionHash
 	}
 	if dec.TransactionIndex != nil {
 		transactionIndex, err := hexutil.DecodeUint64(*dec.TransactionIndex)
@@ -61,48 +86,6 @@ func (r *Receipt) UnmarshalJSON(input []byte) error {
 		}
 		r.TransactionIndex = transactionIndex
 	}
-	if dec.From != nil {
-		r.From = *dec.From
-	}
-	if dec.To != nil {
-		r.To = *dec.To
-	}
-	if dec.GasUsed != nil {
-		r.GasUsed = *dec.GasUsed
-	}
-	if dec.CumulativeGasUsed != nil {
-		r.CumulativeGasUsed = *dec.CumulativeGasUsed
-	}
-	if dec.ContractAddress != nil {
-		r.ContractAddress = dec.ContractAddress
-	}
-	if dec.Logs != nil {
-		r.Logs = dec.Logs
-	}
-	if dec.Type != nil {
-		r.Type = *dec.Type
-	}
-	if dec.EffectiveGasPrice != nil {
-		r.EffectiveGasPrice = *dec.EffectiveGasPrice
-	}
-	if dec.Root != nil {
-		r.Root = dec.Root
-	}
-	if dec.Status != nil {
-		r.Status = dec.Status
-	}
-	if dec.LogsBloom != nil {
-		r.LogsBloom = *dec.LogsBloom
-	}
-	if dec.BlobGasPrice != nil {
-		r.BlobGasPrice = dec.BlobGasPrice
-	}
-	if dec.BlobGasUsed != nil {
-		r.BlobGasUsed = dec.BlobGasUsed
-	}
-	if dec.GasUsedForL1 != nil {
-		r.GasUsedForL1 = dec.GasUsedForL1
-	}
 	if dec.L1BlockNumber != nil {
 		l1BlockNumber, err := hexutil.DecodeUint64(*dec.L1BlockNumber)
 		if err != nil {
@@ -110,32 +93,6 @@ func (r *Receipt) UnmarshalJSON(input []byte) error {
 		}
 		r.L1BlockNumber = &l1BlockNumber
 	}
-	if dec.L1GasPrice != nil {
-		r.L1GasPrice = dec.L1GasPrice
-	}
-	if dec.L1GasUsed != nil {
-		r.L1GasUsed = dec.L1GasUsed
-	}
-	if dec.L1FeeScalar != nil {
-		r.L1FeeScalar = dec.L1FeeScalar
-	}
-	if dec.L1Fee != nil {
-		r.L1Fee = dec.L1Fee
-	}
-	if dec.DepositNonce != nil {
-		r.DepositNonce = dec.DepositNonce
-	}
-	if dec.DepositReceiptVersion != nil {
-		r.DepositReceiptVersion = dec.DepositReceiptVersion
-	}
-	if dec.L1BlobBaseFee != nil {
-		r.L1BlobBaseFee = dec.L1BlobBaseFee
-	}
-	if dec.L1BaseFeeScalar != nil {
-		r.L1BaseFeeScalar = dec.L1BaseFeeScalar
-	}
-	if dec.L1BlobBaseFeeScalar != nil {
-		r.L1BlobBaseFeeScalar = dec.L1BlobBaseFeeScalar
-	}
+
 	return nil
 }
