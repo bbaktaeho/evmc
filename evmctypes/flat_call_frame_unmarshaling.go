@@ -8,7 +8,7 @@ import (
 )
 
 func (f *FlatCallFrame) UnmarshalJSON(input []byte) error {
-	type FlatCallFrame struct {
+	type flatCallFrameWire struct {
 		Action *struct {
 			Author         *string `json:"author,omitempty"`
 			RewardType     *string `json:"rewardType,omitempty"`
@@ -22,10 +22,10 @@ func (f *FlatCallFrame) UnmarshalJSON(input []byte) error {
 			Input          *string `json:"input,omitempty"`
 			To             *string `json:"to,omitempty"`
 			Init           *string `json:"init,omitempty"`
-			Value          *string `json:"value,omitempty"`
+			Value          *string `json:"value,omitempty"` // hex→decimal 후처리
 		} `json:"action"`
-		BlockHash   *string `json:"blockHash" validate:"required"`
-		BlockNumber *uint64 `json:"blockNumber" validate:"-"`
+		BlockHash   *string `json:"blockHash"`
+		BlockNumber *uint64 `json:"blockNumber"`
 		Error       *string `json:"error,omitempty"`
 		Result      *struct {
 			Address *string `json:"address,omitempty"`
@@ -33,20 +33,21 @@ func (f *FlatCallFrame) UnmarshalJSON(input []byte) error {
 			GasUsed *string `json:"gasUsed,omitempty"`
 			Output  *string `json:"output,omitempty"`
 		} `json:"result,omitempty"`
-		Subtraces           *uint64  `json:"subtraces" validate:"required"`
-		TraceAddress        []uint64 `json:"traceAddress" validate:"required"`
-		TransactionHash     *string  `json:"transactionHash" validate:"required"`
-		TransactionPosition *uint64  `json:"transactionPosition" validate:"-"`
-		Type                *string  `json:"type" validate:"required"`
+		Subtraces           *uint64  `json:"subtraces"`
+		TraceAddress        []uint64 `json:"traceAddress"`
+		TransactionHash     *string  `json:"transactionHash"`
+		TransactionPosition *uint64  `json:"transactionPosition"`
+		Type                *string  `json:"type"`
 
 		// Arbitrum
 		AfterEVMTransfers  []*EVMTransfer `json:"afterEVMTransfers,omitempty"`
 		BeforeEVMTransfers []*EVMTransfer `json:"beforeEVMTransfers,omitempty"`
 	}
-	var dec FlatCallFrame
+	var dec flatCallFrameWire
 	if err := json.Unmarshal(input, &dec); err != nil {
 		return err
 	}
+
 	if dec.Action != nil {
 		f.Action.Author = dec.Action.Author
 		f.Action.RewardType = dec.Action.RewardType
@@ -60,16 +61,19 @@ func (f *FlatCallFrame) UnmarshalJSON(input []byte) error {
 		f.Action.Input = dec.Action.Input
 		f.Action.To = dec.Action.To
 		f.Action.Init = dec.Action.Init
-		if *dec.Action.Value == "" {
-			zero := decimal.Zero
-			f.Action.Value = &zero
-		} else {
-			valueBig, err := hexutil.DecodeBig(*dec.Action.Value)
-			if err != nil {
-				return err
+		// hex→decimal 특수 처리 (nil 체크 필수)
+		if dec.Action.Value != nil {
+			if *dec.Action.Value == "" {
+				zero := decimal.Zero
+				f.Action.Value = &zero
+			} else {
+				valueBig, err := hexutil.DecodeBig(*dec.Action.Value)
+				if err != nil {
+					return err
+				}
+				value := decimal.NewFromBigInt(valueBig, 0)
+				f.Action.Value = &value
 			}
-			value := decimal.NewFromBigInt(valueBig, 0)
-			f.Action.Value = &value
 		}
 	}
 	if dec.BlockHash != nil {
@@ -78,18 +82,12 @@ func (f *FlatCallFrame) UnmarshalJSON(input []byte) error {
 	if dec.BlockNumber != nil {
 		f.BlockNumber = *dec.BlockNumber
 	}
-	if dec.Error != nil {
-		f.Error = dec.Error
-	}
-	if dec.Result != nil {
-		f.Result = dec.Result
-	}
+	f.Error = dec.Error
+	f.Result = dec.Result
 	if dec.Subtraces != nil {
 		f.Subtraces = *dec.Subtraces
 	}
-	if dec.TraceAddress != nil {
-		f.TraceAddress = dec.TraceAddress
-	}
+	f.TraceAddress = dec.TraceAddress
 	if dec.TransactionHash != nil {
 		f.TransactionHash = *dec.TransactionHash
 	}
@@ -99,11 +97,8 @@ func (f *FlatCallFrame) UnmarshalJSON(input []byte) error {
 	if dec.Type != nil {
 		f.Type = *dec.Type
 	}
-	if dec.AfterEVMTransfers != nil {
-		f.AfterEVMTransfers = dec.AfterEVMTransfers
-	}
-	if dec.BeforeEVMTransfers != nil {
-		f.BeforeEVMTransfers = dec.BeforeEVMTransfers
-	}
+	f.AfterEVMTransfers = dec.AfterEVMTransfers
+	f.BeforeEVMTransfers = dec.BeforeEVMTransfers
+
 	return nil
 }
