@@ -55,15 +55,17 @@ func (t *Tx) parseCallMsg() (map[string]interface{}, error) {
 	if t.To == "" {
 		return nil, ErrToRequired
 	}
-	return map[string]interface{}{
+	msg := map[string]interface{}{
 		"from":       t.From,
-		"nonce":      hexutil.EncodeUint64(t.Nonce),
 		"to":         t.To,
 		"data":       t.Data,
 		"value":      hexutil.EncodeBig(t.Value.BigInt()),
-		"gasLimit":   hexutil.EncodeUint64(t.GasLimit),
 		"accessList": accessList,
-	}, nil
+	}
+	if t.GasLimit > 0 {
+		msg["gas"] = hexutil.EncodeUint64(t.GasLimit)
+	}
+	return msg, nil
 }
 
 func (t *Tx) valid() error {
