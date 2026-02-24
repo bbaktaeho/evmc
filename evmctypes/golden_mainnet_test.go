@@ -354,6 +354,181 @@ func TestGolden_FeeHistory(t *testing.T) {
 	}
 }
 
+// ─── debug namespace golden tests ────────────────────────────────────────────
+
+// TestGolden_TraceTransaction_callTracer tests CallFrame unmarshaling from debug_traceTransaction with callTracer.
+func TestGolden_TraceTransaction_callTracer(t *testing.T) {
+	if *update {
+		saveGolden(t, "debug_traceTransaction_callTracer.json",
+			rpcResult(t, "debug_traceTransaction", refEip1559TxHash, map[string]interface{}{"tracer": "callTracer"}))
+		saveGolden(t, "debug_traceTransaction_callTracer_withLog.json",
+			rpcResult(t, "debug_traceTransaction", refEip1559TxHash, map[string]interface{}{
+				"tracer":       "callTracer",
+				"tracerConfig": map[string]interface{}{"withLog": true},
+			}))
+	}
+
+	t.Run("callTracer", func(t *testing.T) {
+		var frame CallFrame
+		require.NoError(t, json.Unmarshal(loadGolden(t, "debug_traceTransaction_callTracer.json"), &frame))
+
+		assert.Equal(t, "CALL", frame.Type)
+		assert.Equal(t, refEip1559TxFrom, frame.From)
+		require.NotNil(t, frame.To)
+		assert.Equal(t, refEip1559TxTo, *frame.To)
+		assert.NotEmpty(t, frame.Gas)
+		assert.NotEmpty(t, frame.GasUsed)
+		assert.Equal(t, "0x4e5d3", frame.GasUsed)
+		assert.Len(t, frame.Calls, 8)
+		// value 파싱
+		require.NotNil(t, frame.Value)
+		assert.False(t, frame.Value.IsNegative())
+	})
+
+	t.Run("callTracer_withLog", func(t *testing.T) {
+		var frame CallFrame
+		require.NoError(t, json.Unmarshal(loadGolden(t, "debug_traceTransaction_callTracer_withLog.json"), &frame))
+
+		assert.Equal(t, "CALL", frame.Type)
+		assert.Equal(t, refEip1559TxFrom, frame.From)
+		assert.Len(t, frame.Calls, 8)
+		// 하위 call에 로그가 존재
+		var totalLogs int
+		countLogs(&totalLogs, &frame)
+		assert.Equal(t, 16, totalLogs)
+	})
+}
+
+// countLogs recursively counts logs in a CallFrame tree.
+func countLogs(count *int, frame *CallFrame) {
+	*count += len(frame.Logs)
+	for _, c := range frame.Calls {
+		countLogs(count, c)
+	}
+}
+
+// TestGolden_TraceTransaction_prestateTracer tests PrestateResult unmarshaling.
+func TestGolden_TraceTransaction_prestateTracer(t *testing.T) {
+	if *update {
+		saveGolden(t, "debug_traceTransaction_prestateTracer.json",
+			rpcResult(t, "debug_traceTransaction", refEip1559TxHash, map[string]interface{}{"tracer": "prestateTracer"}))
+		saveGolden(t, "debug_traceTransaction_prestateTracer_diff.json",
+			rpcResult(t, "debug_traceTransaction", refEip1559TxHash, map[string]interface{}{
+				"tracer":       "prestateTracer",
+				"tracerConfig": map[string]interface{}{"diffMode": true},
+			}))
+	}
+
+	t.Run("prestateTracer", func(t *testing.T) {
+		raw := loadGolden(t, "debug_traceTransaction_prestateTracer.json")
+		result := &PrestateResult{RawMessage: raw}
+		frame, err := result.ParseFrame()
+		require.NoError(t, err)
+
+		assert.Len(t, frame, 12, "should have 12 accounts in prestate")
+		// from 계정이 존재해야 함
+		fromAccount, ok := frame[refEip1559TxFrom]
+		require.True(t, ok, "from account should exist in prestate")
+		assert.NotNil(t, fromAccount.Balance)
+	})
+
+	t.Run("prestateTracer_diffMode", func(t *testing.T) {
+		raw := loadGolden(t, "debug_traceTransaction_prestateTracer_diff.json")
+		result := &PrestateResult{RawMessage: raw}
+		diffFrame, err := result.ParseDiffFrame()
+		require.NoError(t, err)
+
+		require.NotNil(t, diffFrame)
+		assert.Len(t, diffFrame.Pre, 11, "pre should have 11 accounts")
+		assert.Len(t, diffFrame.Post, 11, "post should have 11 accounts")
+	})
+}
+
+// TestGolden_TraceTransaction_flatCallTracer tests FlatCallFrame unmarshaling.
+func TestGolden_TraceTransaction_flatCallTracer(t *testing.T) {
+	if *update {
+		saveGolden(t, "debug_traceTransaction_flatCallTracer.json",
+			rpcResult(t, "debug_traceTransaction", refEip1559TxHash, map[string]interface{}{"tracer": "flatCallTracer"}))
+	}
+
+	var frames []*FlatCallFrame
+	require.NoError(t, json.Unmarshal(loadGolden(t, "debug_traceTransaction_flatCallTracer.json"), &frames))
+
+	assert.Len(t, frames, 21)
+
+	// 첫 번째 프레임: root call
+	first := frames[0]
+	assert.Equal(t, "call", first.Type)
+	require.NotNil(t, first.Action.From)
+	assert.Equal(t, refEip1559TxFrom, *first.Action.From)
+	require.NotNil(t, first.Action.To)
+	assert.Equal(t, refEip1559TxTo, *first.Action.To)
+	assert.Equal(t, uint64(8), first.Subtraces)
+	assert.Empty(t, first.TraceAddress)
+	require.NotNil(t, first.Result)
+	assert.Equal(t, "0x288ab", *first.Result.GasUsed)
+}
+
+// TestGolden_TraceCall tests CallFrame unmarshaling from debug_traceCall with callTracer.
+func TestGolden_TraceCall(t *testing.T) {
+	if *update {
+		saveGolden(t, "debug_traceCall_callTracer.json",
+			rpcResult(t, "debug_traceCall",
+				map[string]interface{}{
+					"from": "0x0000000000000000000000000000000000000000",
+					"to":   refUSDTAddress,
+					"data": "0x18160ddd",
+				},
+				refBlockHex,
+				map[string]interface{}{"tracer": "callTracer"},
+			))
+	}
+
+	var frame CallFrame
+	require.NoError(t, json.Unmarshal(loadGolden(t, "debug_traceCall_callTracer.json"), &frame))
+
+	assert.Equal(t, "CALL", frame.Type)
+	assert.Equal(t, "0x0000000000000000000000000000000000000000", frame.From)
+	require.NotNil(t, frame.To)
+	assert.Equal(t, refUSDTAddressLower, *frame.To)
+	assert.NotEmpty(t, frame.Gas)
+	assert.Equal(t, "0x644b", frame.GasUsed)
+	// USDT totalSupply 결과: uint256 hex 반환
+	require.NotNil(t, frame.Output)
+	assert.Len(t, *frame.Output, 66, "output should be 0x + 64 hex chars (uint256)")
+}
+
+// TestGolden_GetRawHeader tests raw hex string from debug_getRawHeader.
+func TestGolden_GetRawHeader(t *testing.T) {
+	if *update {
+		saveGolden(t, "debug_getRawHeader.json",
+			rpcResult(t, "debug_getRawHeader", refBlockHex))
+	}
+
+	var raw string
+	require.NoError(t, json.Unmarshal(loadGolden(t, "debug_getRawHeader.json"), &raw))
+
+	assert.NotEmpty(t, raw)
+	assert.Equal(t, "0x", raw[:2], "raw header should be hex-encoded")
+	assert.Greater(t, len(raw), 100, "raw header should have meaningful length")
+}
+
+// TestGolden_GetRawTransaction tests raw hex string from debug_getRawTransaction.
+func TestGolden_GetRawTransaction(t *testing.T) {
+	if *update {
+		saveGolden(t, "debug_getRawTransaction.json",
+			rpcResult(t, "debug_getRawTransaction", refEip1559TxHash))
+	}
+
+	var raw string
+	require.NoError(t, json.Unmarshal(loadGolden(t, "debug_getRawTransaction.json"), &raw))
+
+	assert.NotEmpty(t, raw)
+	assert.Equal(t, "0x", raw[:2], "raw tx should be hex-encoded")
+	// EIP-1559 (type 2) RLP은 0x02로 시작
+	assert.Equal(t, "0x02", raw[:4], "EIP-1559 tx RLP should start with 0x02")
+}
+
 // TestGolden_AccountProof tests AccountProof unmarshaling from eth_getProof.
 func TestGolden_AccountProof(t *testing.T) {
 	if *update {

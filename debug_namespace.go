@@ -1,11 +1,5 @@
 package evmc
 
-// TODO
-// - debug_traceBlock
-// - debug_traceBlockFromFile
-// - debug_traceBadBlock
-// - debug_traceCall
-
 import (
 	"context"
 	"time"
@@ -113,6 +107,17 @@ func assignIndexFlatCalls(flatCalls []*evmctypes.FlatCallTracer) {
 	}
 }
 
+// newTracerConfig builds a TraceConfig for a specific tracer with optional timeout, reexec, and tracer-specific config.
+func newTracerConfig(tracer Tracer, timeout time.Duration, reexec *uint64, cfg interface{}) *TraceConfig {
+	tc := &TraceConfig{Tracer: tracer, Timeout: timeout.String(), Reexec: reexec}
+	if cfg != nil {
+		tc.TracerConfig = cfg
+	}
+	return tc
+}
+
+// ─── TraceBlockByNumber ──────────────────────────────────────────────────────
+
 func (d *debugNamespace) TraceBlockByNumberWithContext(
 	ctx context.Context,
 	blockNumber uint64,
@@ -167,14 +172,9 @@ func (d *debugNamespace) traceBlockByNumber_callTracer(
 	[]*evmctypes.CallTracer,
 	error,
 ) {
-	var (
-		callTracers = []*evmctypes.CallTracer{}
-		traceCfg    = TraceConfig{Tracer: CallTracer, Timeout: timeout.String(), Reexec: reexec}
-	)
-	if cfg != nil {
-		traceCfg.TracerConfig = *cfg
-	}
-	if err := d.traceBlockByNumber(ctx, blockNumber, &traceCfg, &callTracers); err != nil {
+	var callTracers = []*evmctypes.CallTracer{}
+	traceCfg := newTracerConfig(CallTracer, timeout, reexec, cfg)
+	if err := d.traceBlockByNumber(ctx, blockNumber, traceCfg, &callTracers); err != nil {
 		return nil, err
 	}
 	for _, callTracer := range callTracers {
@@ -220,14 +220,9 @@ func (d *debugNamespace) traceBlockByNumber_flatCallTracer(
 	[]*evmctypes.FlatCallTracer,
 	error,
 ) {
-	var (
-		flatCallTracers = []*evmctypes.FlatCallTracer{}
-		traceCfg        = TraceConfig{Tracer: FlatCallTracer, Timeout: timeout.String(), Reexec: reexec}
-	)
-	if cfg != nil {
-		traceCfg.TracerConfig = *cfg
-	}
-	if err := d.traceBlockByNumber(ctx, blockNumber, &traceCfg, &flatCallTracers); err != nil {
+	var flatCallTracers = []*evmctypes.FlatCallTracer{}
+	traceCfg := newTracerConfig(FlatCallTracer, timeout, reexec, cfg)
+	if err := d.traceBlockByNumber(ctx, blockNumber, traceCfg, &flatCallTracers); err != nil {
 		return nil, err
 	}
 	assignIndexFlatCalls(flatCallTracers)
@@ -269,14 +264,9 @@ func (d *debugNamespace) traceBlockByNumber_prestateTracer(
 	[]*evmctypes.PrestateTracer,
 	error,
 ) {
-	var (
-		prestateTracers = []*evmctypes.PrestateTracer{}
-		traceCfg        = TraceConfig{Tracer: PrestateTracer, Timeout: timeout.String(), Reexec: reexec}
-	)
-	if cfg != nil {
-		traceCfg.TracerConfig = *cfg
-	}
-	if err := d.traceBlockByNumber(ctx, blockNumber, &traceCfg, &prestateTracers); err != nil {
+	var prestateTracers = []*evmctypes.PrestateTracer{}
+	traceCfg := newTracerConfig(PrestateTracer, timeout, reexec, cfg)
+	if err := d.traceBlockByNumber(ctx, blockNumber, traceCfg, &prestateTracers); err != nil {
 		return nil, err
 	}
 	return prestateTracers, nil
@@ -295,22 +285,24 @@ func (d *debugNamespace) traceBlockByNumber(
 	return d.c.call(ctx, result, DebugTraceBlockByNumber, params...)
 }
 
+// ─── TraceBlockByHash ────────────────────────────────────────────────────────
+
 func (d *debugNamespace) TraceBlockByHashWithContext(
 	ctx context.Context,
 	hash string,
 	cfg *TraceConfig,
 ) (
-	*evmctypes.TraceResult,
+	[]*evmctypes.TraceResult,
 	error,
 ) {
-	var result = &evmctypes.TraceResult{}
-	if err := d.traceBlockByHash(ctx, hash, cfg, result); err != nil {
+	var result = []*evmctypes.TraceResult{}
+	if err := d.traceBlockByHash(ctx, hash, cfg, &result); err != nil {
 		return nil, err
 	}
 	return result, nil
 }
 
-func (d *debugNamespace) TraceBlockByHash(hash string, cfg *TraceConfig) (*evmctypes.TraceResult, error) {
+func (d *debugNamespace) TraceBlockByHash(hash string, cfg *TraceConfig) ([]*evmctypes.TraceResult, error) {
 	return d.TraceBlockByHashWithContext(context.Background(), hash, cfg)
 }
 
@@ -349,13 +341,8 @@ func (d *debugNamespace) traceBlockByHash_callTracer(
 	[]*evmctypes.CallTracer,
 	error,
 ) {
-	var (
-		callTracers = []*evmctypes.CallTracer{}
-		traceCfg    = &TraceConfig{Tracer: CallTracer, Timeout: timeout.String(), Reexec: reexec}
-	)
-	if cfg != nil {
-		traceCfg.TracerConfig = *cfg
-	}
+	var callTracers = []*evmctypes.CallTracer{}
+	traceCfg := newTracerConfig(CallTracer, timeout, reexec, cfg)
 	if err := d.traceBlockByHash(ctx, hash, traceCfg, &callTracers); err != nil {
 		return nil, err
 	}
@@ -400,18 +387,56 @@ func (d *debugNamespace) traceBlockByHash_flatCallTracer(
 	[]*evmctypes.FlatCallTracer,
 	error,
 ) {
-	var (
-		flatCallTracers = []*evmctypes.FlatCallTracer{}
-		traceCfg        = TraceConfig{Tracer: FlatCallTracer, Timeout: timeout.String(), Reexec: reexec}
-	)
-	if cfg != nil {
-		traceCfg.TracerConfig = *cfg
-	}
-	if err := d.traceBlockByHash(ctx, hash, &traceCfg, &flatCallTracers); err != nil {
+	var flatCallTracers = []*evmctypes.FlatCallTracer{}
+	traceCfg := newTracerConfig(FlatCallTracer, timeout, reexec, cfg)
+	if err := d.traceBlockByHash(ctx, hash, traceCfg, &flatCallTracers); err != nil {
 		return nil, err
 	}
 	assignIndexFlatCalls(flatCallTracers)
 	return flatCallTracers, nil
+}
+
+func (d *debugNamespace) TraceBlockByHashWithContext_prestateTracer(
+	ctx context.Context,
+	hash string,
+	timeout time.Duration,
+	reexec *uint64,
+	cfg *PrestateTracerConfig,
+) (
+	[]*evmctypes.PrestateTracer,
+	error,
+) {
+	return d.traceBlockByHash_prestateTracer(ctx, hash, timeout, reexec, cfg)
+}
+
+func (d *debugNamespace) TraceBlockByHash_prestateTracer(
+	hash string,
+	timeout time.Duration,
+	reexec *uint64,
+	cfg *PrestateTracerConfig,
+) (
+	[]*evmctypes.PrestateTracer,
+	error,
+) {
+	return d.traceBlockByHash_prestateTracer(context.Background(), hash, timeout, reexec, cfg)
+}
+
+func (d *debugNamespace) traceBlockByHash_prestateTracer(
+	ctx context.Context,
+	hash string,
+	timeout time.Duration,
+	reexec *uint64,
+	cfg *PrestateTracerConfig,
+) (
+	[]*evmctypes.PrestateTracer,
+	error,
+) {
+	var prestateTracers = []*evmctypes.PrestateTracer{}
+	traceCfg := newTracerConfig(PrestateTracer, timeout, reexec, cfg)
+	if err := d.traceBlockByHash(ctx, hash, traceCfg, &prestateTracers); err != nil {
+		return nil, err
+	}
+	return prestateTracers, nil
 }
 
 func (d *debugNamespace) traceBlockByHash(
@@ -426,6 +451,8 @@ func (d *debugNamespace) traceBlockByHash(
 	}
 	return d.c.call(ctx, result, DebugTraceBlockByHash, params...)
 }
+
+// ─── TraceTransaction ────────────────────────────────────────────────────────
 
 func (d *debugNamespace) TraceTransaction(hash string, cfg *TraceConfig) (interface{}, error) {
 	return d.TraceTransactionWithContext(context.Background(), hash, cfg)
@@ -468,13 +495,8 @@ func (d *debugNamespace) TraceTransactionWithContext_callTracer(
 	*evmctypes.CallFrame,
 	error,
 ) {
-	var (
-		callFrame = &evmctypes.CallFrame{}
-		traceCfg  = &TraceConfig{Tracer: CallTracer, Timeout: timeout.String(), Reexec: reexec}
-	)
-	if cfg != nil {
-		traceCfg.TracerConfig = *cfg
-	}
+	callFrame := &evmctypes.CallFrame{}
+	traceCfg := newTracerConfig(CallTracer, timeout, reexec, cfg)
 	if err := d.traceTransaction(ctx, hash, traceCfg, callFrame); err != nil {
 		return nil, err
 	}
@@ -504,14 +526,9 @@ func (d *debugNamespace) TraceTransactionWithContext_flatCallTracer(
 	[]*evmctypes.FlatCallFrame,
 	error,
 ) {
-	var (
-		flatCallFrames = []*evmctypes.FlatCallFrame{}
-		traceCfg       = TraceConfig{Tracer: FlatCallTracer, Timeout: timeout.String(), Reexec: reexec}
-	)
-	if cfg != nil {
-		traceCfg.TracerConfig = *cfg
-	}
-	if err := d.traceTransaction(ctx, hash, &traceCfg, &flatCallFrames); err != nil {
+	var flatCallFrames = []*evmctypes.FlatCallFrame{}
+	traceCfg := newTracerConfig(FlatCallTracer, timeout, reexec, cfg)
+	if err := d.traceTransaction(ctx, hash, traceCfg, &flatCallFrames); err != nil {
 		return nil, err
 	}
 	return flatCallFrames, nil
@@ -539,14 +556,9 @@ func (d *debugNamespace) TraceTransactionWithContext_prestateTracer(
 	*evmctypes.PrestateResult,
 	error,
 ) {
-	var (
-		prestateResult = &evmctypes.PrestateResult{}
-		traceCfg       = TraceConfig{Tracer: PrestateTracer, Timeout: timeout.String(), Reexec: reexec}
-	)
-	if cfg != nil {
-		traceCfg.TracerConfig = cfg
-	}
-	if err := d.traceTransaction(ctx, hash, &traceCfg, prestateResult); err != nil {
+	prestateResult := &evmctypes.PrestateResult{}
+	traceCfg := newTracerConfig(PrestateTracer, timeout, reexec, cfg)
+	if err := d.traceTransaction(ctx, hash, traceCfg, prestateResult); err != nil {
 		return nil, err
 	}
 	return prestateResult, nil
@@ -564,6 +576,145 @@ func (d *debugNamespace) traceTransaction(
 	}
 	return d.c.call(ctx, result, DebugTraceTransaction, params...)
 }
+
+// ─── TraceCall ───────────────────────────────────────────────────────────────
+
+func (d *debugNamespace) TraceCall(tx *Tx, blockAndTag evmctypes.BlockAndTag, cfg *TraceConfig) (interface{}, error) {
+	return d.TraceCallWithContext(context.Background(), tx, blockAndTag, cfg)
+}
+
+func (d *debugNamespace) TraceCallWithContext(
+	ctx context.Context,
+	tx *Tx,
+	blockAndTag evmctypes.BlockAndTag,
+	cfg *TraceConfig,
+) (
+	interface{},
+	error,
+) {
+	var result interface{}
+	if err := d.traceCall(ctx, tx, blockAndTag, cfg, &result); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (d *debugNamespace) TraceCall_callTracer(
+	tx *Tx,
+	blockAndTag evmctypes.BlockAndTag,
+	timeout time.Duration,
+	reexec *uint64,
+	cfg *CallTracerConfig,
+) (
+	*evmctypes.CallFrame,
+	error,
+) {
+	return d.TraceCallWithContext_callTracer(context.Background(), tx, blockAndTag, timeout, reexec, cfg)
+}
+
+func (d *debugNamespace) TraceCallWithContext_callTracer(
+	ctx context.Context,
+	tx *Tx,
+	blockAndTag evmctypes.BlockAndTag,
+	timeout time.Duration,
+	reexec *uint64,
+	cfg *CallTracerConfig,
+) (
+	*evmctypes.CallFrame,
+	error,
+) {
+	callFrame := &evmctypes.CallFrame{}
+	traceCfg := newTracerConfig(CallTracer, timeout, reexec, cfg)
+	if err := d.traceCall(ctx, tx, blockAndTag, traceCfg, callFrame); err != nil {
+		return nil, err
+	}
+	assignIndexCalls(callFrame)
+	return callFrame, nil
+}
+
+func (d *debugNamespace) TraceCall_flatCallTracer(
+	tx *Tx,
+	blockAndTag evmctypes.BlockAndTag,
+	timeout time.Duration,
+	reexec *uint64,
+	cfg *FlatCallTracerConfig,
+) (
+	[]*evmctypes.FlatCallFrame,
+	error,
+) {
+	return d.TraceCallWithContext_flatCallTracer(context.Background(), tx, blockAndTag, timeout, reexec, cfg)
+}
+
+func (d *debugNamespace) TraceCallWithContext_flatCallTracer(
+	ctx context.Context,
+	tx *Tx,
+	blockAndTag evmctypes.BlockAndTag,
+	timeout time.Duration,
+	reexec *uint64,
+	cfg *FlatCallTracerConfig,
+) (
+	[]*evmctypes.FlatCallFrame,
+	error,
+) {
+	var flatCallFrames = []*evmctypes.FlatCallFrame{}
+	traceCfg := newTracerConfig(FlatCallTracer, timeout, reexec, cfg)
+	if err := d.traceCall(ctx, tx, blockAndTag, traceCfg, &flatCallFrames); err != nil {
+		return nil, err
+	}
+	return flatCallFrames, nil
+}
+
+func (d *debugNamespace) TraceCall_prestateTracer(
+	tx *Tx,
+	blockAndTag evmctypes.BlockAndTag,
+	timeout time.Duration,
+	reexec *uint64,
+	cfg *PrestateTracerConfig,
+) (
+	*evmctypes.PrestateResult,
+	error,
+) {
+	return d.TraceCallWithContext_prestateTracer(context.Background(), tx, blockAndTag, timeout, reexec, cfg)
+}
+
+func (d *debugNamespace) TraceCallWithContext_prestateTracer(
+	ctx context.Context,
+	tx *Tx,
+	blockAndTag evmctypes.BlockAndTag,
+	timeout time.Duration,
+	reexec *uint64,
+	cfg *PrestateTracerConfig,
+) (
+	*evmctypes.PrestateResult,
+	error,
+) {
+	prestateResult := &evmctypes.PrestateResult{}
+	traceCfg := newTracerConfig(PrestateTracer, timeout, reexec, cfg)
+	if err := d.traceCall(ctx, tx, blockAndTag, traceCfg, prestateResult); err != nil {
+		return nil, err
+	}
+	return prestateResult, nil
+}
+
+func (d *debugNamespace) traceCall(
+	ctx context.Context,
+	tx *Tx,
+	blockAndTag evmctypes.BlockAndTag,
+	traceCfg *TraceConfig,
+	result interface{},
+) error {
+	msg, err := tx.parseCallMsg()
+	if err != nil {
+		return err
+	}
+	params := []interface{}{msg, blockAndTag.String()}
+	if traceCfg != nil {
+		params = append(params, *traceCfg)
+	}
+	return d.c.call(ctx, result, DebugTraceCall, params...)
+}
+
+// ─── Raw / Getter Methods ───────────────────────────────────────────────────
 
 func (d *debugNamespace) GetRawHeader(blockAndTag evmctypes.BlockAndTag) (string, error) {
 	return d.GetRawHeaderWithContext(context.Background(), blockAndTag)

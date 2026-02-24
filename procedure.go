@@ -60,6 +60,7 @@ const (
 	DebugTraceBlockByNumber Procedure = "debug_traceBlockByNumber"
 	DebugTraceBlockByHash   Procedure = "debug_traceBlockByHash"
 	DebugTraceTransaction   Procedure = "debug_traceTransaction"
+	DebugTraceCall          Procedure = "debug_traceCall"
 
 	DebugGetRawHeader      Procedure = "debug_getRawHeader"
 	DebugGetRawBlock       Procedure = "debug_getRawBlock"
