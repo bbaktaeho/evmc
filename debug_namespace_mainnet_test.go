@@ -1,6 +1,7 @@
 package evmc
 
 import (
+	"encoding/json"
 	"testing"
 	"time"
 
@@ -8,6 +9,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+// testCustomJSTracer는 gasUsed를 반환하는 간단한 JavaScript 트레이서다.
+const testCustomJSTracer = `{result: function(ctx) { return {gasUsed: ctx.gasUsed}; }, fault: function() {}}`
 
 // 블록 20,000,000 은 트랜잭션이 134개로 trace가 무거우므로
 // 더 가벼운 블록을 사용한다.
@@ -238,6 +242,58 @@ func Test_Mainnet_Debug_TraceCall_default(t *testing.T) {
 	result, err := c.Debug().TraceCall(tx, evmctypes.Latest, nil)
 	require.NoError(t, err)
 	assert.NotNil(t, result)
+}
+
+// ─── Custom Tracer ───────────────────────────────────────────────────────────
+
+func Test_Mainnet_Debug_TraceTransaction_customTracer(t *testing.T) {
+	c := mainnetClient(t)
+	result, err := c.Debug().TraceTransaction_customTracer(debugRefTxHash, testCustomJSTracer, time.Minute, nil)
+	require.NoError(t, err)
+	require.NotNil(t, result)
+
+	var parsed map[string]interface{}
+	require.NoError(t, json.Unmarshal(result, &parsed))
+	assert.Contains(t, parsed, "gasUsed")
+}
+
+func Test_Mainnet_Debug_TraceBlockByNumber_customTracer(t *testing.T) {
+	c := mainnetClient(t)
+	results, err := c.Debug().TraceBlockByNumber_customTracer(debugRefBlockNumber, testCustomJSTracer, time.Minute, nil)
+	require.NoError(t, err)
+
+	assert.NotEmpty(t, results)
+	for _, r := range results {
+		assert.NotEmpty(t, r.TxHash)
+		assert.NotEmpty(t, r.Result)
+	}
+}
+
+func Test_Mainnet_Debug_TraceBlockByHash_customTracer(t *testing.T) {
+	c := mainnetClient(t)
+	results, err := c.Debug().TraceBlockByHash_customTracer(debugRefBlockHash, testCustomJSTracer, time.Minute, nil)
+	require.NoError(t, err)
+
+	assert.NotEmpty(t, results)
+	for _, r := range results {
+		assert.NotEmpty(t, r.TxHash)
+		assert.NotEmpty(t, r.Result)
+	}
+}
+
+func Test_Mainnet_Debug_TraceCall_customTracer(t *testing.T) {
+	c := mainnetClient(t)
+	tx := &Tx{
+		To:   mainnetRefUSDT,
+		Data: "0x18160ddd",
+	}
+	result, err := c.Debug().TraceCall_customTracer(tx, evmctypes.FormatNumber(mainnetRefBlockNumber), testCustomJSTracer, time.Minute, nil)
+	require.NoError(t, err)
+	require.NotNil(t, result)
+
+	var parsed map[string]interface{}
+	require.NoError(t, json.Unmarshal(result, &parsed))
+	assert.Contains(t, parsed, "gasUsed")
 }
 
 // ─── Raw / Getter Methods ───────────────────────────────────────────────────

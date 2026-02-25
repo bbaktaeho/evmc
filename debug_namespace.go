@@ -2,6 +2,7 @@ package evmc
 
 import (
 	"context"
+	"encoding/json"
 	"time"
 
 	"github.com/bbaktaeho/evmc/evmctypes"
@@ -114,6 +115,15 @@ func newTracerConfig(tracer Tracer, timeout time.Duration, reexec *uint64, cfg i
 		tc.TracerConfig = cfg
 	}
 	return tc
+}
+
+// newCustomTracerConfig builds a TraceConfig for a custom JavaScript tracer with optional timeout and reexec.
+func newCustomTracerConfig(jsTracer string, timeout time.Duration, reexec *uint64) *TraceConfig {
+	return &TraceConfig{
+		Tracer:  Tracer(jsTracer),
+		Timeout: timeout.String(),
+		Reexec:  reexec,
+	}
 }
 
 // ─── TraceBlockByNumber ──────────────────────────────────────────────────────
@@ -270,6 +280,36 @@ func (d *debugNamespace) traceBlockByNumber_prestateTracer(
 		return nil, err
 	}
 	return prestateTracers, nil
+}
+
+func (d *debugNamespace) TraceBlockByNumber_customTracer(
+	blockNumber uint64,
+	jsTracer string,
+	timeout time.Duration,
+	reexec *uint64,
+) (
+	[]*evmctypes.CustomTraceResult,
+	error,
+) {
+	return d.TraceBlockByNumberWithContext_customTracer(context.Background(), blockNumber, jsTracer, timeout, reexec)
+}
+
+func (d *debugNamespace) TraceBlockByNumberWithContext_customTracer(
+	ctx context.Context,
+	blockNumber uint64,
+	jsTracer string,
+	timeout time.Duration,
+	reexec *uint64,
+) (
+	[]*evmctypes.CustomTraceResult,
+	error,
+) {
+	var result = []*evmctypes.CustomTraceResult{}
+	traceCfg := newCustomTracerConfig(jsTracer, timeout, reexec)
+	if err := d.traceBlockByNumber(ctx, blockNumber, traceCfg, &result); err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 func (d *debugNamespace) traceBlockByNumber(
@@ -439,6 +479,36 @@ func (d *debugNamespace) traceBlockByHash_prestateTracer(
 	return prestateTracers, nil
 }
 
+func (d *debugNamespace) TraceBlockByHash_customTracer(
+	hash string,
+	jsTracer string,
+	timeout time.Duration,
+	reexec *uint64,
+) (
+	[]*evmctypes.CustomTraceResult,
+	error,
+) {
+	return d.TraceBlockByHashWithContext_customTracer(context.Background(), hash, jsTracer, timeout, reexec)
+}
+
+func (d *debugNamespace) TraceBlockByHashWithContext_customTracer(
+	ctx context.Context,
+	hash string,
+	jsTracer string,
+	timeout time.Duration,
+	reexec *uint64,
+) (
+	[]*evmctypes.CustomTraceResult,
+	error,
+) {
+	var result = []*evmctypes.CustomTraceResult{}
+	traceCfg := newCustomTracerConfig(jsTracer, timeout, reexec)
+	if err := d.traceBlockByHash(ctx, hash, traceCfg, &result); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
 func (d *debugNamespace) traceBlockByHash(
 	ctx context.Context,
 	hash string,
@@ -562,6 +632,36 @@ func (d *debugNamespace) TraceTransactionWithContext_prestateTracer(
 		return nil, err
 	}
 	return prestateResult, nil
+}
+
+func (d *debugNamespace) TraceTransaction_customTracer(
+	hash string,
+	jsTracer string,
+	timeout time.Duration,
+	reexec *uint64,
+) (
+	json.RawMessage,
+	error,
+) {
+	return d.TraceTransactionWithContext_customTracer(context.Background(), hash, jsTracer, timeout, reexec)
+}
+
+func (d *debugNamespace) TraceTransactionWithContext_customTracer(
+	ctx context.Context,
+	hash string,
+	jsTracer string,
+	timeout time.Duration,
+	reexec *uint64,
+) (
+	json.RawMessage,
+	error,
+) {
+	var result json.RawMessage
+	traceCfg := newCustomTracerConfig(jsTracer, timeout, reexec)
+	if err := d.traceTransaction(ctx, hash, traceCfg, &result); err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 func (d *debugNamespace) traceTransaction(
@@ -694,6 +794,38 @@ func (d *debugNamespace) TraceCallWithContext_prestateTracer(
 		return nil, err
 	}
 	return prestateResult, nil
+}
+
+func (d *debugNamespace) TraceCall_customTracer(
+	tx *Tx,
+	blockAndTag evmctypes.BlockAndTag,
+	jsTracer string,
+	timeout time.Duration,
+	reexec *uint64,
+) (
+	json.RawMessage,
+	error,
+) {
+	return d.TraceCallWithContext_customTracer(context.Background(), tx, blockAndTag, jsTracer, timeout, reexec)
+}
+
+func (d *debugNamespace) TraceCallWithContext_customTracer(
+	ctx context.Context,
+	tx *Tx,
+	blockAndTag evmctypes.BlockAndTag,
+	jsTracer string,
+	timeout time.Duration,
+	reexec *uint64,
+) (
+	json.RawMessage,
+	error,
+) {
+	var result json.RawMessage
+	traceCfg := newCustomTracerConfig(jsTracer, timeout, reexec)
+	if err := d.traceCall(ctx, tx, blockAndTag, traceCfg, &result); err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 func (d *debugNamespace) traceCall(

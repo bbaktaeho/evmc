@@ -237,6 +237,78 @@ func Test_debugNamespace_mock_TraceCall_prestateTracer(t *testing.T) {
 	require.NotNil(t, result)
 }
 
+// ─── Custom Tracer ───────────────────────────────────────────────────────────
+
+// customTracerResultJSON은 custom JS tracer 결과 mock 데이터.
+// txHash는 결과 객체를 구분하는 트랜잭션 해시다.
+func customTracerResultJSON(txHash string) map[string]interface{} {
+	return map[string]interface{}{
+		"txHash": txHash,
+		"result": map[string]interface{}{
+			"gasUsed": 21000,
+		},
+	}
+}
+
+func Test_debugNamespace_mock_TraceTransaction_customTracer(t *testing.T) {
+	client := testWithMock(t, "debug_traceTransaction", func(params json.RawMessage) interface{} {
+		return map[string]interface{}{
+			"gasUsed": 21000,
+		}
+	})
+	result, err := client.Debug().TraceTransaction_customTracer("0xtxhash", "{result: function() { return {gasUsed: 0}; }}", 0, nil)
+	require.NoError(t, err)
+	require.NotNil(t, result)
+
+	var parsed map[string]interface{}
+	require.NoError(t, json.Unmarshal(result, &parsed))
+	assert.Equal(t, float64(21000), parsed["gasUsed"])
+}
+
+func Test_debugNamespace_mock_TraceBlockByNumber_customTracer(t *testing.T) {
+	client := testWithMock(t, "debug_traceBlockByNumber", func(params json.RawMessage) interface{} {
+		return []map[string]interface{}{
+			customTracerResultJSON("0xtx1"),
+			customTracerResultJSON("0xtx2"),
+		}
+	})
+	results, err := client.Debug().TraceBlockByNumber_customTracer(100, "{result: function() { return {gasUsed: 0}; }}", 0, nil)
+	require.NoError(t, err)
+	require.Len(t, results, 2)
+	assert.Equal(t, "0xtx1", results[0].TxHash)
+	assert.Equal(t, "0xtx2", results[1].TxHash)
+	assert.NotEmpty(t, results[0].Result)
+}
+
+func Test_debugNamespace_mock_TraceBlockByHash_customTracer(t *testing.T) {
+	client := testWithMock(t, "debug_traceBlockByHash", func(params json.RawMessage) interface{} {
+		return []map[string]interface{}{
+			customTracerResultJSON("0xtx1"),
+		}
+	})
+	results, err := client.Debug().TraceBlockByHash_customTracer("0xblockhash", "{result: function() { return {gasUsed: 0}; }}", 0, nil)
+	require.NoError(t, err)
+	require.Len(t, results, 1)
+	assert.Equal(t, "0xtx1", results[0].TxHash)
+	assert.NotEmpty(t, results[0].Result)
+}
+
+func Test_debugNamespace_mock_TraceCall_customTracer(t *testing.T) {
+	client := testWithMock(t, "debug_traceCall", func(params json.RawMessage) interface{} {
+		return map[string]interface{}{
+			"gasUsed": 21000,
+		}
+	})
+	tx := &Tx{To: "0x000000000000000000000000000000000000dead", Data: "0x"}
+	result, err := client.Debug().TraceCall_customTracer(tx, evmctypes.Latest, "{result: function() { return {gasUsed: 0}; }}", 0, nil)
+	require.NoError(t, err)
+	require.NotNil(t, result)
+
+	var parsed map[string]interface{}
+	require.NoError(t, json.Unmarshal(result, &parsed))
+	assert.Equal(t, float64(21000), parsed["gasUsed"])
+}
+
 // ─── Raw / Getter Methods ───────────────────────────────────────────────────
 
 func Test_debugNamespace_mock_GetRawHeader(t *testing.T) {

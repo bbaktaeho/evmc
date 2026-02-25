@@ -203,6 +203,11 @@ type PrestateTracer struct {
 	Result json.RawMessage `json:"result,omitempty"`
 }
 
+type CustomTraceResult struct {
+	defaultTraceResult
+	Result json.RawMessage `json:"result,omitempty"`
+}
+
 type PrestateResult struct {
 	json.RawMessage
 }

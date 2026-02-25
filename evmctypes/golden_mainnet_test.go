@@ -44,6 +44,38 @@ const (
 	refUSDTAddressLower = "0xdac17f958d2ee523a2206206994597c13d831ec7"
 	// Transfer 이벤트 topic
 	refTransferTopic = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
+
+	// callTracer와 동일한 구조를 반환하되 input/output 필드를 제거하는 커스텀 JS 트레이서
+	customJSTracer = `{
+  callstack: [{}],
+  enter: function(f) {
+    this.callstack.push({
+      type: f.getType(),
+      from: toHex(f.getFrom()),
+      to: toHex(f.getTo()),
+      gas: "0x" + f.getGas().toString(16),
+      value: "0x0"
+    });
+  },
+  exit: function(r) {
+    var c = this.callstack.pop();
+    c.gasUsed = "0x" + r.getGasUsed().toString(16);
+    var p = this.callstack[this.callstack.length - 1];
+    if (!p.calls) p.calls = [];
+    p.calls.push(c);
+  },
+  result: function(ctx) {
+    var r = this.callstack[0];
+    r.type = ctx.type;
+    r.from = toHex(ctx.from);
+    r.to = toHex(ctx.to);
+    r.gas = "0x" + ctx.gas.toString(16);
+    r.gasUsed = "0x" + ctx.gasUsed.toString(16);
+    r.value = "0x" + ctx.value.toString(16);
+    return r;
+  },
+  fault: function() {}
+}`
 )
 
 // loadGolden reads a golden file. Fails if file not found.
@@ -496,6 +528,69 @@ func TestGolden_TraceCall(t *testing.T) {
 	// USDT totalSupply 결과: uint256 hex 반환
 	require.NotNil(t, frame.Output)
 	assert.Len(t, *frame.Output, 66, "output should be 0x + 64 hex chars (uint256)")
+}
+
+// TestGolden_TraceTransaction_customTracer tests json.RawMessage unmarshaling
+// from debug_traceTransaction with a custom JS tracer that strips input/output.
+func TestGolden_TraceTransaction_customTracer(t *testing.T) {
+	if *update {
+		saveGolden(t, "debug_traceTransaction_customTracer.json",
+			rpcResult(t, "debug_traceTransaction", refEip1559TxHash, map[string]interface{}{"tracer": customJSTracer}))
+	}
+
+	raw := loadGolden(t, "debug_traceTransaction_customTracer.json")
+	assert.NotEmpty(t, raw)
+
+	var frame map[string]interface{}
+	require.NoError(t, json.Unmarshal(raw, &frame))
+
+	// callTracer 구조와 동일하지만 input/output 필드가 없어야 한다
+	assert.Equal(t, "CALL", frame["type"])
+	assert.Equal(t, refEip1559TxFrom, frame["from"])
+	assert.Equal(t, refEip1559TxTo, frame["to"])
+	assert.NotEmpty(t, frame["gas"])
+	assert.NotEmpty(t, frame["gasUsed"])
+	assert.NotContains(t, frame, "input", "custom tracer should not contain input")
+	assert.NotContains(t, frame, "output", "custom tracer should not contain output")
+	// 하위 calls 존재
+	calls, ok := frame["calls"].([]interface{})
+	require.True(t, ok, "calls should be an array")
+	assert.NotEmpty(t, calls)
+	// 하위 call에도 input/output 없어야 함
+	firstCall := calls[0].(map[string]interface{})
+	assert.NotContains(t, firstCall, "input")
+	assert.NotContains(t, firstCall, "output")
+}
+
+// TestGolden_TraceCall_customTracer tests json.RawMessage unmarshaling
+// from debug_traceCall with a custom JS tracer that strips input/output.
+func TestGolden_TraceCall_customTracer(t *testing.T) {
+	if *update {
+		saveGolden(t, "debug_traceCall_customTracer.json",
+			rpcResult(t, "debug_traceCall",
+				map[string]interface{}{
+					"from": "0x0000000000000000000000000000000000000000",
+					"to":   refUSDTAddress,
+					"data": "0x18160ddd",
+				},
+				refBlockHex,
+				map[string]interface{}{"tracer": customJSTracer},
+			))
+	}
+
+	raw := loadGolden(t, "debug_traceCall_customTracer.json")
+	assert.NotEmpty(t, raw)
+
+	var frame map[string]interface{}
+	require.NoError(t, json.Unmarshal(raw, &frame))
+
+	assert.Equal(t, "CALL", frame["type"])
+	assert.Equal(t, "0x0000000000000000000000000000000000000000", frame["from"])
+	assert.Equal(t, refUSDTAddressLower, frame["to"])
+	assert.NotEmpty(t, frame["gas"])
+	assert.NotEmpty(t, frame["gasUsed"])
+	assert.NotContains(t, frame, "input", "custom tracer should not contain input")
+	assert.NotContains(t, frame, "output", "custom tracer should not contain output")
 }
 
 // TestGolden_GetRawHeader tests raw hex string from debug_getRawHeader.
