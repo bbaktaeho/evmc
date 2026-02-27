@@ -256,26 +256,6 @@ func (b *BlockIncTx) UnmarshalJSON(input []byte) error {
 	return nil
 }
 
-func (b *SimulateBlockResult) UnmarshalJSON(input []byte) error {
-	type simulateBlockResult struct {
-		_block
-		Calls        []*SimulateCallResult `json:"calls"`
-		Transactions interface{}           `json:"transactions"`
-		Withdrawals  []*Withdrawal         `json:"withdrawals,omitempty"`
-	}
-	var dec simulateBlockResult
-	if err := json.Unmarshal(input, &dec); err != nil {
-		return err
-	}
-	if err := dec.unmarshal(&b.block); err != nil {
-		return err
-	}
-	b.Calls = dec.Calls
-	b.Transactions = dec.Transactions
-	b.Withdrawals = dec.Withdrawals
-	return nil
-}
-
 func (w *Withdrawal) UnmarshalJSON(input []byte) error {
 	type withdrawal struct {
 		Index          *string `json:"index"`

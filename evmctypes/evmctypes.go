@@ -203,6 +203,11 @@ type PrestateTracer struct {
 	Result json.RawMessage `json:"result,omitempty"`
 }
 
+type CustomTraceResult struct {
+	defaultTraceResult
+	Result json.RawMessage `json:"result,omitempty"`
+}
+
 type PrestateResult struct {
 	json.RawMessage
 }
@@ -443,24 +448,32 @@ type SimulatePayload struct {
 	ReturnFullTransactions bool             `json:"returnFullTransactions,omitempty"`
 }
 
+// CallError holds error information from a simulated call.
+type CallError struct {
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+	Data    string `json:"data,omitempty"`
+}
+
 // SimulateCallResult holds the result of a single simulated call.
 type SimulateCallResult struct {
-	ReturnData string `json:"returnData"`
-	Logs       []*Log `json:"logs"`
-	GasUsed    string `json:"gasUsed"`
-	Status     string `json:"status"`
-	Error      *struct {
-		Code    int    `json:"code"`
-		Message string `json:"message"`
-	} `json:"error,omitempty"`
+	ReturnValue string     `json:"returnData"`
+	Logs        []*Log     `json:"logs"`
+	GasUsed     uint64     `json:"gasUsed"`
+	Status      uint64     `json:"status"`
+	Error       *CallError `json:"error,omitempty"`
 }
 
 // SimulateBlockResult holds the result of a single simulated block.
 type SimulateBlockResult struct {
 	block
-	Calls        []*SimulateCallResult `json:"calls"`
-	Transactions interface{}           `json:"transactions"`
-	Withdrawals  []*Withdrawal         `json:"withdrawals,omitempty"`
+	// FeeRecipient is the block producer address (maps to the "miner" JSON field).
+	FeeRecipient string `json:"miner,omitempty"`
+	// BaseFeePerGas shadows block.BaseFeePerGas to expose as a plain string.
+	BaseFeePerGas string `json:"baseFeePerGas,omitempty"`
+	Calls         []*SimulateCallResult `json:"calls"`
+	Transactions  interface{}           `json:"transactions"`
+	Withdrawals   []*Withdrawal         `json:"withdrawals,omitempty"`
 }
 
 type StorageProof struct {

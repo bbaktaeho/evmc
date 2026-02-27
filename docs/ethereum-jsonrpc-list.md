@@ -56,4 +56,5 @@ Legend: [x] implemented, [ ] not implemented
 - [x] debug_getRawTransaction
 - [x] debug_traceBlockByHash
 - [x] debug_traceBlockByNumber
+- [x] debug_traceCall
 - [x] debug_traceTransaction
