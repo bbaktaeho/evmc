@@ -11,6 +11,7 @@ import (
 	"github.com/ethereum/go-ethereum/common/lru"
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/gorilla/websocket"
+	"golang.org/x/sync/errgroup"
 )
 
 // TODO: websocket RPC
@@ -40,6 +41,9 @@ type transactionSender interface {
 	sendRawTransaction(ctx context.Context, rawTx string) (string, error)
 }
 
+// Evmc is the main client for interacting with EVM-compatible blockchain nodes.
+// It holds an underlying rpc.Client and exposes namespaces via getter methods
+// such as [Evmc.Eth], [Evmc.Debug], and [Evmc.Kaia].
 type Evmc struct {
 	c           *rpc.Client
 	isWebsocket bool
@@ -73,10 +77,13 @@ func httpClient(o *options) *http.Client {
 	return &http.Client{Transport: base, Timeout: o.reqTimeout}
 }
 
+// New creates a new Evmc client connected to the given HTTP/HTTPS RPC endpoint.
 func New(httpURL string, opts ...Options) (*Evmc, error) {
 	return NewWithContext(context.Background(), httpURL, opts...)
 }
 
+// NewWithContext creates a new Evmc client connected to the given HTTP/HTTPS
+// RPC endpoint using the provided context for the dial operation.
 func NewWithContext(ctx context.Context, httpURL string, opts ...Options) (*Evmc, error) {
 	u, err := url.Parse(httpURL)
 	if err != nil {
@@ -88,6 +95,8 @@ func NewWithContext(ctx context.Context, httpURL string, opts ...Options) (*Evmc
 	return newClient(ctx, httpURL, false, opts...)
 }
 
+// NewWebsocket creates a new Evmc client connected to the given WS/WSS
+// RPC endpoint for real-time subscriptions.
 func NewWebsocket(ctx context.Context, wsURL string, opts ...Options) (*Evmc, error) {
 	u, err := url.Parse(wsURL)
 	if err != nil {
@@ -138,18 +147,23 @@ func newClient(ctx context.Context, url string, isWs bool, opts ...Options) (*Ev
 	return evmc, nil
 }
 
+// Close shuts down the underlying RPC client connection.
 func (e *Evmc) Close() {
 	e.c.Close()
 }
 
+// IsWebsocket reports whether this client is connected via WebSocket.
 func (e *Evmc) IsWebsocket() bool {
 	return e.isWebsocket
 }
 
+// ChainID returns the chain ID of the connected network.
 func (e *Evmc) ChainID() (uint64, error) {
 	return e.eth.ChainID()
 }
 
+// NodeClient returns the name and version of the connected node client
+// by parsing the web3_clientVersion response.
 func (e *Evmc) NodeClient() (name, version string, err error) {
 	cv, err := e.web3.ClientVersion()
 	if err != nil {
@@ -164,64 +178,48 @@ func (e *Evmc) NodeClient() (name, version string, err error) {
 	return
 }
 
+// Web3 returns the web3 namespace for utility RPC methods.
 func (e *Evmc) Web3() *web3Namespace {
 	return e.web3
 }
 
+// Eth returns the eth namespace for standard Ethereum RPC methods
+// including blocks, transactions, receipts, and logs.
 func (e *Evmc) Eth() *ethNamespace {
 	return e.eth
 }
 
+// Kaia returns the kaia namespace for Kaia blockchain-specific RPC methods.
 func (e *Evmc) Kaia() *kaiaNamespace {
 	return e.kaia
 }
 
+// Debug returns the debug namespace for trace and debugging RPC methods.
 func (e *Evmc) Debug() *debugNamespace {
 	return e.debug
 }
 
+// Contract returns the contract namespace for raw smart contract calls.
 func (e *Evmc) Contract() *contract {
 	return e.contract
 }
 
-// BatchCallWithContext is a batch call with context and workers.
-// If workers is less than 1, it will be set to batchCallWorkers.
+// BatchCallWithContext splits elements into chunks of maxBatchItems and
+// sends them in parallel using up to workers goroutines.
+// If workers is less than 1, it defaults to batchCallWorkers.
 func (e *Evmc) BatchCallWithContext(ctx context.Context, elements []rpc.BatchElem, workers int) error {
 	if workers < 1 {
 		workers = e.batchCallWorkers
 	}
-	var (
-		elementsCh = make(chan []rpc.BatchElem, len(elements)/e.maxBatchItems+1)
-		finishCh   = make(chan struct{}, workers)
-		errs       = make([]error, workers)
-	)
-	for i := 0; i < workers; i++ {
-		go func(workerID int) {
-			defer func() {
-				finishCh <- struct{}{}
-			}()
-			for es := range elementsCh {
-				if err := e.batchCall(ctx, es); err != nil {
-					errs[workerID] = err
-					return
-				}
-			}
-		}(i)
-	}
+	g, ctx := errgroup.WithContext(ctx)
+	g.SetLimit(workers)
 	for i := 0; i < len(elements); i += e.maxBatchItems {
-		j := min(i+e.maxBatchItems, len(elements))
-		elementsCh <- elements[i:j]
+		chunk := elements[i:min(i+e.maxBatchItems, len(elements))]
+		g.Go(func() error {
+			return e.batchCall(ctx, chunk)
+		})
 	}
-	close(elementsCh)
-	for i := 0; i < workers; i++ {
-		<-finishCh
-	}
-	for _, err := range errs {
-		if err != nil {
-			return err
-		}
-	}
-	return nil
+	return g.Wait()
 }
 
 // BatchCall is a batch call with workers.
@@ -230,14 +228,17 @@ func (e *Evmc) BatchCall(elements []rpc.BatchElem, workers int) error {
 	return e.BatchCallWithContext(context.Background(), elements, workers)
 }
 
+// ERC20 returns the ERC-20 token contract namespace for standard token operations.
 func (e *Evmc) ERC20() *erc20Contract {
 	return e.erc20
 }
 
+// ERC721 returns the ERC-721 NFT contract namespace (not fully implemented).
 func (e *Evmc) ERC721() *erc721Contract {
 	return e.erc721
 }
 
+// ERC1155 returns the ERC-1155 multi-token contract namespace (not fully implemented).
 func (e *Evmc) ERC1155() *erc1155Contract {
 	return e.erc1155
 }
