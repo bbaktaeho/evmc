@@ -1,6 +1,6 @@
 module github.com/bbaktaeho/evmc
 
-go 1.24.0
+go 1.26.0
 
 require (
 	github.com/ethereum/go-ethereum v1.15.2
