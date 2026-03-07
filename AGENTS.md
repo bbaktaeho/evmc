@@ -14,8 +14,6 @@ Implement methods strictly following these specs:
 | eth, debug | https://github.com/ethereum/execution-apis/tree/main/src |
 | kaia | https://github.com/kaiachain/kaia-sdk/tree/dev/web3rpc/rpc-specs |
 
-Implementation status: `docs/ethereum-jsonrpc-list.md`
-
 ## Architecture
 
 `Evmc` struct (`evmc.go`) is the single entry point. Namespaces via getters:
