@@ -31,7 +31,7 @@ func debugTraceBlockByNumberCallTracer(client *evmc.Evmc) {
 	// test block
 	blockNumber := uint64(3000000)
 
-	result, err := client.Debug().TraceBlockByNumber_callTracer(blockNumber, 10*time.Second, nil, nil)
+	result, err := client.Debug().TraceBlockByNumberCallTracer(blockNumber, 10*time.Second, nil, nil)
 	if err != nil {
 		fmt.Printf("Error tracing block: %v\n\n", err)
 		return
@@ -48,7 +48,7 @@ func debugTraceBlockByNumberFlatCallTracer(client *evmc.Evmc) {
 	// test block
 	blockNumber := uint64(3000000)
 
-	result, err := client.Debug().TraceBlockByNumber_flatCallTracer(blockNumber, 10*time.Second, nil, nil)
+	result, err := client.Debug().TraceBlockByNumberFlatCallTracer(blockNumber, 10*time.Second, nil, nil)
 	if err != nil {
 		fmt.Printf("Error tracing block: %v\n\n", err)
 		return
@@ -65,7 +65,7 @@ func debugTraceTransactionCallTracer(client *evmc.Evmc) {
 	// test transaction
 	txHash := "0xb95ab9484280074f7b8c6a3cf5ffe2bf0c39168433adcdedc1aacd10d994d95a"
 
-	result, err := client.Debug().TraceTransaction_callTracer(txHash, 10*time.Second, nil, nil)
+	result, err := client.Debug().TraceTransactionCallTracer(txHash, 10*time.Second, nil, nil)
 	if err != nil {
 		fmt.Printf("Error tracing transaction: %v\n\n", err)
 		return
@@ -77,11 +77,12 @@ func debugTraceTransactionCallTracer(client *evmc.Evmc) {
 	}
 	fmt.Println(string(b))
 }
+
 func debugTraceTransactionFlatCallTracer(client *evmc.Evmc) {
 	// test transaction
 	txHash := "0xb95ab9484280074f7b8c6a3cf5ffe2bf0c39168433adcdedc1aacd10d994d95a"
 
-	result, err := client.Debug().TraceTransaction_flatCallTracer(txHash, 10*time.Second, nil, nil)
+	result, err := client.Debug().TraceTransactionFlatCallTracer(txHash, 10*time.Second, nil, nil)
 	if err != nil {
 		fmt.Printf("Error tracing transaction: %v\n\n", err)
 		return
@@ -98,7 +99,7 @@ func debugTraceBlockByNumberPrestateTracer_default(client *evmc.Evmc) {
 	// test block
 	blockNumber := uint64(3000000)
 
-	result, err := client.Debug().TraceBlockByNumber_prestateTracer(blockNumber, 10*time.Second, nil, nil)
+	result, err := client.Debug().TraceBlockByNumberPrestateTracer(blockNumber, 10*time.Second, nil, nil)
 	if err != nil {
 		fmt.Printf("Error tracing block: %v\n\n", err)
 		return
@@ -125,7 +126,7 @@ func debugTraceBlockByNumberPrestateTracer_diff(client *evmc.Evmc) {
 	// test block
 	blockNumber := uint64(3000000)
 
-	result, err := client.Debug().TraceBlockByNumber_prestateTracer(blockNumber, 10*time.Second, nil, &evmc.PrestateTracerConfig{
+	result, err := client.Debug().TraceBlockByNumberPrestateTracer(blockNumber, 10*time.Second, nil, &evmc.PrestateTracerConfig{
 		DiffMode:       true,
 		DisableCode:    true,
 		DisableStorage: true,
@@ -162,7 +163,7 @@ func debugTraceTransactionPrestateTracer_default(client *evmc.Evmc) {
 	// test transaction
 	txHash := "0xb95ab9484280074f7b8c6a3cf5ffe2bf0c39168433adcdedc1aacd10d994d95a"
 
-	result, err := client.Debug().TraceTransaction_prestateTracer(txHash, 10*time.Second, nil, nil)
+	result, err := client.Debug().TraceTransactionPrestateTracer(txHash, 10*time.Second, nil, nil)
 	if err != nil {
 		fmt.Printf("Error tracing transaction: %v\n\n", err)
 		return
@@ -186,7 +187,7 @@ func debugTraceTransactionPrestateTracer_diff(client *evmc.Evmc) {
 	// test transaction
 	txHash := "0xb95ab9484280074f7b8c6a3cf5ffe2bf0c39168433adcdedc1aacd10d994d95a"
 
-	result, err := client.Debug().TraceTransaction_prestateTracer(txHash, 10*time.Second, nil, &evmc.PrestateTracerConfig{
+	result, err := client.Debug().TraceTransactionPrestateTracer(txHash, 10*time.Second, nil, &evmc.PrestateTracerConfig{
 		DiffMode:       true,
 		DisableCode:    true,
 		DisableStorage: true,

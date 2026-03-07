@@ -77,7 +77,7 @@ func (e *erc20Contract) name(
 ) (string, error) {
 	var (
 		result = new(string)
-		params = []interface{}{
+		params = []any{
 			&evmctypes.QueryParams{To: tokenAddress, Data: erc20NameSig},
 			evmctypes.ParseBlockAndTag(blockAndTag),
 		}
@@ -111,7 +111,7 @@ func (e *erc20Contract) symbol(
 ) (string, error) {
 	var (
 		result = new(string)
-		params = []interface{}{
+		params = []any{
 			evmctypes.QueryParams{To: tokenAddress, Data: erc20SymbolSig},
 			evmctypes.ParseBlockAndTag(blockAndTag),
 		}
@@ -145,7 +145,7 @@ func (e *erc20Contract) totalSupply(
 ) (decimal.Decimal, error) {
 	var (
 		result = new(string)
-		params = []interface{}{
+		params = []any{
 			evmctypes.QueryParams{To: tokenAddress, Data: erc20TotalSupplySig},
 			evmctypes.ParseBlockAndTag(blockAndTag),
 		}
@@ -175,7 +175,7 @@ func (e *erc20Contract) decimals(
 ) (decimal.Decimal, error) {
 	var (
 		result = new(string)
-		params = []interface{}{
+		params = []any{
 			evmctypes.QueryParams{To: tokenAddress, Data: erc20DecimalsSig},
 			evmctypes.ParseBlockAndTag(blockAndTag),
 		}
@@ -259,7 +259,7 @@ func (e *erc20Contract) balanceOf(
 ) (decimal.Decimal, error) {
 	var (
 		result = new(string)
-		params = []interface{}{
+		params = []any{
 			evmctypes.QueryParams{To: tokenAddress, Data: GenerateERC20BalanceOf(owner)},
 			evmctypes.ParseBlockAndTag(blockAndTag),
 		}
@@ -298,7 +298,7 @@ func (e *erc20Contract) allowance(
 ) (decimal.Decimal, error) {
 	var (
 		result = new(string)
-		params = []interface{}{
+		params = []any{
 			evmctypes.QueryParams{To: tokenAddress, Data: GenerateERC20Allowance(owner, spender)},
 			evmctypes.ParseBlockAndTag(blockAndTag),
 		}

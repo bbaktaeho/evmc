@@ -12,7 +12,7 @@ import (
 
 func Test_contract_mock_Query(t *testing.T) {
 	mock := newMockRPCServer(t)
-	mock.on("eth_call", func(params json.RawMessage) interface{} {
+	mock.on("eth_call", func(params json.RawMessage) any {
 		return "0x0000000000000000000000000000000000000000000000000de0b6b3a7640000"
 	})
 
@@ -37,7 +37,7 @@ func Test_contract_mock_BatchQueries(t *testing.T) {
 		"0x0000000000000000000000000000000000000000000000000000000000000001",
 		"0x0000000000000000000000000000000000000000000000000000000000000000",
 	}
-	mock.on("eth_call", func(params json.RawMessage) interface{} {
+	mock.on("eth_call", func(params json.RawMessage) any {
 		result := results[callIndex%len(results)]
 		callIndex++
 		return result
@@ -70,7 +70,7 @@ func Test_contract_mock_BatchQueries_emptyList(t *testing.T) {
 
 func Test_contract_mock_Query_withBlockNumber(t *testing.T) {
 	mock := newMockRPCServer(t)
-	mock.on("eth_call", func(params json.RawMessage) interface{} {
+	mock.on("eth_call", func(params json.RawMessage) any {
 		var args []json.RawMessage
 		json.Unmarshal(params, &args)
 		// 두 번째 파라미터가 블록 태그/번호여야 함

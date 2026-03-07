@@ -87,9 +87,9 @@ func loadGolden(t *testing.T, name string) []byte {
 }
 
 // rpcResult makes a raw JSON-RPC call and returns the result bytes.
-func rpcResult(t *testing.T, method string, params ...interface{}) json.RawMessage {
+func rpcResult(t *testing.T, method string, params ...any) json.RawMessage {
 	t.Helper()
-	body, err := json.Marshal(map[string]interface{}{
+	body, err := json.Marshal(map[string]any{
 		"jsonrpc": "2.0",
 		"id":      1,
 		"method":  method,
@@ -332,7 +332,7 @@ func TestGolden_BlockReceipts(t *testing.T) {
 func TestGolden_Log(t *testing.T) {
 	if *update {
 		saveGolden(t, "eth_getLogs.json",
-			rpcResult(t, "eth_getLogs", map[string]interface{}{
+			rpcResult(t, "eth_getLogs", map[string]any{
 				"fromBlock": refBlockHex,
 				"toBlock":   refBlockHex,
 				"address":   refUSDTAddress,
@@ -392,11 +392,11 @@ func TestGolden_FeeHistory(t *testing.T) {
 func TestGolden_TraceTransaction_callTracer(t *testing.T) {
 	if *update {
 		saveGolden(t, "debug_traceTransaction_callTracer.json",
-			rpcResult(t, "debug_traceTransaction", refEip1559TxHash, map[string]interface{}{"tracer": "callTracer"}))
+			rpcResult(t, "debug_traceTransaction", refEip1559TxHash, map[string]any{"tracer": "callTracer"}))
 		saveGolden(t, "debug_traceTransaction_callTracer_withLog.json",
-			rpcResult(t, "debug_traceTransaction", refEip1559TxHash, map[string]interface{}{
+			rpcResult(t, "debug_traceTransaction", refEip1559TxHash, map[string]any{
 				"tracer":       "callTracer",
-				"tracerConfig": map[string]interface{}{"withLog": true},
+				"tracerConfig": map[string]any{"withLog": true},
 			}))
 	}
 
@@ -443,11 +443,11 @@ func countLogs(count *int, frame *CallFrame) {
 func TestGolden_TraceTransaction_prestateTracer(t *testing.T) {
 	if *update {
 		saveGolden(t, "debug_traceTransaction_prestateTracer.json",
-			rpcResult(t, "debug_traceTransaction", refEip1559TxHash, map[string]interface{}{"tracer": "prestateTracer"}))
+			rpcResult(t, "debug_traceTransaction", refEip1559TxHash, map[string]any{"tracer": "prestateTracer"}))
 		saveGolden(t, "debug_traceTransaction_prestateTracer_diff.json",
-			rpcResult(t, "debug_traceTransaction", refEip1559TxHash, map[string]interface{}{
+			rpcResult(t, "debug_traceTransaction", refEip1559TxHash, map[string]any{
 				"tracer":       "prestateTracer",
-				"tracerConfig": map[string]interface{}{"diffMode": true},
+				"tracerConfig": map[string]any{"diffMode": true},
 			}))
 	}
 
@@ -480,7 +480,7 @@ func TestGolden_TraceTransaction_prestateTracer(t *testing.T) {
 func TestGolden_TraceTransaction_flatCallTracer(t *testing.T) {
 	if *update {
 		saveGolden(t, "debug_traceTransaction_flatCallTracer.json",
-			rpcResult(t, "debug_traceTransaction", refEip1559TxHash, map[string]interface{}{"tracer": "flatCallTracer"}))
+			rpcResult(t, "debug_traceTransaction", refEip1559TxHash, map[string]any{"tracer": "flatCallTracer"}))
 	}
 
 	var frames []*FlatCallFrame
@@ -506,13 +506,13 @@ func TestGolden_TraceCall(t *testing.T) {
 	if *update {
 		saveGolden(t, "debug_traceCall_callTracer.json",
 			rpcResult(t, "debug_traceCall",
-				map[string]interface{}{
+				map[string]any{
 					"from": "0x0000000000000000000000000000000000000000",
 					"to":   refUSDTAddress,
 					"data": "0x18160ddd",
 				},
 				refBlockHex,
-				map[string]interface{}{"tracer": "callTracer"},
+				map[string]any{"tracer": "callTracer"},
 			))
 	}
 
@@ -535,13 +535,13 @@ func TestGolden_TraceCall(t *testing.T) {
 func TestGolden_TraceTransaction_customTracer(t *testing.T) {
 	if *update {
 		saveGolden(t, "debug_traceTransaction_customTracer.json",
-			rpcResult(t, "debug_traceTransaction", refEip1559TxHash, map[string]interface{}{"tracer": customJSTracer}))
+			rpcResult(t, "debug_traceTransaction", refEip1559TxHash, map[string]any{"tracer": customJSTracer}))
 	}
 
 	raw := loadGolden(t, "debug_traceTransaction_customTracer.json")
 	assert.NotEmpty(t, raw)
 
-	var frame map[string]interface{}
+	var frame map[string]any
 	require.NoError(t, json.Unmarshal(raw, &frame))
 
 	// callTracer 구조와 동일하지만 input/output 필드가 없어야 한다
@@ -553,11 +553,11 @@ func TestGolden_TraceTransaction_customTracer(t *testing.T) {
 	assert.NotContains(t, frame, "input", "custom tracer should not contain input")
 	assert.NotContains(t, frame, "output", "custom tracer should not contain output")
 	// 하위 calls 존재
-	calls, ok := frame["calls"].([]interface{})
+	calls, ok := frame["calls"].([]any)
 	require.True(t, ok, "calls should be an array")
 	assert.NotEmpty(t, calls)
 	// 하위 call에도 input/output 없어야 함
-	firstCall := calls[0].(map[string]interface{})
+	firstCall := calls[0].(map[string]any)
 	assert.NotContains(t, firstCall, "input")
 	assert.NotContains(t, firstCall, "output")
 }
@@ -568,20 +568,20 @@ func TestGolden_TraceCall_customTracer(t *testing.T) {
 	if *update {
 		saveGolden(t, "debug_traceCall_customTracer.json",
 			rpcResult(t, "debug_traceCall",
-				map[string]interface{}{
+				map[string]any{
 					"from": "0x0000000000000000000000000000000000000000",
 					"to":   refUSDTAddress,
 					"data": "0x18160ddd",
 				},
 				refBlockHex,
-				map[string]interface{}{"tracer": customJSTracer},
+				map[string]any{"tracer": customJSTracer},
 			))
 	}
 
 	raw := loadGolden(t, "debug_traceCall_customTracer.json")
 	assert.NotEmpty(t, raw)
 
-	var frame map[string]interface{}
+	var frame map[string]any
 	require.NoError(t, json.Unmarshal(raw, &frame))
 
 	assert.Equal(t, "CALL", frame["type"])

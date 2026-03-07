@@ -180,12 +180,12 @@ type SubLog struct {
 
 type defaultTraceResult struct {
 	TxHash string      `json:"txHash"`
-	Error  interface{} `json:"error"` // geth is string, erigon is map[string]interface{}
+	Error  any `json:"error"` // geth is string, erigon is map[string]any
 }
 
 type TraceResult struct {
 	defaultTraceResult
-	Result interface{} `json:"result,omitempty"`
+	Result any `json:"result,omitempty"`
 }
 
 type CallTracer struct {
@@ -270,8 +270,8 @@ type DefaultFrame struct {
 	OP      string      `json:"op"`
 	PC      uint64      `json:"pc"`
 	Stack   []string    `json:"stack"`
-	Error   interface{} `json:"error"`
-	Storage interface{} `json:"storage"`
+	Error   any `json:"error"`
+	Storage any `json:"storage"`
 }
 
 // nolint:unused
@@ -472,7 +472,7 @@ type SimulateBlockResult struct {
 	// BaseFeePerGas shadows block.BaseFeePerGas to expose as a plain string.
 	BaseFeePerGas string `json:"baseFeePerGas,omitempty"`
 	Calls         []*SimulateCallResult `json:"calls"`
-	Transactions  interface{}           `json:"transactions"`
+	Transactions  any           `json:"transactions"`
 	Withdrawals   []*Withdrawal         `json:"withdrawals,omitempty"`
 }
 

@@ -9,7 +9,7 @@ import (
 )
 
 func TestSimulateBlockResult_UnmarshalJSON(t *testing.T) {
-	raw := map[string]interface{}{
+	raw := map[string]any{
 		"number":        "0x16e3600", // 24000000
 		"hash":          "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
 		"timestamp":     "0x65a8c3a0", // 1705558944
@@ -17,10 +17,10 @@ func TestSimulateBlockResult_UnmarshalJSON(t *testing.T) {
 		"gasUsed":       "0xf4240",    // 1000000
 		"miner":         "0x95222290DD7278Aa3Ddd389Cc1E1d165CC4BAfe5",
 		"baseFeePerGas": "0x3b9aca00", // 1000000000
-		"calls": []interface{}{
-			map[string]interface{}{
+		"calls": []any{
+			map[string]any{
 				"returnData": "0x0000000000000000000000000000000000000000000000000de0b6b3a7640000",
-				"logs":       []interface{}{},
+				"logs":       []any{},
 				"gasUsed":    "0x5208", // 21000
 				"status":     "0x1",    // success
 			},
@@ -62,10 +62,10 @@ func TestSimulateBlockResult_UnmarshalJSON(t *testing.T) {
 }
 
 func TestSimulateCallResult_UnmarshalJSON(t *testing.T) {
-	raw := map[string]interface{}{
+	raw := map[string]any{
 		"returnData": "0x0000000000000000000000000000000000000000000000000de0b6b3a7640000",
-		"logs": []interface{}{
-			map[string]interface{}{
+		"logs": []any{
+			map[string]any{
 				"address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"topics":  []string{"0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"},
 				"data":    "0x0000000000000000000000000000000000000000000000000000000000000064",
@@ -100,12 +100,12 @@ func TestSimulateCallResult_UnmarshalJSON(t *testing.T) {
 }
 
 func TestSimulateCallResult_UnmarshalJSON_WithError(t *testing.T) {
-	raw := map[string]interface{}{
+	raw := map[string]any{
 		"returnData": "0x",
-		"logs":       []interface{}{},
+		"logs":       []any{},
 		"gasUsed":    "0x5208", // 21000
 		"status":     "0x0",    // failure
-		"error": map[string]interface{}{
+		"error": map[string]any{
 			"code":    3, // execution reverted
 			"message": "execution reverted",
 			"data":    "0x08c379a00000000000000000000000000000000000000000000000000000000000000020",
@@ -139,7 +139,7 @@ func TestSimulateCallResult_UnmarshalJSON_WithError(t *testing.T) {
 }
 
 func TestCallError_UnmarshalJSON(t *testing.T) {
-	raw := map[string]interface{}{
+	raw := map[string]any{
 		"code":    3, // 3
 		"message": "execution reverted: insufficient balance",
 		"data":    "0x08c379a00000000000000000000000000000000000000000000000000000000000000020",
@@ -164,7 +164,7 @@ func TestCallError_UnmarshalJSON(t *testing.T) {
 
 func TestCallError_UnmarshalJSON_MinimalFields(t *testing.T) {
 	// Test with only required fields (no data)
-	raw := map[string]interface{}{
+	raw := map[string]any{
 		"code":    1,
 		"message": "out of gas",
 	}
@@ -188,14 +188,14 @@ func TestCallError_UnmarshalJSON_MinimalFields(t *testing.T) {
 
 func TestSimulateBlockResult_UnmarshalJSON_MinimalFields(t *testing.T) {
 	// Test with minimal required fields
-	raw := map[string]interface{}{
+	raw := map[string]any{
 		"number":    "0x0",
 		"hash":      "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
 		"timestamp": "0x0",
 		"gasLimit":  "0x0",
 		"gasUsed":   "0x0",
 		"miner":     "0x0000000000000000000000000000000000000000",
-		"calls":     []interface{}{},
+		"calls":     []any{},
 	}
 
 	block := new(SimulateBlockResult)

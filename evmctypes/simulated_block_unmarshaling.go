@@ -18,7 +18,7 @@ func (s *SimulateBlockResult) UnmarshalJSON(input []byte) error {
 		FeeRecipient  *common.Address      `json:"miner"`
 		BaseFeePerGas *hexutil.Big         `json:"baseFeePerGas,omitempty"`
 		Calls         []*SimulateCallResult `json:"calls"`
-		Transactions  interface{}          `json:"transactions"`
+		Transactions  any                  `json:"transactions"`
 		Withdrawals   []*Withdrawal        `json:"withdrawals,omitempty"`
 	}
 	var dec wire

@@ -6,6 +6,7 @@ type web3Namespace struct {
 	c caller
 }
 
+// ClientVersion returns the current client version string via web3_clientVersion.
 func (w *web3Namespace) ClientVersion() (string, error) {
 	result := new(string)
 	if err := w.c.call(context.Background(), result, Web3ClientVersion); err != nil {

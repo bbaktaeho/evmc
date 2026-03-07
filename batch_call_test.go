@@ -17,7 +17,7 @@ func Test_BatchCallWithContext_chunking(t *testing.T) {
 
 	var callCount atomic.Int64
 	mock := newMockRPCServer(t)
-	mock.on("eth_blockNumber", func(_ json.RawMessage) interface{} {
+	mock.on("eth_blockNumber", func(_ json.RawMessage) any {
 		callCount.Add(1)
 		return "0x10"
 	})
@@ -48,7 +48,7 @@ func Test_BatchCallWithContext_singleChunk(t *testing.T) {
 	t.Parallel()
 
 	mock := newMockRPCServer(t)
-	mock.on("eth_chainId", func(_ json.RawMessage) interface{} {
+	mock.on("eth_chainId", func(_ json.RawMessage) any {
 		return "0x1"
 	})
 
@@ -103,7 +103,7 @@ func Test_BatchCallWithContext_defaultWorkers(t *testing.T) {
 	t.Parallel()
 
 	mock := newMockRPCServer(t)
-	mock.on("eth_blockNumber", func(_ json.RawMessage) interface{} {
+	mock.on("eth_blockNumber", func(_ json.RawMessage) any {
 		return "0xff"
 	})
 
@@ -132,7 +132,7 @@ func Test_BatchCallWithContext_contextCancellation(t *testing.T) {
 	t.Parallel()
 
 	mock := newMockRPCServer(t)
-	mock.on("eth_blockNumber", func(_ json.RawMessage) interface{} {
+	mock.on("eth_blockNumber", func(_ json.RawMessage) any {
 		return "0x1"
 	})
 
@@ -159,7 +159,7 @@ func Test_BatchCall_wrapper(t *testing.T) {
 	t.Parallel()
 
 	mock := newMockRPCServer(t)
-	mock.on("eth_gasPrice", func(_ json.RawMessage) interface{} {
+	mock.on("eth_gasPrice", func(_ json.RawMessage) any {
 		return "0x3b9aca00"
 	})
 
@@ -188,8 +188,8 @@ func Test_BatchCallWithContext_largePayload(t *testing.T) {
 	t.Parallel()
 
 	mock := newMockRPCServer(t)
-	mock.on("eth_getBlockByNumber", func(params json.RawMessage) interface{} {
-		var args []interface{}
+	mock.on("eth_getBlockByNumber", func(params json.RawMessage) any {
+		var args []any
 		_ = json.Unmarshal(params, &args)
 		return blockJSON(fmt.Sprintf("%v", args[0]), "0xhash", true)
 	})
@@ -203,7 +203,7 @@ func Test_BatchCallWithContext_largePayload(t *testing.T) {
 	for i := range elements {
 		elements[i] = rpc.BatchElem{
 			Method: "eth_getBlockByNumber",
-			Args:   []interface{}{fmt.Sprintf("0x%x", i+1), true},
+			Args:   []any{fmt.Sprintf("0x%x", i+1), true},
 			Result: new(json.RawMessage),
 		}
 	}

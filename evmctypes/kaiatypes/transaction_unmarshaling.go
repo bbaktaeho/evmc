@@ -30,7 +30,7 @@ func (t *Transaction) UnmarshalJSON(input []byte) error {
 		Type                 *string      `json:"type"`
 		TypeInt              *uint64      `json:"typeInt"`
 		Value                *string      `json:"value"`
-		InputJSON            interface{}  `json:"inputJSON,omitempty"`
+		InputJSON            any          `json:"inputJSON,omitempty"`
 		ChainID              *string      `json:"chainId,omitempty"`              // EIP-155
 		AccessList           []*Access    `json:"accessList,omitempty"`           // EIP-2930
 		MaxFeePerGas         *string      `json:"maxFeePerGas,omitempty"`         // EIP-1559

@@ -11,8 +11,8 @@ import (
 )
 
 // blockJSON은 테스트용 블록 JSON (헥스 인코딩 필드 포함).
-func blockJSON(number string, hash string, withTxHashes bool) map[string]interface{} {
-	b := map[string]interface{}{
+func blockJSON(number string, hash string, withTxHashes bool) map[string]any {
+	b := map[string]any{
 		"number":           number,
 		"hash":             hash,
 		"parentHash":       "0x0000000000000000000000000000000000000000000000000000000000000000",
@@ -37,7 +37,7 @@ func blockJSON(number string, hash string, withTxHashes bool) map[string]interfa
 	if withTxHashes {
 		b["transactions"] = []string{"0xtx1", "0xtx2"}
 	} else {
-		b["transactions"] = []map[string]interface{}{
+		b["transactions"] = []map[string]any{
 			{
 				"blockHash":        hash,
 				"blockNumber":      number,
@@ -60,8 +60,8 @@ func blockJSON(number string, hash string, withTxHashes bool) map[string]interfa
 	return b
 }
 
-func receiptJSON(txHash string, blockNumber string, blockHash string) map[string]interface{} {
-	return map[string]interface{}{
+func receiptJSON(txHash string, blockNumber string, blockHash string) map[string]any {
+	return map[string]any{
 		"blockHash":         blockHash,
 		"blockNumber":       blockNumber,
 		"transactionHash":   txHash,
@@ -70,7 +70,7 @@ func receiptJSON(txHash string, blockNumber string, blockHash string) map[string
 		"to":                "0xto",
 		"gasUsed":           "0x5208",
 		"cumulativeGasUsed": "0x5208",
-		"logs":              []interface{}{},
+		"logs":              []any{},
 		"type":              "0x2",
 		"effectiveGasPrice": "0x3b9aca00",
 		"status":            "0x1",
@@ -80,7 +80,7 @@ func receiptJSON(txHash string, blockNumber string, blockHash string) map[string
 
 // testWithMock은 단일 메서드 핸들러를 등록하고 Evmc 클라이언트를 반환하는 헬퍼.
 // 하나의 RPC 메서드만 모킹하는 간단한 테스트 케이스에 사용한다.
-func testWithMock(t *testing.T, method string, handler func(params json.RawMessage) interface{}) *Evmc {
+func testWithMock(t *testing.T, method string, handler func(params json.RawMessage) any) *Evmc {
 	t.Helper()
 	mock := newMockRPCServer(t)
 	mock.on(method, handler)
@@ -88,7 +88,7 @@ func testWithMock(t *testing.T, method string, handler func(params json.RawMessa
 }
 
 func Test_ethNamespace_mock_BlockNumber(t *testing.T) {
-	client := testWithMock(t, "eth_blockNumber", func(params json.RawMessage) interface{} {
+	client := testWithMock(t, "eth_blockNumber", func(params json.RawMessage) any {
 		return "0x64"
 	})
 	n, err := client.Eth().BlockNumber()
@@ -98,7 +98,7 @@ func Test_ethNamespace_mock_BlockNumber(t *testing.T) {
 }
 
 func Test_ethNamespace_mock_ChainID(t *testing.T) {
-	client := testWithMock(t, "eth_chainId", func(params json.RawMessage) interface{} {
+	client := testWithMock(t, "eth_chainId", func(params json.RawMessage) any {
 		return "0x1"
 	})
 	chainID, err := client.Eth().ChainID()
@@ -107,7 +107,7 @@ func Test_ethNamespace_mock_ChainID(t *testing.T) {
 }
 
 func Test_ethNamespace_mock_GetBlockByNumber(t *testing.T) {
-	client := testWithMock(t, "eth_getBlockByNumber", func(params json.RawMessage) interface{} {
+	client := testWithMock(t, "eth_getBlockByNumber", func(params json.RawMessage) any {
 		return blockJSON("0x64", "0xblockhash", true)
 	})
 	block, err := client.Eth().GetBlockByNumber(100)
@@ -120,8 +120,8 @@ func Test_ethNamespace_mock_GetBlockByNumber(t *testing.T) {
 
 func Test_ethNamespace_mock_GetBlockByNumber_tag(t *testing.T) {
 	mock := newMockRPCServer(t)
-	mock.on("eth_getBlockByNumber", func(params json.RawMessage) interface{} {
-		var args []interface{}
+	mock.on("eth_getBlockByNumber", func(params json.RawMessage) any {
+		var args []any
 		json.Unmarshal(params, &args)
 		tag := args[0].(string)
 		if tag == "latest" {
@@ -139,7 +139,7 @@ func Test_ethNamespace_mock_GetBlockByNumber_tag(t *testing.T) {
 }
 
 func Test_ethNamespace_mock_GetBlockIncTxByNumber(t *testing.T) {
-	client := testWithMock(t, "eth_getBlockByNumber", func(params json.RawMessage) interface{} {
+	client := testWithMock(t, "eth_getBlockByNumber", func(params json.RawMessage) any {
 		return blockJSON("0x1", "0xhash1", false)
 	})
 	blockIncTx, err := client.Eth().GetBlockIncTxByNumber(1)
@@ -152,7 +152,7 @@ func Test_ethNamespace_mock_GetBlockIncTxByNumber(t *testing.T) {
 }
 
 func Test_ethNamespace_mock_GetBlockByHash(t *testing.T) {
-	client := testWithMock(t, "eth_getBlockByHash", func(params json.RawMessage) interface{} {
+	client := testWithMock(t, "eth_getBlockByHash", func(params json.RawMessage) any {
 		return blockJSON("0xa", "0xtesthash", true)
 	})
 	block, err := client.Eth().GetBlockByHash("0xtesthash")
@@ -163,8 +163,8 @@ func Test_ethNamespace_mock_GetBlockByHash(t *testing.T) {
 }
 
 func Test_ethNamespace_mock_GetTransactionByHash(t *testing.T) {
-	client := testWithMock(t, "eth_getTransactionByHash", func(params json.RawMessage) interface{} {
-		return map[string]interface{}{
+	client := testWithMock(t, "eth_getTransactionByHash", func(params json.RawMessage) any {
+		return map[string]any{
 			"blockHash":        "0xblockhash",
 			"blockNumber":      "0x5",
 			"from":             "0xfrom",
@@ -193,7 +193,7 @@ func Test_ethNamespace_mock_GetTransactionByHash(t *testing.T) {
 }
 
 func Test_ethNamespace_mock_GetTransactionReceipt(t *testing.T) {
-	client := testWithMock(t, "eth_getTransactionReceipt", func(params json.RawMessage) interface{} {
+	client := testWithMock(t, "eth_getTransactionReceipt", func(params json.RawMessage) any {
 		return receiptJSON("0xtxhash", "0x1", "0xblockhash")
 	})
 	receipt, err := client.Eth().GetTransactionReceipt("0xtxhash")
@@ -204,7 +204,7 @@ func Test_ethNamespace_mock_GetTransactionReceipt(t *testing.T) {
 }
 
 func Test_ethNamespace_mock_GetBalance(t *testing.T) {
-	client := testWithMock(t, "eth_getBalance", func(params json.RawMessage) interface{} {
+	client := testWithMock(t, "eth_getBalance", func(params json.RawMessage) any {
 		// 0xde0b6b3a7640000 = 1000000000000000000 (1 ETH in wei)
 		return "0xde0b6b3a7640000"
 	})
@@ -214,7 +214,7 @@ func Test_ethNamespace_mock_GetBalance(t *testing.T) {
 }
 
 func Test_ethNamespace_mock_GetBalance_Zero(t *testing.T) {
-	client := testWithMock(t, "eth_getBalance", func(params json.RawMessage) interface{} {
+	client := testWithMock(t, "eth_getBalance", func(params json.RawMessage) any {
 		return "0x0"
 	})
 	balance, err := client.Eth().GetBalance("0xaddr", evmctypes.Latest)
@@ -223,7 +223,7 @@ func Test_ethNamespace_mock_GetBalance_Zero(t *testing.T) {
 }
 
 func Test_ethNamespace_mock_GasPrice(t *testing.T) {
-	client := testWithMock(t, "eth_gasPrice", func(params json.RawMessage) interface{} {
+	client := testWithMock(t, "eth_gasPrice", func(params json.RawMessage) any {
 		// 0x3b9aca00 = 1000000000 (1 Gwei)
 		return "0x3b9aca00"
 	})
@@ -233,7 +233,7 @@ func Test_ethNamespace_mock_GasPrice(t *testing.T) {
 }
 
 func Test_ethNamespace_mock_MaxPriorityFeePerGas(t *testing.T) {
-	client := testWithMock(t, "eth_maxPriorityFeePerGas", func(params json.RawMessage) interface{} {
+	client := testWithMock(t, "eth_maxPriorityFeePerGas", func(params json.RawMessage) any {
 		// 0x77359400 = 2000000000 (2 Gwei)
 		return "0x77359400"
 	})
@@ -243,7 +243,7 @@ func Test_ethNamespace_mock_MaxPriorityFeePerGas(t *testing.T) {
 }
 
 func Test_ethNamespace_mock_GetTransactionCount(t *testing.T) {
-	client := testWithMock(t, "eth_getTransactionCount", func(params json.RawMessage) interface{} {
+	client := testWithMock(t, "eth_getTransactionCount", func(params json.RawMessage) any {
 		// 0x2a = 42
 		return "0x2a"
 	})
@@ -253,7 +253,7 @@ func Test_ethNamespace_mock_GetTransactionCount(t *testing.T) {
 }
 
 func Test_ethNamespace_mock_GetCode(t *testing.T) {
-	client := testWithMock(t, "eth_getCode", func(params json.RawMessage) interface{} {
+	client := testWithMock(t, "eth_getCode", func(params json.RawMessage) any {
 		return "0x60806040"
 	})
 	code, err := client.Eth().GetCode("0xcontract", evmctypes.Latest)
@@ -262,7 +262,7 @@ func Test_ethNamespace_mock_GetCode(t *testing.T) {
 }
 
 func Test_ethNamespace_mock_GetStorageAt(t *testing.T) {
-	client := testWithMock(t, "eth_getStorageAt", func(params json.RawMessage) interface{} {
+	client := testWithMock(t, "eth_getStorageAt", func(params json.RawMessage) any {
 		return "0x0000000000000000000000000000000000000000000000000000000000000001"
 	})
 	storage, err := client.Eth().GetStorageAt("0xaddr", "0x0", evmctypes.Latest)
@@ -271,8 +271,8 @@ func Test_ethNamespace_mock_GetStorageAt(t *testing.T) {
 }
 
 func Test_ethNamespace_mock_GetLogs(t *testing.T) {
-	client := testWithMock(t, "eth_getLogs", func(params json.RawMessage) interface{} {
-		return []map[string]interface{}{
+	client := testWithMock(t, "eth_getLogs", func(params json.RawMessage) any {
+		return []map[string]any{
 			{
 				"address":          "0xcontract",
 				"topics":           []string{"0xtopic1"},
@@ -305,8 +305,8 @@ func Test_ethNamespace_mock_GetLogs(t *testing.T) {
 }
 
 func Test_ethNamespace_mock_GetBlockReceipts(t *testing.T) {
-	client := testWithMock(t, "eth_getBlockReceipts", func(params json.RawMessage) interface{} {
-		return []map[string]interface{}{
+	client := testWithMock(t, "eth_getBlockReceipts", func(params json.RawMessage) any {
+		return []map[string]any{
 			receiptJSON("0xtx1", "0x1", "0xblockhash"),
 			receiptJSON("0xtx2", "0x1", "0xblockhash"),
 		}
@@ -319,7 +319,7 @@ func Test_ethNamespace_mock_GetBlockReceipts(t *testing.T) {
 }
 
 func Test_ethNamespace_mock_BlockTransactionCountByNumber(t *testing.T) {
-	client := testWithMock(t, "eth_getBlockTransactionCountByNumber", func(params json.RawMessage) interface{} {
+	client := testWithMock(t, "eth_getBlockTransactionCountByNumber", func(params json.RawMessage) any {
 		// 0xa = 10
 		return "0xa"
 	})
@@ -329,7 +329,7 @@ func Test_ethNamespace_mock_BlockTransactionCountByNumber(t *testing.T) {
 }
 
 func Test_ethNamespace_mock_BlockTransactionCountByHash(t *testing.T) {
-	client := testWithMock(t, "eth_getBlockTransactionCountByHash", func(params json.RawMessage) interface{} {
+	client := testWithMock(t, "eth_getBlockTransactionCountByHash", func(params json.RawMessage) any {
 		return "0x5"
 	})
 	count, err := client.Eth().BlockTransactionCountByHash("0xhash")
@@ -338,8 +338,8 @@ func Test_ethNamespace_mock_BlockTransactionCountByHash(t *testing.T) {
 }
 
 func Test_ethNamespace_mock_FeeHistory(t *testing.T) {
-	client := testWithMock(t, "eth_feeHistory", func(params json.RawMessage) interface{} {
-		return map[string]interface{}{
+	client := testWithMock(t, "eth_feeHistory", func(params json.RawMessage) any {
+		return map[string]any{
 			// 0x64 = 100
 			"oldestBlock":   "0x64",
 			"baseFeePerGas": []string{"0x3b9aca00", "0x77359400"},
@@ -354,7 +354,7 @@ func Test_ethNamespace_mock_FeeHistory(t *testing.T) {
 }
 
 func Test_ethNamespace_mock_EstimateGas(t *testing.T) {
-	client := testWithMock(t, "eth_estimateGas", func(params json.RawMessage) interface{} {
+	client := testWithMock(t, "eth_estimateGas", func(params json.RawMessage) any {
 		// 0x5208 = 21000 (standard ETH transfer gas)
 		return "0x5208"
 	})
@@ -369,7 +369,7 @@ func Test_ethNamespace_mock_EstimateGas(t *testing.T) {
 }
 
 func Test_ethNamespace_mock_Call(t *testing.T) {
-	client := testWithMock(t, "eth_call", func(params json.RawMessage) interface{} {
+	client := testWithMock(t, "eth_call", func(params json.RawMessage) any {
 		return "0x0000000000000000000000000000000000000000000000000de0b6b3a7640000"
 	})
 	result, err := client.Eth().Call(&Tx{
@@ -384,9 +384,9 @@ func Test_ethNamespace_mock_Call(t *testing.T) {
 func Test_ethNamespace_mock_GetBlockRange(t *testing.T) {
 	mock := newMockRPCServer(t)
 	callCount := 0
-	mock.on("eth_getBlockByNumber", func(params json.RawMessage) interface{} {
+	mock.on("eth_getBlockByNumber", func(params json.RawMessage) any {
 		callCount++
-		var args []interface{}
+		var args []any
 		json.Unmarshal(params, &args)
 		hexNum := args[0].(string)
 		return blockJSON(hexNum, "0xhash"+hexNum, true)
@@ -409,7 +409,7 @@ func Test_ethNamespace_mock_GetBlockRange_InvalidRange(t *testing.T) {
 }
 
 func Test_ethNamespace_mock_Syncing_false(t *testing.T) {
-	client := testWithMock(t, "eth_syncing", func(params json.RawMessage) interface{} {
+	client := testWithMock(t, "eth_syncing", func(params json.RawMessage) any {
 		return false
 	})
 	syncing, _, err := client.Eth().Syncing()
@@ -418,8 +418,8 @@ func Test_ethNamespace_mock_Syncing_false(t *testing.T) {
 }
 
 func Test_ethNamespace_mock_GetLogsByBlockNumber(t *testing.T) {
-	client := testWithMock(t, "eth_getLogs", func(params json.RawMessage) interface{} {
-		return []map[string]interface{}{
+	client := testWithMock(t, "eth_getLogs", func(params json.RawMessage) any {
+		return []map[string]any{
 			{
 				"address": "0xcontract",
 				"topics":  []string{},
@@ -441,8 +441,8 @@ func Test_ethNamespace_mock_GetLogsByBlockNumber(t *testing.T) {
 }
 
 func Test_ethNamespace_mock_GetLogsByBlockHash(t *testing.T) {
-	client := testWithMock(t, "eth_getLogs", func(params json.RawMessage) interface{} {
-		return []map[string]interface{}{
+	client := testWithMock(t, "eth_getLogs", func(params json.RawMessage) any {
+		return []map[string]any{
 			{
 				"address": "0xcontract",
 				"topics":  []string{},
@@ -464,7 +464,7 @@ func Test_ethNamespace_mock_GetLogsByBlockHash(t *testing.T) {
 }
 
 func Test_ethNamespace_mock_BlobBaseFee(t *testing.T) {
-	client := testWithMock(t, "eth_blobBaseFee", func(params json.RawMessage) interface{} {
+	client := testWithMock(t, "eth_blobBaseFee", func(params json.RawMessage) any {
 		// 0x3b9aca00 = 1000000000 (1 Gwei)
 		return "0x3b9aca00"
 	})
@@ -474,7 +474,7 @@ func Test_ethNamespace_mock_BlobBaseFee(t *testing.T) {
 }
 
 func Test_ethNamespace_mock_SendRawTransaction(t *testing.T) {
-	client := testWithMock(t, "eth_sendRawTransaction", func(params json.RawMessage) interface{} {
+	client := testWithMock(t, "eth_sendRawTransaction", func(params json.RawMessage) any {
 		return "0xsentTxHash"
 	})
 	txHash, err := client.Eth().SendRawTransaction("0xrawTx")
@@ -483,8 +483,8 @@ func Test_ethNamespace_mock_SendRawTransaction(t *testing.T) {
 }
 
 func Test_ethNamespace_mock_SimulateV1(t *testing.T) {
-	client := testWithMock(t, "eth_simulateV1", func(params json.RawMessage) interface{} {
-		return []map[string]interface{}{
+	client := testWithMock(t, "eth_simulateV1", func(params json.RawMessage) any {
+		return []map[string]any{
 			{
 				"number":           "0x1",
 				"hash":             "0xsimhash",
@@ -506,10 +506,10 @@ func Test_ethNamespace_mock_SimulateV1(t *testing.T) {
 				"size":             "0x200",
 				"uncles":           []string{},
 				"transactions":     []string{},
-				"calls": []map[string]interface{}{
+				"calls": []map[string]any{
 					{
 						"returnData": "0x",
-						"logs":       []interface{}{},
+						"logs":       []any{},
 						"gasUsed":    "0x5208",
 						"status":     "0x1",
 					},
@@ -537,15 +537,15 @@ func Test_ethNamespace_mock_SimulateV1(t *testing.T) {
 }
 
 func Test_ethNamespace_mock_GetProof(t *testing.T) {
-	client := testWithMock(t, "eth_getProof", func(params json.RawMessage) interface{} {
-		return map[string]interface{}{
+	client := testWithMock(t, "eth_getProof", func(params json.RawMessage) any {
+		return map[string]any{
 			"address":      "0xaddr",
 			"accountProof": []string{"0xproof1", "0xproof2"},
 			"balance":      "0xde0b6b3a7640000",
 			"codeHash":     "0xcodehash",
 			"nonce":        "0x1",
 			"storageHash":  "0xstoragehash",
-			"storageProof": []map[string]interface{}{
+			"storageProof": []map[string]any{
 				{
 					"key":   "0x0",
 					"value": "0x1",
@@ -566,7 +566,7 @@ func Test_ethNamespace_mock_GetProof(t *testing.T) {
 }
 
 func Test_ethNamespace_mock_UncleCountByBlockHash(t *testing.T) {
-	client := testWithMock(t, "eth_getUncleCountByBlockHash", func(params json.RawMessage) interface{} {
+	client := testWithMock(t, "eth_getUncleCountByBlockHash", func(params json.RawMessage) any {
 		// 0x2 = 2 uncles
 		return "0x2"
 	})
@@ -576,7 +576,7 @@ func Test_ethNamespace_mock_UncleCountByBlockHash(t *testing.T) {
 }
 
 func Test_ethNamespace_mock_UncleCountByBlockNumber(t *testing.T) {
-	client := testWithMock(t, "eth_getUncleCountByBlockNumber", func(params json.RawMessage) interface{} {
+	client := testWithMock(t, "eth_getUncleCountByBlockNumber", func(params json.RawMessage) any {
 		// 0x1 = 1 uncle
 		return "0x1"
 	})
@@ -585,8 +585,8 @@ func Test_ethNamespace_mock_UncleCountByBlockNumber(t *testing.T) {
 	assert.Equal(t, uint64(1), count)
 }
 
-func txJSON(blockHash string, blockNumber string, txHash string, index string) map[string]interface{} {
-	return map[string]interface{}{
+func txJSON(blockHash string, blockNumber string, txHash string, index string) map[string]any {
+	return map[string]any{
 		"blockHash":        blockHash,
 		"blockNumber":      blockNumber,
 		"from":             "0xfrom",
@@ -606,7 +606,7 @@ func txJSON(blockHash string, blockNumber string, txHash string, index string) m
 }
 
 func Test_ethNamespace_mock_GetTransactionByBlockHashAndIndex(t *testing.T) {
-	client := testWithMock(t, "eth_getTransactionByBlockHashAndIndex", func(params json.RawMessage) interface{} {
+	client := testWithMock(t, "eth_getTransactionByBlockHashAndIndex", func(params json.RawMessage) any {
 		return txJSON("0xblockhash", "0x1", "0xtxhash", "0x0")
 	})
 	tx, err := client.Eth().GetTransactionByBlockHashAndIndex("0xblockhash", 0)
@@ -617,8 +617,8 @@ func Test_ethNamespace_mock_GetTransactionByBlockHashAndIndex(t *testing.T) {
 }
 
 func Test_ethNamespace_mock_GetTransactionByBlockNumberAndIndex(t *testing.T) {
-	client := testWithMock(t, "eth_getTransactionByBlockNumberAndIndex", func(params json.RawMessage) interface{} {
-		var args []interface{}
+	client := testWithMock(t, "eth_getTransactionByBlockNumberAndIndex", func(params json.RawMessage) any {
+		var args []any
 		json.Unmarshal(params, &args)
 		blockNum := args[0].(string)
 		return txJSON("0xblockhash", blockNum, "0xtxhash", "0x1")

@@ -25,12 +25,12 @@ type clientInfo interface {
 
 type caller interface {
 	BatchCallWithContext(ctx context.Context, elements []rpc.BatchElem, workers int) error
-	call(ctx context.Context, result interface{}, method Procedure, params ...interface{}) error
+	call(ctx context.Context, result any, method Procedure, params ...any) error
 	batchCall(ctx context.Context, elements []rpc.BatchElem) error
 }
 
 type subscriber interface {
-	subscribe(ctx context.Context, namespace string, ch interface{}, args ...interface{}) (evmctypes.Subscription, error)
+	subscribe(ctx context.Context, namespace string, ch any, args ...any) (evmctypes.Subscription, error)
 }
 
 type nodeSetter interface {
@@ -63,7 +63,7 @@ type Evmc struct {
 	erc721   *erc721Contract
 	erc1155  *erc1155Contract
 
-	abiCache *lru.Cache[string, interface{}]
+	abiCache *lru.Cache[string, any]
 }
 
 func httpClient(o *options) *http.Client {
@@ -133,7 +133,7 @@ func newClient(ctx context.Context, url string, isWs bool, opts ...Options) (*Ev
 	evmc := &Evmc{
 		c:                rpcClient,
 		isWebsocket:      isWs,
-		abiCache:         lru.NewCache[string, interface{}](10),
+		abiCache:         lru.NewCache[string, any](10),
 		maxBatchItems:    o.maxBatchItems,
 		batchCallWorkers: o.batchCallWorkers,
 	}
@@ -243,12 +243,7 @@ func (e *Evmc) ERC1155() *erc1155Contract {
 	return e.erc1155
 }
 
-func (e *Evmc) call(
-	ctx context.Context,
-	result interface{},
-	method Procedure,
-	params ...interface{},
-) error {
+func (e *Evmc) call(ctx context.Context, result any, method Procedure, params ...any) error {
 	return e.c.CallContext(ctx, result, method.String(), params...)
 }
 
@@ -256,12 +251,7 @@ func (e *Evmc) batchCall(ctx context.Context, elements []rpc.BatchElem) error {
 	return e.c.BatchCallContext(ctx, elements)
 }
 
-func (e *Evmc) subscribe(
-	ctx context.Context,
-	namespace string,
-	ch interface{},
-	args ...interface{},
-) (evmctypes.Subscription, error) {
+func (e *Evmc) subscribe(ctx context.Context, namespace string, ch any, args ...any) (evmctypes.Subscription, error) {
 	subscription, err := e.c.Subscribe(ctx, namespace, ch, args...)
 	if err != nil {
 		return nil, err

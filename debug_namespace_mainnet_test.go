@@ -26,9 +26,9 @@ const (
 
 // ─── TraceBlockByNumber ──────────────────────────────────────────────────────
 
-func Test_Mainnet_Debug_TraceBlockByNumber_callTracer(t *testing.T) {
+func Test_Mainnet_Debug_TraceBlockByNumberCallTracer(t *testing.T) {
 	c := mainnetClient(t)
-	results, err := c.Debug().TraceBlockByNumber_callTracer(debugRefBlockNumber, time.Minute, nil, nil)
+	results, err := c.Debug().TraceBlockByNumberCallTracer(debugRefBlockNumber, time.Minute, nil, nil)
 	require.NoError(t, err)
 
 	assert.NotEmpty(t, results)
@@ -42,9 +42,9 @@ func Test_Mainnet_Debug_TraceBlockByNumber_callTracer(t *testing.T) {
 	assert.Equal(t, uint64(0), results[0].Result.Index)
 }
 
-func Test_Mainnet_Debug_TraceBlockByNumber_callTracer_withLog(t *testing.T) {
+func Test_Mainnet_Debug_TraceBlockByNumberCallTracer_withLog(t *testing.T) {
 	c := mainnetClient(t)
-	results, err := c.Debug().TraceBlockByNumber_callTracer(debugRefBlockNumber, time.Minute, nil, &CallTracerConfig{WithLog: true})
+	results, err := c.Debug().TraceBlockByNumberCallTracer(debugRefBlockNumber, time.Minute, nil, &CallTracerConfig{WithLog: true})
 	require.NoError(t, err)
 
 	assert.NotEmpty(t, results)
@@ -59,9 +59,9 @@ func Test_Mainnet_Debug_TraceBlockByNumber_callTracer_withLog(t *testing.T) {
 	assert.True(t, hasLogs, "at least one transaction should have logs with withLog=true")
 }
 
-func Test_Mainnet_Debug_TraceBlockByNumber_prestateTracer(t *testing.T) {
+func Test_Mainnet_Debug_TraceBlockByNumberPrestateTracer(t *testing.T) {
 	c := mainnetClient(t)
-	results, err := c.Debug().TraceBlockByNumber_prestateTracer(debugRefBlockNumber, time.Minute, nil, nil)
+	results, err := c.Debug().TraceBlockByNumberPrestateTracer(debugRefBlockNumber, time.Minute, nil, nil)
 	require.NoError(t, err)
 
 	assert.NotEmpty(t, results)
@@ -74,9 +74,9 @@ func Test_Mainnet_Debug_TraceBlockByNumber_prestateTracer(t *testing.T) {
 	}
 }
 
-func Test_Mainnet_Debug_TraceBlockByNumber_prestateTracer_diffMode(t *testing.T) {
+func Test_Mainnet_Debug_TraceBlockByNumberPrestateTracer_diffMode(t *testing.T) {
 	c := mainnetClient(t)
-	results, err := c.Debug().TraceBlockByNumber_prestateTracer(debugRefBlockNumber, time.Minute, nil, &PrestateTracerConfig{DiffMode: true})
+	results, err := c.Debug().TraceBlockByNumberPrestateTracer(debugRefBlockNumber, time.Minute, nil, &PrestateTracerConfig{DiffMode: true})
 	require.NoError(t, err)
 
 	assert.NotEmpty(t, results)
@@ -91,9 +91,9 @@ func Test_Mainnet_Debug_TraceBlockByNumber_prestateTracer_diffMode(t *testing.T)
 
 // ─── TraceBlockByHash ────────────────────────────────────────────────────────
 
-func Test_Mainnet_Debug_TraceBlockByHash_callTracer(t *testing.T) {
+func Test_Mainnet_Debug_TraceBlockByHashCallTracer(t *testing.T) {
 	c := mainnetClient(t)
-	results, err := c.Debug().TraceBlockByHash_callTracer(debugRefBlockHash, time.Minute, nil, nil)
+	results, err := c.Debug().TraceBlockByHashCallTracer(debugRefBlockHash, time.Minute, nil, nil)
 	require.NoError(t, err)
 
 	assert.NotEmpty(t, results)
@@ -105,9 +105,9 @@ func Test_Mainnet_Debug_TraceBlockByHash_callTracer(t *testing.T) {
 	}
 }
 
-func Test_Mainnet_Debug_TraceBlockByHash_prestateTracer(t *testing.T) {
+func Test_Mainnet_Debug_TraceBlockByHashPrestateTracer(t *testing.T) {
 	c := mainnetClient(t)
-	results, err := c.Debug().TraceBlockByHash_prestateTracer(debugRefBlockHash, time.Minute, nil, nil)
+	results, err := c.Debug().TraceBlockByHashPrestateTracer(debugRefBlockHash, time.Minute, nil, nil)
 	require.NoError(t, err)
 
 	assert.NotEmpty(t, results)
@@ -119,9 +119,9 @@ func Test_Mainnet_Debug_TraceBlockByHash_prestateTracer(t *testing.T) {
 
 // ─── TraceTransaction ────────────────────────────────────────────────────────
 
-func Test_Mainnet_Debug_TraceTransaction_callTracer(t *testing.T) {
+func Test_Mainnet_Debug_TraceTransactionCallTracer(t *testing.T) {
 	c := mainnetClient(t)
-	callFrame, err := c.Debug().TraceTransaction_callTracer(debugRefTxHash, time.Minute, nil, nil)
+	callFrame, err := c.Debug().TraceTransactionCallTracer(debugRefTxHash, time.Minute, nil, nil)
 	require.NoError(t, err)
 
 	assert.NotEmpty(t, callFrame.From)
@@ -131,18 +131,18 @@ func Test_Mainnet_Debug_TraceTransaction_callTracer(t *testing.T) {
 	assert.Equal(t, uint64(0), callFrame.Index)
 }
 
-func Test_Mainnet_Debug_TraceTransaction_callTracer_withLog(t *testing.T) {
+func Test_Mainnet_Debug_TraceTransactionCallTracer_withLog(t *testing.T) {
 	c := mainnetClient(t)
-	callFrame, err := c.Debug().TraceTransaction_callTracer(debugRefTxHash, time.Minute, nil, &CallTracerConfig{WithLog: true})
+	callFrame, err := c.Debug().TraceTransactionCallTracer(debugRefTxHash, time.Minute, nil, &CallTracerConfig{WithLog: true})
 	require.NoError(t, err)
 
 	assert.NotEmpty(t, callFrame.From)
 	assert.NotEmpty(t, callFrame.Type)
 }
 
-func Test_Mainnet_Debug_TraceTransaction_prestateTracer(t *testing.T) {
+func Test_Mainnet_Debug_TraceTransactionPrestateTracer(t *testing.T) {
 	c := mainnetClient(t)
-	result, err := c.Debug().TraceTransaction_prestateTracer(debugRefTxHash, time.Minute, nil, nil)
+	result, err := c.Debug().TraceTransactionPrestateTracer(debugRefTxHash, time.Minute, nil, nil)
 	require.NoError(t, err)
 
 	require.NotNil(t, result)
@@ -151,9 +151,9 @@ func Test_Mainnet_Debug_TraceTransaction_prestateTracer(t *testing.T) {
 	assert.NotEmpty(t, frame, "prestate frame should have accounts")
 }
 
-func Test_Mainnet_Debug_TraceTransaction_prestateTracer_diffMode(t *testing.T) {
+func Test_Mainnet_Debug_TraceTransactionPrestateTracer_diffMode(t *testing.T) {
 	c := mainnetClient(t)
-	result, err := c.Debug().TraceTransaction_prestateTracer(debugRefTxHash, time.Minute, nil, &PrestateTracerConfig{DiffMode: true})
+	result, err := c.Debug().TraceTransactionPrestateTracer(debugRefTxHash, time.Minute, nil, &PrestateTracerConfig{DiffMode: true})
 	require.NoError(t, err)
 
 	require.NotNil(t, result)
@@ -163,9 +163,9 @@ func Test_Mainnet_Debug_TraceTransaction_prestateTracer_diffMode(t *testing.T) {
 	assert.NotEmpty(t, diffFrame.Pre, "pre state should have accounts")
 }
 
-func Test_Mainnet_Debug_TraceTransaction_flatCallTracer(t *testing.T) {
+func Test_Mainnet_Debug_TraceTransactionFlatCallTracer(t *testing.T) {
 	c := mainnetClient(t)
-	flatCalls, err := c.Debug().TraceTransaction_flatCallTracer(debugRefTxHash, time.Minute, nil, nil)
+	flatCalls, err := c.Debug().TraceTransactionFlatCallTracer(debugRefTxHash, time.Minute, nil, nil)
 	require.NoError(t, err)
 
 	assert.NotEmpty(t, flatCalls)
@@ -181,14 +181,14 @@ func Test_Mainnet_Debug_TraceTransaction_default(t *testing.T) {
 
 // ─── TraceCall ───────────────────────────────────────────────────────────────
 
-func Test_Mainnet_Debug_TraceCall_callTracer(t *testing.T) {
+func Test_Mainnet_Debug_TraceCallCallTracer(t *testing.T) {
 	c := mainnetClient(t)
 	// USDT totalSupply() 호출 trace
 	tx := &Tx{
 		To:   mainnetRefUSDT,
 		Data: "0x18160ddd",
 	}
-	callFrame, err := c.Debug().TraceCall_callTracer(tx, evmctypes.FormatNumber(mainnetRefBlockNumber), 0, nil, nil)
+	callFrame, err := c.Debug().TraceCallCallTracer(tx, evmctypes.FormatNumber(mainnetRefBlockNumber), 0, nil, nil)
 	require.NoError(t, err)
 
 	assert.NotEmpty(t, callFrame.Type)
@@ -202,13 +202,13 @@ func Test_Mainnet_Debug_TraceCall_callTracer(t *testing.T) {
 	assert.Equal(t, uint64(0), callFrame.Index)
 }
 
-func Test_Mainnet_Debug_TraceCall_prestateTracer(t *testing.T) {
+func Test_Mainnet_Debug_TraceCallPrestateTracer(t *testing.T) {
 	c := mainnetClient(t)
 	tx := &Tx{
 		To:   mainnetRefUSDT,
 		Data: "0x18160ddd",
 	}
-	result, err := c.Debug().TraceCall_prestateTracer(tx, evmctypes.Latest, 0, nil, nil)
+	result, err := c.Debug().TraceCallPrestateTracer(tx, evmctypes.Latest, 0, nil, nil)
 	require.NoError(t, err)
 
 	require.NotNil(t, result)
@@ -217,13 +217,13 @@ func Test_Mainnet_Debug_TraceCall_prestateTracer(t *testing.T) {
 	assert.NotEmpty(t, frame, "prestate frame should have accounts")
 }
 
-func Test_Mainnet_Debug_TraceCall_prestateTracer_diffMode(t *testing.T) {
+func Test_Mainnet_Debug_TraceCallPrestateTracer_diffMode(t *testing.T) {
 	c := mainnetClient(t)
 	tx := &Tx{
 		To:   mainnetRefUSDT,
 		Data: "0x18160ddd",
 	}
-	result, err := c.Debug().TraceCall_prestateTracer(tx, evmctypes.Latest, 0, nil, &PrestateTracerConfig{DiffMode: true})
+	result, err := c.Debug().TraceCallPrestateTracer(tx, evmctypes.Latest, 0, nil, &PrestateTracerConfig{DiffMode: true})
 	require.NoError(t, err)
 
 	require.NotNil(t, result)
@@ -246,20 +246,20 @@ func Test_Mainnet_Debug_TraceCall_default(t *testing.T) {
 
 // ─── Custom Tracer ───────────────────────────────────────────────────────────
 
-func Test_Mainnet_Debug_TraceTransaction_customTracer(t *testing.T) {
+func Test_Mainnet_Debug_TraceTransactionCustomTracer(t *testing.T) {
 	c := mainnetClient(t)
-	result, err := c.Debug().TraceTransaction_customTracer(debugRefTxHash, testCustomJSTracer, time.Minute, nil)
+	result, err := c.Debug().TraceTransactionCustomTracer(debugRefTxHash, testCustomJSTracer, time.Minute, nil)
 	require.NoError(t, err)
 	require.NotNil(t, result)
 
-	var parsed map[string]interface{}
+	var parsed map[string]any
 	require.NoError(t, json.Unmarshal(result, &parsed))
 	assert.Contains(t, parsed, "gasUsed")
 }
 
-func Test_Mainnet_Debug_TraceBlockByNumber_customTracer(t *testing.T) {
+func Test_Mainnet_Debug_TraceBlockByNumberCustomTracer(t *testing.T) {
 	c := mainnetClient(t)
-	results, err := c.Debug().TraceBlockByNumber_customTracer(debugRefBlockNumber, testCustomJSTracer, time.Minute, nil)
+	results, err := c.Debug().TraceBlockByNumberCustomTracer(debugRefBlockNumber, testCustomJSTracer, time.Minute, nil)
 	require.NoError(t, err)
 
 	assert.NotEmpty(t, results)
@@ -269,9 +269,9 @@ func Test_Mainnet_Debug_TraceBlockByNumber_customTracer(t *testing.T) {
 	}
 }
 
-func Test_Mainnet_Debug_TraceBlockByHash_customTracer(t *testing.T) {
+func Test_Mainnet_Debug_TraceBlockByHashCustomTracer(t *testing.T) {
 	c := mainnetClient(t)
-	results, err := c.Debug().TraceBlockByHash_customTracer(debugRefBlockHash, testCustomJSTracer, time.Minute, nil)
+	results, err := c.Debug().TraceBlockByHashCustomTracer(debugRefBlockHash, testCustomJSTracer, time.Minute, nil)
 	require.NoError(t, err)
 
 	assert.NotEmpty(t, results)
@@ -281,17 +281,17 @@ func Test_Mainnet_Debug_TraceBlockByHash_customTracer(t *testing.T) {
 	}
 }
 
-func Test_Mainnet_Debug_TraceCall_customTracer(t *testing.T) {
+func Test_Mainnet_Debug_TraceCallCustomTracer(t *testing.T) {
 	c := mainnetClient(t)
 	tx := &Tx{
 		To:   mainnetRefUSDT,
 		Data: "0x18160ddd",
 	}
-	result, err := c.Debug().TraceCall_customTracer(tx, evmctypes.FormatNumber(mainnetRefBlockNumber), testCustomJSTracer, time.Minute, nil)
+	result, err := c.Debug().TraceCallCustomTracer(tx, evmctypes.FormatNumber(mainnetRefBlockNumber), testCustomJSTracer, time.Minute, nil)
 	require.NoError(t, err)
 	require.NotNil(t, result)
 
-	var parsed map[string]interface{}
+	var parsed map[string]any
 	require.NoError(t, json.Unmarshal(result, &parsed))
 	assert.Contains(t, parsed, "gasUsed")
 }

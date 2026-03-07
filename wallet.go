@@ -29,6 +29,8 @@ func NewWallet(privateKey string) (*Wallet, error) {
 	}, nil
 }
 
+// SignTx signs sendingTx with the wallet's private key for the given chainID
+// and returns the transaction hash and the RLP-encoded raw transaction.
 func (w *Wallet) SignTx(sendingTx *SendingTx, chainID uint64) (hash, rawTx string, err error) {
 	if chainID == 0 {
 		return "", "", errors.New("chainID is zero")
@@ -42,9 +44,7 @@ func (w *Wallet) SignTx(sendingTx *SendingTx, chainID uint64) (hash, rawTx strin
 	if err != nil {
 		return "", "", err
 	}
-	hash = signedTx.Hash().Hex()
-	rawTx = hexutil.Encode(raw)
-	return
+	return signedTx.Hash().Hex(), hexutil.Encode(raw), nil
 }
 
 func (w *Wallet) Address() string {
