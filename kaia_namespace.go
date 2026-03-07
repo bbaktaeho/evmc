@@ -36,7 +36,7 @@ func (k *kaiaNamespace) getBlockIncTxRange(ctx context.Context, from, to uint64)
 	for i := range elements {
 		elements[i] = rpc.BatchElem{
 			Method: KaiaGetBlockByNumber.String(),
-			Args:   []interface{}{evmctypes.FormatNumber(from + uint64(i)), true},
+			Args:   []any{evmctypes.FormatNumber(from + uint64(i)), true},
 			Result: &results[i],
 		}
 	}
@@ -100,12 +100,8 @@ func (k *kaiaNamespace) GetBlockByHashIncTxWithContext(ctx context.Context, hash
 	return block, nil
 }
 
-func (k *kaiaNamespace) getBlockByHash(ctx context.Context, result interface{}, hash string, incTx bool) error {
-	params := []interface{}{hash, incTx}
-	if err := k.c.call(ctx, result, KaiaGetBlockByHash, params...); err != nil {
-		return err
-	}
-	return nil
+func (k *kaiaNamespace) getBlockByHash(ctx context.Context, result any, hash string, incTx bool) error {
+	return k.c.call(ctx, result, KaiaGetBlockByHash, hash, incTx)
 }
 
 // GetBlockByNumber returns information about a block by block number.
@@ -136,12 +132,8 @@ func (k *kaiaNamespace) GetBlockByNumberIncTxWithContext(ctx context.Context, bl
 	return block, nil
 }
 
-func (k *kaiaNamespace) getBlockByNumber(ctx context.Context, result interface{}, number evmctypes.BlockAndTag, incTx bool) error {
-	params := []interface{}{number, incTx}
-	if err := k.c.call(ctx, result, KaiaGetBlockByNumber, params...); err != nil {
-		return err
-	}
-	return nil
+func (k *kaiaNamespace) getBlockByNumber(ctx context.Context, result any, number evmctypes.BlockAndTag, incTx bool) error {
+	return k.c.call(ctx, result, KaiaGetBlockByNumber, number, incTx)
 }
 
 func (k *kaiaNamespace) GetTransactionByHash(hash string) (*kaiatypes.Transaction, error) {
@@ -170,7 +162,7 @@ func (k *kaiaNamespace) GetBlockReceiptsWithContext(ctx context.Context, blockNu
 }
 
 func (k *kaiaNamespace) getBlockReceipts(ctx context.Context, blockNumber uint64) ([]*kaiatypes.Receipt, error) {
-	var result = new([]*kaiatypes.Receipt)
+	result := new([]*kaiatypes.Receipt)
 	if err := k.c.call(ctx, result, KaiaGetBlockReceipts, hexutil.EncodeUint64(blockNumber)); err != nil {
 		return nil, err
 	}
@@ -213,7 +205,7 @@ func (k *kaiaNamespace) GetRewardsRangeWithContext(ctx context.Context, from, to
 	for i := range elements {
 		elements[i] = rpc.BatchElem{
 			Method: KaiaGetRewards.String(),
-			Args:   []interface{}{evmctypes.FormatNumber(from + uint64(i))},
+			Args:   []any{evmctypes.FormatNumber(from + uint64(i))},
 			Result: &results[i],
 		}
 	}

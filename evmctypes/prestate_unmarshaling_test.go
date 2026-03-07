@@ -10,7 +10,7 @@ import (
 )
 
 func TestPrestateAccount_UnmarshalJSON(t *testing.T) {
-	raw := map[string]interface{}{
+	raw := map[string]any{
 		"balance":  "0xde0b6b3a7640000", // 1 ETH in wei
 		"code":     "0x60806040",
 		"codeHash": "0x1234567890abcdef",
@@ -50,7 +50,7 @@ func TestPrestateAccount_UnmarshalJSON(t *testing.T) {
 
 func TestPrestateAccount_UnmarshalJSON_MinimalFields(t *testing.T) {
 	// Test with only required/minimal fields
-	raw := map[string]interface{}{
+	raw := map[string]any{
 		"nonce": uint64(0),
 	}
 
@@ -70,14 +70,14 @@ func TestPrestateAccount_UnmarshalJSON_MinimalFields(t *testing.T) {
 
 func TestPrestateTracer_UnmarshalJSON_StandardMode(t *testing.T) {
 	// Standard prestate mode (not diff mode)
-	raw := map[string]interface{}{
+	raw := map[string]any{
 		"txHash": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
-		"result": map[string]interface{}{
-			"0x0000000000000000000000000000000000000001": map[string]interface{}{
+		"result": map[string]any{
+			"0x0000000000000000000000000000000000000001": map[string]any{
 				"balance": "0xde0b6b3a7640000",
 				"nonce":   uint64(1),
 			},
-			"0x0000000000000000000000000000000000000002": map[string]interface{}{
+			"0x0000000000000000000000000000000000000002": map[string]any{
 				"balance": "0x1bc16d674ec80000",
 				"nonce":   uint64(5),
 				"code":    "0x60806040",
@@ -129,21 +129,21 @@ func TestPrestateTracer_UnmarshalJSON_StandardMode(t *testing.T) {
 
 func TestPrestateTracer_UnmarshalJSON_DiffMode(t *testing.T) {
 	// Diff mode prestate
-	raw := map[string]interface{}{
+	raw := map[string]any{
 		"txHash": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
-		"result": map[string]interface{}{
-			"pre": map[string]interface{}{
-				"0x0000000000000000000000000000000000000001": map[string]interface{}{
+		"result": map[string]any{
+			"pre": map[string]any{
+				"0x0000000000000000000000000000000000000001": map[string]any{
 					"balance": "0xde0b6b3a7640000",
 					"nonce":   uint64(1),
 				},
 			},
-			"post": map[string]interface{}{
-				"0x0000000000000000000000000000000000000001": map[string]interface{}{
+			"post": map[string]any{
+				"0x0000000000000000000000000000000000000001": map[string]any{
 					"balance": "0xd2f13f7789f0000", // Changed balance
 					"nonce":   uint64(2),           // Incremented nonce
 				},
-				"0x0000000000000000000000000000000000000002": map[string]interface{}{
+				"0x0000000000000000000000000000000000000002": map[string]any{
 					"balance": "0x16345785d8a0000", // New account
 					"nonce":   uint64(1),
 				},
@@ -195,7 +195,7 @@ func TestPrestateTracer_UnmarshalJSON_DiffMode(t *testing.T) {
 
 func TestPrestateTracer_UnmarshalJSON_WithError(t *testing.T) {
 	t.Run("with null result", func(t *testing.T) {
-		raw := map[string]interface{}{
+		raw := map[string]any{
 			"txHash": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
 			"error":  "execution reverted",
 			"result": nil,
@@ -246,8 +246,8 @@ func TestPrestateTracer_UnmarshalJSON_WithError(t *testing.T) {
 
 		assert.Equal(t, "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef", tracer.TxHash)
 		assert.NotNil(t, tracer.Error)
-		// Error is interface{}, so it can be a map
-		errorMap, ok := tracer.Error.(map[string]interface{})
+		// Error is any, so it can be a map
+		errorMap, ok := tracer.Error.(map[string]any)
 		assert.True(t, ok)
 		assert.Equal(t, "execution reverted", errorMap["message"])
 	})
@@ -293,7 +293,7 @@ func TestPrestateTracer_ParseResult(t *testing.T) {
 }
 
 func TestPrestateAccount_EmptyStorage(t *testing.T) {
-	raw := map[string]interface{}{
+	raw := map[string]any{
 		"balance": "0x0",
 		"nonce":   uint64(0),
 		"storage": map[string]string{},
@@ -311,7 +311,7 @@ func TestPrestateAccount_EmptyStorage(t *testing.T) {
 }
 
 func TestPrestateAccount_LargeBalance(t *testing.T) {
-	raw := map[string]interface{}{
+	raw := map[string]any{
 		"balance": "0x152d02c7e14af6800000", // 100000 ETH
 		"nonce":   uint64(0),
 	}
@@ -330,14 +330,14 @@ func TestPrestateAccount_LargeBalance(t *testing.T) {
 func TestPrestateTracer_UnmarshalJSON_WithResult(t *testing.T) {
 	t.Run("result as prestate map", func(t *testing.T) {
 		// PrestateTracer with result field containing account map
-		raw := map[string]interface{}{
+		raw := map[string]any{
 			"txHash": "0xabc",
-			"result": map[string]interface{}{
-				"0x0000000000000000000000000000000000000001": map[string]interface{}{
+			"result": map[string]any{
+				"0x0000000000000000000000000000000000000001": map[string]any{
 					"balance": "0xde0b6b3a7640000",
 					"nonce":   uint64(1),
 				},
-				"0x0000000000000000000000000000000000000002": map[string]interface{}{
+				"0x0000000000000000000000000000000000000002": map[string]any{
 					"balance": "0x1bc16d674ec80000",
 					"nonce":   uint64(5),
 					"code":    "0x60806040",
@@ -365,17 +365,17 @@ func TestPrestateTracer_UnmarshalJSON_WithResult(t *testing.T) {
 	})
 
 	t.Run("result as diff mode map", func(t *testing.T) {
-		raw := map[string]interface{}{
+		raw := map[string]any{
 			"txHash": "0xdef",
-			"result": map[string]interface{}{
-				"pre": map[string]interface{}{
-					"0x0000000000000000000000000000000000000001": map[string]interface{}{
+			"result": map[string]any{
+				"pre": map[string]any{
+					"0x0000000000000000000000000000000000000001": map[string]any{
 						"balance": "0xde0b6b3a7640000",
 						"nonce":   uint64(1),
 					},
 				},
-				"post": map[string]interface{}{
-					"0x0000000000000000000000000000000000000001": map[string]interface{}{
+				"post": map[string]any{
+					"0x0000000000000000000000000000000000000001": map[string]any{
 						"balance": "0xd2f13f7789f0000",
 						"nonce":   uint64(2),
 					},

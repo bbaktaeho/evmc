@@ -29,7 +29,7 @@ func Test_web3Namespace_mock_ClientVersion(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mock := newMockRPCServer(t)
-			mock.on("web3_clientVersion", func(params json.RawMessage) interface{} {
+			mock.on("web3_clientVersion", func(params json.RawMessage) any {
 				return tt.version
 			})
 
@@ -43,7 +43,7 @@ func Test_web3Namespace_mock_ClientVersion(t *testing.T) {
 
 func Test_evmc_NodeClient(t *testing.T) {
 	mock := newMockRPCServer(t)
-	mock.on("web3_clientVersion", func(params json.RawMessage) interface{} {
+	mock.on("web3_clientVersion", func(params json.RawMessage) any {
 		return "Geth/v1.13.0-stable/linux-amd64/go1.21.0"
 	})
 
@@ -56,7 +56,7 @@ func Test_evmc_NodeClient(t *testing.T) {
 
 func Test_evmc_NodeClient_ShortVersion(t *testing.T) {
 	mock := newMockRPCServer(t)
-	mock.on("web3_clientVersion", func(params json.RawMessage) interface{} {
+	mock.on("web3_clientVersion", func(params json.RawMessage) any {
 		return "SimpleClient"
 	})
 

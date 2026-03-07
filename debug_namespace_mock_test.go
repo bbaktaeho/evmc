@@ -11,10 +11,10 @@ import (
 
 // callTracerResultJSON은 callTracer 결과 mock 데이터.
 // txHash는 결과 객체를 구분하는 트랜잭션 해시다.
-func callTracerResultJSON(txHash string) map[string]interface{} {
-	return map[string]interface{}{
+func callTracerResultJSON(txHash string) map[string]any {
+	return map[string]any{
 		"txHash": txHash,
-		"result": map[string]interface{}{
+		"result": map[string]any{
 			"from": "0xfrom",
 			// 0x5208 = 21000 (standard ETH transfer gas)
 			"gas":     "0x5208",
@@ -31,15 +31,15 @@ func callTracerResultJSON(txHash string) map[string]interface{} {
 
 // traceResultJSON은 structLogger(기본 tracer) 결과 mock 데이터.
 // txHash는 결과 객체를 구분하는 트랜잭션 해시다.
-func traceResultJSON(txHash string) map[string]interface{} {
-	return map[string]interface{}{
+func traceResultJSON(txHash string) map[string]any {
+	return map[string]any{
 		"txHash": txHash,
-		"result": map[string]interface{}{
+		"result": map[string]any{
 			// 21000: standard ETH transfer gas cost
 			"gas":         21000,
 			"failed":      false,
 			"returnValue": "",
-			"structLogs":  []interface{}{},
+			"structLogs":  []any{},
 		},
 	}
 }
@@ -47,8 +47,8 @@ func traceResultJSON(txHash string) map[string]interface{} {
 // ─── TraceBlockByNumber ──────────────────────────────────────────────────────
 
 func Test_debugNamespace_mock_TraceBlockByNumber(t *testing.T) {
-	client := testWithMock(t, "debug_traceBlockByNumber", func(params json.RawMessage) interface{} {
-		return []map[string]interface{}{
+	client := testWithMock(t, "debug_traceBlockByNumber", func(params json.RawMessage) any {
+		return []map[string]any{
 			traceResultJSON("0xtx1"),
 			traceResultJSON("0xtx2"),
 		}
@@ -60,14 +60,14 @@ func Test_debugNamespace_mock_TraceBlockByNumber(t *testing.T) {
 	assert.Equal(t, "0xtx2", results[1].TxHash)
 }
 
-func Test_debugNamespace_mock_TraceBlockByNumber_callTracer(t *testing.T) {
-	client := testWithMock(t, "debug_traceBlockByNumber", func(params json.RawMessage) interface{} {
-		return []map[string]interface{}{
+func Test_debugNamespace_mock_TraceBlockByNumberCallTracer(t *testing.T) {
+	client := testWithMock(t, "debug_traceBlockByNumber", func(params json.RawMessage) any {
+		return []map[string]any{
 			callTracerResultJSON("0xtx1"),
 			callTracerResultJSON("0xtx2"),
 		}
 	})
-	results, err := client.Debug().TraceBlockByNumber_callTracer(100, 0, nil, nil)
+	results, err := client.Debug().TraceBlockByNumberCallTracer(100, 0, nil, nil)
 	require.NoError(t, err)
 	require.Len(t, results, 2)
 	assert.Equal(t, "0xtx1", results[0].TxHash)
@@ -79,8 +79,8 @@ func Test_debugNamespace_mock_TraceBlockByNumber_callTracer(t *testing.T) {
 // ─── TraceBlockByHash ────────────────────────────────────────────────────────
 
 func Test_debugNamespace_mock_TraceBlockByHash(t *testing.T) {
-	client := testWithMock(t, "debug_traceBlockByHash", func(params json.RawMessage) interface{} {
-		return []map[string]interface{}{
+	client := testWithMock(t, "debug_traceBlockByHash", func(params json.RawMessage) any {
+		return []map[string]any{
 			traceResultJSON("0xtx1"),
 			traceResultJSON("0xtx2"),
 		}
@@ -92,25 +92,25 @@ func Test_debugNamespace_mock_TraceBlockByHash(t *testing.T) {
 	assert.Equal(t, "0xtx2", results[1].TxHash)
 }
 
-func Test_debugNamespace_mock_TraceBlockByHash_callTracer(t *testing.T) {
-	client := testWithMock(t, "debug_traceBlockByHash", func(params json.RawMessage) interface{} {
-		return []map[string]interface{}{
+func Test_debugNamespace_mock_TraceBlockByHashCallTracer(t *testing.T) {
+	client := testWithMock(t, "debug_traceBlockByHash", func(params json.RawMessage) any {
+		return []map[string]any{
 			callTracerResultJSON("0xtx1"),
 		}
 	})
-	results, err := client.Debug().TraceBlockByHash_callTracer("0xblockhash", 0, nil, nil)
+	results, err := client.Debug().TraceBlockByHashCallTracer("0xblockhash", 0, nil, nil)
 	require.NoError(t, err)
 	require.Len(t, results, 1)
 	assert.Equal(t, "0xtx1", results[0].TxHash)
 }
 
-func Test_debugNamespace_mock_TraceBlockByHash_prestateTracer(t *testing.T) {
-	client := testWithMock(t, "debug_traceBlockByHash", func(params json.RawMessage) interface{} {
-		return []map[string]interface{}{
+func Test_debugNamespace_mock_TraceBlockByHashPrestateTracer(t *testing.T) {
+	client := testWithMock(t, "debug_traceBlockByHash", func(params json.RawMessage) any {
+		return []map[string]any{
 			{
 				"txHash": "0xtx1",
-				"result": map[string]interface{}{
-					"0xaddr": map[string]interface{}{
+				"result": map[string]any{
+					"0xaddr": map[string]any{
 						"balance": "0xde0b6b3a7640000",
 						"nonce":   "0x5",
 					},
@@ -118,7 +118,7 @@ func Test_debugNamespace_mock_TraceBlockByHash_prestateTracer(t *testing.T) {
 			},
 		}
 	})
-	results, err := client.Debug().TraceBlockByHash_prestateTracer("0xblockhash", 0, nil, nil)
+	results, err := client.Debug().TraceBlockByHashPrestateTracer("0xblockhash", 0, nil, nil)
 	require.NoError(t, err)
 	require.Len(t, results, 1)
 	assert.Equal(t, "0xtx1", results[0].TxHash)
@@ -127,13 +127,13 @@ func Test_debugNamespace_mock_TraceBlockByHash_prestateTracer(t *testing.T) {
 // ─── TraceTransaction ────────────────────────────────────────────────────────
 
 func Test_debugNamespace_mock_TraceTransaction(t *testing.T) {
-	client := testWithMock(t, "debug_traceTransaction", func(params json.RawMessage) interface{} {
-		return map[string]interface{}{
+	client := testWithMock(t, "debug_traceTransaction", func(params json.RawMessage) any {
+		return map[string]any{
 			// 21000: standard ETH transfer gas cost
 			"gas":         21000,
 			"failed":      false,
 			"returnValue": "",
-			"structLogs":  []interface{}{},
+			"structLogs":  []any{},
 		}
 	})
 	result, err := client.Debug().TraceTransaction("0xtxhash", nil)
@@ -141,9 +141,9 @@ func Test_debugNamespace_mock_TraceTransaction(t *testing.T) {
 	require.NotNil(t, result)
 }
 
-func Test_debugNamespace_mock_TraceTransaction_callTracer(t *testing.T) {
-	client := testWithMock(t, "debug_traceTransaction", func(params json.RawMessage) interface{} {
-		return map[string]interface{}{
+func Test_debugNamespace_mock_TraceTransactionCallTracer(t *testing.T) {
+	client := testWithMock(t, "debug_traceTransaction", func(params json.RawMessage) any {
+		return map[string]any{
 			"from": "0xfrom",
 			// 0x5208 = 21000 (standard ETH transfer gas)
 			"gas":     "0x5208",
@@ -156,30 +156,30 @@ func Test_debugNamespace_mock_TraceTransaction_callTracer(t *testing.T) {
 			"type":  "CALL",
 		}
 	})
-	callFrame, err := client.Debug().TraceTransaction_callTracer("0xtxhash", 0, nil, nil)
+	callFrame, err := client.Debug().TraceTransactionCallTracer("0xtxhash", 0, nil, nil)
 	require.NoError(t, err)
 	require.NotNil(t, callFrame)
 	assert.Equal(t, "0xfrom", callFrame.From)
 	assert.Equal(t, "CALL", callFrame.Type)
 }
 
-func Test_debugNamespace_mock_TraceTransaction_prestateTracer(t *testing.T) {
-	client := testWithMock(t, "debug_traceTransaction", func(params json.RawMessage) interface{} {
-		return map[string]interface{}{
-			"0xfrom": map[string]interface{}{
+func Test_debugNamespace_mock_TraceTransactionPrestateTracer(t *testing.T) {
+	client := testWithMock(t, "debug_traceTransaction", func(params json.RawMessage) any {
+		return map[string]any{
+			"0xfrom": map[string]any{
 				// 0xde0b6b3a7640000 = 1000000000000000000 (1 ETH in wei)
 				"balance": "0xde0b6b3a7640000",
 				// 0x5 = 5
 				"nonce": "0x5",
 			},
-			"0xto": map[string]interface{}{
+			"0xto": map[string]any{
 				"balance": "0x0",
 				"nonce":   "0x0",
 				"code":    "0x60806040",
 			},
 		}
 	})
-	result, err := client.Debug().TraceTransaction_prestateTracer("0xtxhash", 0, nil, nil)
+	result, err := client.Debug().TraceTransactionPrestateTracer("0xtxhash", 0, nil, nil)
 	require.NoError(t, err)
 	require.NotNil(t, result)
 }
@@ -187,12 +187,12 @@ func Test_debugNamespace_mock_TraceTransaction_prestateTracer(t *testing.T) {
 // ─── TraceCall ───────────────────────────────────────────────────────────────
 
 func Test_debugNamespace_mock_TraceCall(t *testing.T) {
-	client := testWithMock(t, "debug_traceCall", func(params json.RawMessage) interface{} {
-		return map[string]interface{}{
+	client := testWithMock(t, "debug_traceCall", func(params json.RawMessage) any {
+		return map[string]any{
 			"gas":         21000,
 			"failed":      false,
 			"returnValue": "0x",
-			"structLogs":  []interface{}{},
+			"structLogs":  []any{},
 		}
 	})
 	tx := &Tx{To: "0x000000000000000000000000000000000000dead", Data: "0x"}
@@ -201,9 +201,9 @@ func Test_debugNamespace_mock_TraceCall(t *testing.T) {
 	require.NotNil(t, result)
 }
 
-func Test_debugNamespace_mock_TraceCall_callTracer(t *testing.T) {
-	client := testWithMock(t, "debug_traceCall", func(params json.RawMessage) interface{} {
-		return map[string]interface{}{
+func Test_debugNamespace_mock_TraceCallCallTracer(t *testing.T) {
+	client := testWithMock(t, "debug_traceCall", func(params json.RawMessage) any {
+		return map[string]any{
 			"from":    "0x0000000000000000000000000000000000000000",
 			"gas":     "0x5208",
 			"gasUsed": "0x5208",
@@ -215,24 +215,24 @@ func Test_debugNamespace_mock_TraceCall_callTracer(t *testing.T) {
 		}
 	})
 	tx := &Tx{To: "0x000000000000000000000000000000000000dead", Data: "0x18160ddd"}
-	callFrame, err := client.Debug().TraceCall_callTracer(tx, evmctypes.Latest, 0, nil, nil)
+	callFrame, err := client.Debug().TraceCallCallTracer(tx, evmctypes.Latest, 0, nil, nil)
 	require.NoError(t, err)
 	require.NotNil(t, callFrame)
 	assert.Equal(t, "CALL", callFrame.Type)
 	assert.Equal(t, "0x000000000000000000000000000000000000dead", *callFrame.To)
 }
 
-func Test_debugNamespace_mock_TraceCall_prestateTracer(t *testing.T) {
-	client := testWithMock(t, "debug_traceCall", func(params json.RawMessage) interface{} {
-		return map[string]interface{}{
-			"0xfrom": map[string]interface{}{
+func Test_debugNamespace_mock_TraceCallPrestateTracer(t *testing.T) {
+	client := testWithMock(t, "debug_traceCall", func(params json.RawMessage) any {
+		return map[string]any{
+			"0xfrom": map[string]any{
 				"balance": "0xde0b6b3a7640000",
 				"nonce":   "0x1",
 			},
 		}
 	})
 	tx := &Tx{To: "0x000000000000000000000000000000000000dead", Data: "0x"}
-	result, err := client.Debug().TraceCall_prestateTracer(tx, evmctypes.Latest, 0, nil, nil)
+	result, err := client.Debug().TraceCallPrestateTracer(tx, evmctypes.Latest, 0, nil, nil)
 	require.NoError(t, err)
 	require.NotNil(t, result)
 }
@@ -241,38 +241,38 @@ func Test_debugNamespace_mock_TraceCall_prestateTracer(t *testing.T) {
 
 // customTracerResultJSON은 custom JS tracer 결과 mock 데이터.
 // txHash는 결과 객체를 구분하는 트랜잭션 해시다.
-func customTracerResultJSON(txHash string) map[string]interface{} {
-	return map[string]interface{}{
+func customTracerResultJSON(txHash string) map[string]any {
+	return map[string]any{
 		"txHash": txHash,
-		"result": map[string]interface{}{
+		"result": map[string]any{
 			"gasUsed": 21000,
 		},
 	}
 }
 
-func Test_debugNamespace_mock_TraceTransaction_customTracer(t *testing.T) {
-	client := testWithMock(t, "debug_traceTransaction", func(params json.RawMessage) interface{} {
-		return map[string]interface{}{
+func Test_debugNamespace_mock_TraceTransactionCustomTracer(t *testing.T) {
+	client := testWithMock(t, "debug_traceTransaction", func(params json.RawMessage) any {
+		return map[string]any{
 			"gasUsed": 21000,
 		}
 	})
-	result, err := client.Debug().TraceTransaction_customTracer("0xtxhash", "{result: function() { return {gasUsed: 0}; }}", 0, nil)
+	result, err := client.Debug().TraceTransactionCustomTracer("0xtxhash", "{result: function() { return {gasUsed: 0}; }}", 0, nil)
 	require.NoError(t, err)
 	require.NotNil(t, result)
 
-	var parsed map[string]interface{}
+	var parsed map[string]any
 	require.NoError(t, json.Unmarshal(result, &parsed))
 	assert.Equal(t, float64(21000), parsed["gasUsed"])
 }
 
-func Test_debugNamespace_mock_TraceBlockByNumber_customTracer(t *testing.T) {
-	client := testWithMock(t, "debug_traceBlockByNumber", func(params json.RawMessage) interface{} {
-		return []map[string]interface{}{
+func Test_debugNamespace_mock_TraceBlockByNumberCustomTracer(t *testing.T) {
+	client := testWithMock(t, "debug_traceBlockByNumber", func(params json.RawMessage) any {
+		return []map[string]any{
 			customTracerResultJSON("0xtx1"),
 			customTracerResultJSON("0xtx2"),
 		}
 	})
-	results, err := client.Debug().TraceBlockByNumber_customTracer(100, "{result: function() { return {gasUsed: 0}; }}", 0, nil)
+	results, err := client.Debug().TraceBlockByNumberCustomTracer(100, "{result: function() { return {gasUsed: 0}; }}", 0, nil)
 	require.NoError(t, err)
 	require.Len(t, results, 2)
 	assert.Equal(t, "0xtx1", results[0].TxHash)
@@ -280,31 +280,31 @@ func Test_debugNamespace_mock_TraceBlockByNumber_customTracer(t *testing.T) {
 	assert.NotEmpty(t, results[0].Result)
 }
 
-func Test_debugNamespace_mock_TraceBlockByHash_customTracer(t *testing.T) {
-	client := testWithMock(t, "debug_traceBlockByHash", func(params json.RawMessage) interface{} {
-		return []map[string]interface{}{
+func Test_debugNamespace_mock_TraceBlockByHashCustomTracer(t *testing.T) {
+	client := testWithMock(t, "debug_traceBlockByHash", func(params json.RawMessage) any {
+		return []map[string]any{
 			customTracerResultJSON("0xtx1"),
 		}
 	})
-	results, err := client.Debug().TraceBlockByHash_customTracer("0xblockhash", "{result: function() { return {gasUsed: 0}; }}", 0, nil)
+	results, err := client.Debug().TraceBlockByHashCustomTracer("0xblockhash", "{result: function() { return {gasUsed: 0}; }}", 0, nil)
 	require.NoError(t, err)
 	require.Len(t, results, 1)
 	assert.Equal(t, "0xtx1", results[0].TxHash)
 	assert.NotEmpty(t, results[0].Result)
 }
 
-func Test_debugNamespace_mock_TraceCall_customTracer(t *testing.T) {
-	client := testWithMock(t, "debug_traceCall", func(params json.RawMessage) interface{} {
-		return map[string]interface{}{
+func Test_debugNamespace_mock_TraceCallCustomTracer(t *testing.T) {
+	client := testWithMock(t, "debug_traceCall", func(params json.RawMessage) any {
+		return map[string]any{
 			"gasUsed": 21000,
 		}
 	})
 	tx := &Tx{To: "0x000000000000000000000000000000000000dead", Data: "0x"}
-	result, err := client.Debug().TraceCall_customTracer(tx, evmctypes.Latest, "{result: function() { return {gasUsed: 0}; }}", 0, nil)
+	result, err := client.Debug().TraceCallCustomTracer(tx, evmctypes.Latest, "{result: function() { return {gasUsed: 0}; }}", 0, nil)
 	require.NoError(t, err)
 	require.NotNil(t, result)
 
-	var parsed map[string]interface{}
+	var parsed map[string]any
 	require.NoError(t, json.Unmarshal(result, &parsed))
 	assert.Equal(t, float64(21000), parsed["gasUsed"])
 }
@@ -312,7 +312,7 @@ func Test_debugNamespace_mock_TraceCall_customTracer(t *testing.T) {
 // ─── Raw / Getter Methods ───────────────────────────────────────────────────
 
 func Test_debugNamespace_mock_GetRawHeader(t *testing.T) {
-	client := testWithMock(t, "debug_getRawHeader", func(params json.RawMessage) interface{} {
+	client := testWithMock(t, "debug_getRawHeader", func(params json.RawMessage) any {
 		return "0xf9020aa0"
 	})
 	raw, err := client.Debug().GetRawHeader(evmctypes.Latest)
@@ -321,7 +321,7 @@ func Test_debugNamespace_mock_GetRawHeader(t *testing.T) {
 }
 
 func Test_debugNamespace_mock_GetRawBlock(t *testing.T) {
-	client := testWithMock(t, "debug_getRawBlock", func(params json.RawMessage) interface{} {
+	client := testWithMock(t, "debug_getRawBlock", func(params json.RawMessage) any {
 		return "0xf9020af9"
 	})
 	raw, err := client.Debug().GetRawBlock(evmctypes.Latest)
@@ -330,7 +330,7 @@ func Test_debugNamespace_mock_GetRawBlock(t *testing.T) {
 }
 
 func Test_debugNamespace_mock_GetRawTransaction(t *testing.T) {
-	client := testWithMock(t, "debug_getRawTransaction", func(params json.RawMessage) interface{} {
+	client := testWithMock(t, "debug_getRawTransaction", func(params json.RawMessage) any {
 		return "0x02f8748201"
 	})
 	raw, err := client.Debug().GetRawTransaction("0xtxhash")
@@ -339,7 +339,7 @@ func Test_debugNamespace_mock_GetRawTransaction(t *testing.T) {
 }
 
 func Test_debugNamespace_mock_GetRawReceipts(t *testing.T) {
-	client := testWithMock(t, "debug_getRawReceipts", func(params json.RawMessage) interface{} {
+	client := testWithMock(t, "debug_getRawReceipts", func(params json.RawMessage) any {
 		return []string{"0xf9010a", "0xf9020b"}
 	})
 	receipts, err := client.Debug().GetRawReceipts(evmctypes.Latest)
@@ -350,12 +350,12 @@ func Test_debugNamespace_mock_GetRawReceipts(t *testing.T) {
 }
 
 func Test_debugNamespace_mock_GetBadBlocks(t *testing.T) {
-	client := testWithMock(t, "debug_getBadBlocks", func(params json.RawMessage) interface{} {
-		return []map[string]interface{}{
+	client := testWithMock(t, "debug_getBadBlocks", func(params json.RawMessage) any {
+		return []map[string]any{
 			{
 				"hash": "0xbadblockhash",
 				"rlp":  "0xf9020a",
-				"block": map[string]interface{}{
+				"block": map[string]any{
 					"number":           "0x1",
 					"hash":             "0xbadblockhash",
 					"parentHash":       "0x0000000000000000000000000000000000000000000000000000000000000000",

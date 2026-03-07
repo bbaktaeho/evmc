@@ -14,7 +14,7 @@ type contract struct {
 func (c *contract) Query(ctx context.Context, queryParams *evmctypes.QueryParams) (*evmctypes.QueryResp, error) {
 	var (
 		result = new(string)
-		params = []interface{}{queryParams, evmctypes.ParseBlockAndTag(queryParams.NumOrTag)}
+		params = []any{queryParams, evmctypes.ParseBlockAndTag(queryParams.NumOrTag)}
 	)
 	if err := c.c.call(ctx, result, EthCall, params...); err != nil {
 		return nil, err
@@ -26,7 +26,7 @@ func (c *contract) Query(ctx context.Context, queryParams *evmctypes.QueryParams
 	}, nil
 }
 
-// deprecated
+// Deprecated: Use [contract.BatchQueriesWithContext] instead.
 func (c *contract) BatchQuery(
 	ctx context.Context,
 	batchQueryParams []*evmctypes.QueryParams,
@@ -41,7 +41,7 @@ func (c *contract) BatchQuery(
 		numOrTag := evmctypes.ParseBlockAndTag(batchQueryParams[i].NumOrTag)
 		elements[i] = rpc.BatchElem{
 			Method: EthCall.String(),
-			Args: []interface{}{
+			Args: []any{
 				batchQueryParams[i],
 				numOrTag,
 			},
@@ -75,7 +75,7 @@ func (c *contract) BatchQueriesWithContext(
 		numOrTag := batchQueryParams[i].NumOrTag.String()
 		elements[i] = rpc.BatchElem{
 			Method: EthCall.String(),
-			Args: []interface{}{
+			Args: []any{
 				batchQueryParams[i],
 				numOrTag,
 			},

@@ -37,14 +37,14 @@ type Tx struct {
 	MaxFeePerGas         decimal.Decimal `json:"maxFeePerGas"`         // EIP-1559
 }
 
-func (t *Tx) parseCallMsg() (map[string]interface{}, error) {
-	accessList := make([]map[string]interface{}, len(t.AccessList))
+func (t *Tx) parseCallMsg() (map[string]any, error) {
+	accessList := make([]map[string]any, len(t.AccessList))
 	for i, access := range t.AccessList {
 		storageKeys := make([]string, len(access.StorageKeys))
 		for j, key := range access.StorageKeys {
 			storageKeys[j] = key
 		}
-		accessList[i] = map[string]interface{}{
+		accessList[i] = map[string]any{
 			"address":     access.Address,
 			"storageKeys": storageKeys,
 		}
@@ -55,7 +55,7 @@ func (t *Tx) parseCallMsg() (map[string]interface{}, error) {
 	if t.To == "" {
 		return nil, ErrToRequired
 	}
-	msg := map[string]interface{}{
+	msg := map[string]any{
 		"from":       t.From,
 		"to":         t.To,
 		"data":       t.Data,

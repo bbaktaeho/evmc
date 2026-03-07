@@ -45,7 +45,7 @@ func (e *ethNamespace) getBlockIncTxRange(ctx context.Context, from, to uint64) 
 	for i := range elements {
 		elements[i] = rpc.BatchElem{
 			Method: EthGetBlockByNumber.String(),
-			Args:   []interface{}{evmctypes.FormatNumber(from + uint64(i)), true},
+			Args:   []any{evmctypes.FormatNumber(from + uint64(i)), true},
 			Result: &results[i],
 		}
 	}
@@ -90,7 +90,7 @@ func (e *ethNamespace) getBlockRange(ctx context.Context, from, to uint64) ([]*e
 	for i := range elements {
 		elements[i] = rpc.BatchElem{
 			Method: EthGetBlockByNumber.String(),
-			Args:   []interface{}{evmctypes.FormatNumber(from + uint64(i)), false},
+			Args:   []any{evmctypes.FormatNumber(from + uint64(i)), false},
 			Result: &blocks[i],
 		}
 	}
@@ -140,7 +140,7 @@ func (e *ethNamespace) SubscribeLogs(
 	return e.s.subscribe(ctx, "eth", ch, logs, params)
 }
 
-func (e *ethNamespace) subscribe(ctx context.Context, ch interface{}, args ...interface{}) (evmctypes.Subscription, error) {
+func (e *ethNamespace) subscribe(ctx context.Context, ch any, args ...any) (evmctypes.Subscription, error) {
 	if !e.info.IsWebsocket() {
 		return nil, ErrWebsocketRequired
 	}
@@ -205,7 +205,7 @@ func (e *ethNamespace) feeHistory(
 	rewardPercentiles []float64,
 ) (*evmctypes.FeeHistory, error) {
 	result := new(evmctypes.FeeHistory)
-	params := []interface{}{hexutil.EncodeUint64(blockCount), lastBlock.String(), rewardPercentiles}
+	params := []any{hexutil.EncodeUint64(blockCount), lastBlock.String(), rewardPercentiles}
 	if err := e.c.call(ctx, result, EthFeeHistory, params...); err != nil {
 		return nil, err
 	}
@@ -469,12 +469,7 @@ func (e *ethNamespace) GetBlockIncTxByNumberWithContext(
 	return block, nil
 }
 
-func (e *ethNamespace) getBlockByNumber(
-	ctx context.Context,
-	result interface{},
-	number evmctypes.BlockAndTag,
-	incTx bool,
-) error {
+func (e *ethNamespace) getBlockByNumber(ctx context.Context, result any, number evmctypes.BlockAndTag, incTx bool) error {
 	if number == evmctypes.Pending {
 		return ErrPendingBlockNotSupported
 	}
@@ -519,7 +514,7 @@ func (e *ethNamespace) GetBlockIncTxByHashWithContext(ctx context.Context, hash 
 	return block, nil
 }
 
-func (e *ethNamespace) getBlockByHash(ctx context.Context, result interface{}, hash string, incTx bool) error {
+func (e *ethNamespace) getBlockByHash(ctx context.Context, result any, hash string, incTx bool) error {
 	return e.c.call(ctx, result, EthGetBlockByHash, hash, incTx)
 }
 
@@ -532,7 +527,7 @@ func (e *ethNamespace) getUncleBlocks(ctx context.Context, blockNumber uint64, u
 	for i := range elements {
 		elements[i] = rpc.BatchElem{
 			Method: EthGetUncleByBlockNumberAndIndex.String(),
-			Args:   []interface{}{hexutil.EncodeUint64(blockNumber), hexutil.EncodeUint64(uint64(i))},
+			Args:   []any{hexutil.EncodeUint64(blockNumber), hexutil.EncodeUint64(uint64(i))},
 			Result: &uncleBlocks[i],
 		}
 	}
@@ -675,7 +670,7 @@ func (e *ethNamespace) getLogsByBlockHash(ctx context.Context, hash string) ([]*
 // TODO: addresses
 func (e *ethNamespace) getLogs(ctx context.Context, filter *evmctypes.LogFilter) ([]*evmctypes.Log, error) {
 	logs := new([]*evmctypes.Log)
-	params := make(map[string]interface{})
+	params := make(map[string]any)
 	if filter.BlockHash != nil {
 		params["blockHash"] = *filter.BlockHash
 	} else if filter.FromBlock != nil && filter.ToBlock != nil {
@@ -725,7 +720,7 @@ func (e *ethNamespace) GetBlockReceiptsWithContext(ctx context.Context, number u
 }
 
 func (e *ethNamespace) getBlockReceipts(ctx context.Context, number uint64) ([]*evmctypes.Receipt, error) {
-	var result = new([]*evmctypes.Receipt)
+	result := new([]*evmctypes.Receipt)
 	if err := e.c.call(ctx, result, EthGetBlockReceipts, hexutil.EncodeUint64(number)); err != nil {
 		return nil, err
 	}
@@ -774,7 +769,7 @@ func (e *ethNamespace) SyncingWithContext(ctx context.Context) (bool, *evmctypes
 
 func (e *ethNamespace) syncing(ctx context.Context) (bool, *evmctypes.Syncing, error) {
 	var (
-		result        interface{}
+		result        any
 		resultSyncing = new(evmctypes.Syncing)
 	)
 	if err := e.c.call(ctx, &result, EthSyncing); err != nil {

@@ -33,7 +33,7 @@ var (
 	solAddressArrArgs    = abi.Arguments{{Type: solAddressArr}}
 )
 
-type SolType interface{}
+type SolType any
 
 func Bool(b bool) SolType {
 	res, err := solBoolArgs.Pack(b)

@@ -12,14 +12,14 @@ import (
 // mockRPCServer는 테스트용 JSON-RPC HTTP 서버.
 type mockRPCServer struct {
 	mu       sync.Mutex
-	handlers map[string]func(params json.RawMessage) interface{}
+	handlers map[string]func(params json.RawMessage) any
 	server   *httptest.Server
 }
 
 func newMockRPCServer(t *testing.T) *mockRPCServer {
 	t.Helper()
 	m := &mockRPCServer{
-		handlers: make(map[string]func(params json.RawMessage) interface{}),
+		handlers: make(map[string]func(params json.RawMessage) any),
 	}
 	m.server = httptest.NewServer(http.HandlerFunc(m.handle))
 	t.Cleanup(m.server.Close)
@@ -28,7 +28,7 @@ func newMockRPCServer(t *testing.T) *mockRPCServer {
 
 // writeJSON은 응답 헤더를 설정하고 v를 JSON으로 인코딩해 w에 쓴다.
 // 인코딩 중 에러가 발생하면 500 Internal Server Error를 반환한다.
-func writeJSON(w http.ResponseWriter, v interface{}) {
+func writeJSON(w http.ResponseWriter, v any) {
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(v); err != nil {
 		http.Error(w, fmt.Sprintf("json encode error: %s", err.Error()), http.StatusInternalServerError)
@@ -45,7 +45,7 @@ func (m *mockRPCServer) handle(w http.ResponseWriter, r *http.Request) {
 	// batch 요청 처리
 	if len(body) > 0 && body[0] == '[' {
 		var reqs []struct {
-			ID     interface{}     `json:"id"`
+			ID     any     `json:"id"`
 			Method string          `json:"method"`
 			Params json.RawMessage `json:"params"`
 		}
@@ -53,7 +53,7 @@ func (m *mockRPCServer) handle(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "bad request", http.StatusBadRequest)
 			return
 		}
-		responses := make([]map[string]interface{}, 0, len(reqs))
+		responses := make([]map[string]any, 0, len(reqs))
 		for _, req := range reqs {
 			responses = append(responses, m.dispatch(req.ID, req.Method, req.Params))
 		}
@@ -63,7 +63,7 @@ func (m *mockRPCServer) handle(w http.ResponseWriter, r *http.Request) {
 
 	// 단일 요청 처리
 	var req struct {
-		ID     interface{}     `json:"id"`
+		ID     any     `json:"id"`
 		Method string          `json:"method"`
 		Params json.RawMessage `json:"params"`
 	}
@@ -74,16 +74,16 @@ func (m *mockRPCServer) handle(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, m.dispatch(req.ID, req.Method, req.Params))
 }
 
-func (m *mockRPCServer) dispatch(id interface{}, method string, params json.RawMessage) map[string]interface{} {
+func (m *mockRPCServer) dispatch(id any, method string, params json.RawMessage) map[string]any {
 	m.mu.Lock()
 	handler, ok := m.handlers[method]
 	m.mu.Unlock()
 
 	if !ok {
-		return map[string]interface{}{
+		return map[string]any{
 			"jsonrpc": "2.0",
 			"id":      id,
-			"error": map[string]interface{}{
+			"error": map[string]any{
 				// JSON-RPC 2.0 error code: method not found
 				"code":    -32601,
 				"message": fmt.Sprintf("method not found: %s", method),
@@ -91,14 +91,14 @@ func (m *mockRPCServer) dispatch(id interface{}, method string, params json.RawM
 		}
 	}
 	result := handler(params)
-	return map[string]interface{}{
+	return map[string]any{
 		"jsonrpc": "2.0",
 		"id":      id,
 		"result":  result,
 	}
 }
 
-func (m *mockRPCServer) on(method string, handler func(params json.RawMessage) interface{}) {
+func (m *mockRPCServer) on(method string, handler func(params json.RawMessage) any) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	m.handlers[method] = handler

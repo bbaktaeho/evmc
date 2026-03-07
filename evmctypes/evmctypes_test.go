@@ -10,7 +10,7 @@ import (
 )
 
 func Test_Block(t *testing.T) {
-	raw := make(map[string]interface{})
+	raw := make(map[string]any)
 	raw["number"] = "0x1"
 	raw["hash"] = "0x2"
 	raw["parentHash"] = "0x3"
@@ -39,7 +39,7 @@ func Test_Block(t *testing.T) {
 	raw["sendCount"] = "0x1a"
 	raw["sendRoot"] = "0x1b"
 	raw["transactions"] = []string{"0x10", "0x11", "0x12"}
-	raw["withdrawals"] = []map[string]interface{}{
+	raw["withdrawals"] = []map[string]any{
 		{
 			"index":          "0x1",
 			"validatorIndex": "0x2",
@@ -92,7 +92,7 @@ func Test_Block(t *testing.T) {
 }
 
 func Test_block_NextBaseFee(t *testing.T) {
-	raw := make(map[string]interface{})
+	raw := make(map[string]any)
 	raw["baseFeePerGas"] = "0x1"
 	block := new(Block)
 	rawBytes, _ := json.Marshal(raw)
@@ -102,7 +102,7 @@ func Test_block_NextBaseFee(t *testing.T) {
 }
 
 func Test_Transaction(t *testing.T) {
-	raw := make(map[string]interface{})
+	raw := make(map[string]any)
 	raw["blockHash"] = "0x1"
 	raw["blockNumber"] = "0x2"
 	raw["from"] = "0x3"
@@ -144,7 +144,7 @@ func Test_Transaction(t *testing.T) {
 }
 
 func Test_Receipt(t *testing.T) {
-	raw := make(map[string]interface{})
+	raw := make(map[string]any)
 	raw["blockHash"] = "0x1"
 	raw["blockNumber"] = "0x2"
 	raw["transactionHash"] = "0x3"
@@ -154,7 +154,7 @@ func Test_Receipt(t *testing.T) {
 	raw["gasUsed"] = "0x7"
 	raw["cumulativeGasUsed"] = "0x8"
 	raw["contractAddress"] = "0x9"
-	raw["logs"] = []map[string]interface{}{
+	raw["logs"] = []map[string]any{
 		{
 			"address":          "0xa",
 			"topics":           []string{"0xb"},
@@ -209,7 +209,7 @@ func Test_Receipt(t *testing.T) {
 
 // mustMarshalUnmarshal은 raw 맵을 JSON으로 직렬화한 후 target에 역직렬화한다.
 // 직렬화나 역직렬화 중 에러가 발생하면 즉시 테스트를 실패시킨다.
-func mustMarshalUnmarshal[T any](t *testing.T, raw map[string]interface{}, target *T) {
+func mustMarshalUnmarshal[T any](t *testing.T, raw map[string]any, target *T) {
 	t.Helper()
 	rawBytes, err := json.Marshal(raw)
 	require.NoError(t, err)
@@ -217,7 +217,7 @@ func mustMarshalUnmarshal[T any](t *testing.T, raw map[string]interface{}, targe
 }
 
 func Test_Log(t *testing.T) {
-	raw := map[string]interface{}{
+	raw := map[string]any{
 		"address":          "0xabc",
 		"topics":           []string{"0x1", "0x2"},
 		"data":             "0xdeadbeef",
@@ -246,7 +246,7 @@ func Test_Log(t *testing.T) {
 }
 
 func Test_Log_Removed(t *testing.T) {
-	raw := map[string]interface{}{
+	raw := map[string]any{
 		"address":         "0xabc",
 		"topics":          []string{},
 		"data":            "0x",
@@ -263,7 +263,7 @@ func Test_Log_Removed(t *testing.T) {
 }
 
 func Test_FeeHistory(t *testing.T) {
-	raw := map[string]interface{}{
+	raw := map[string]any{
 		"oldestBlock":   "0x64",
 		"baseFeePerGas": []string{"0x1", "0x2", "0x3"},
 		"gasUsedRatio":  []float64{0.1, 0.5, 0.9},
@@ -280,7 +280,7 @@ func Test_FeeHistory(t *testing.T) {
 }
 
 func Test_FeeHistory_WithBlobGas(t *testing.T) {
-	raw := map[string]interface{}{
+	raw := map[string]any{
 		"oldestBlock":       "0x1",
 		"baseFeePerBlobGas": []string{"0x100", "0x200"},
 		"blobGasUsedRatio":  []float64{0.3, 0.7},
@@ -295,7 +295,7 @@ func Test_FeeHistory_WithBlobGas(t *testing.T) {
 }
 
 func Test_Syncing(t *testing.T) {
-	raw := map[string]interface{}{
+	raw := map[string]any{
 		"startingBlock":          "0x1",
 		"currentBlock":           "0xa",
 		"highestBlock":           "0x64",
@@ -338,7 +338,7 @@ func Test_Syncing(t *testing.T) {
 }
 
 func Test_BlockIncTx(t *testing.T) {
-	raw := map[string]interface{}{
+	raw := map[string]any{
 		"number":           "0x1",
 		"hash":             "0xhash",
 		"parentHash":       "0xparent",
@@ -355,7 +355,7 @@ func Test_BlockIncTx(t *testing.T) {
 		"timestamp":        "0x1",
 		"transactionsRoot": "0x0",
 		"receiptsRoot":     "0x0",
-		"transactions": []map[string]interface{}{
+		"transactions": []map[string]any{
 			{
 				"blockHash":        "0xhash",
 				"blockNumber":      "0x1",
@@ -387,7 +387,7 @@ func Test_BlockIncTx(t *testing.T) {
 }
 
 func Test_Header(t *testing.T) {
-	raw := map[string]interface{}{
+	raw := map[string]any{
 		"number":           "0xa",
 		"hash":             "0xheaderhash",
 		"parentHash":       "0xparent",
@@ -415,7 +415,7 @@ func Test_Header(t *testing.T) {
 }
 
 func Test_CallFrame(t *testing.T) {
-	raw := map[string]interface{}{
+	raw := map[string]any{
 		"from":    "0xfrom",
 		"gas":     "0x5208",
 		"gasUsed": "0x5208",
@@ -424,7 +424,7 @@ func Test_CallFrame(t *testing.T) {
 		"output":  "0xresult",
 		"value":   "0xde0b6b3a7640000",
 		"type":    "CALL",
-		"calls": []map[string]interface{}{
+		"calls": []map[string]any{
 			{
 				"from":    "0xfrom2",
 				"gas":     "0x1000",
@@ -453,7 +453,7 @@ func Test_CallFrame(t *testing.T) {
 }
 
 func Test_CallFrame_WithError(t *testing.T) {
-	raw := map[string]interface{}{
+	raw := map[string]any{
 		"from":         "0xfrom",
 		"gas":          "0x5208",
 		"gasUsed":      "0x5208",
@@ -480,8 +480,8 @@ func Test_FlatCallFrame(t *testing.T) {
 	input := "0x"
 	value := "0xde0b6b3a7640000"
 
-	raw := map[string]interface{}{
-		"action": map[string]interface{}{
+	raw := map[string]any{
+		"action": map[string]any{
 			"callType": callType,
 			"from":     from,
 			"to":       to,
@@ -557,7 +557,7 @@ func Test_Transaction_EIP1559(t *testing.T) {
 	chainID := "0x1"
 	yParity := "0x1"
 
-	raw := map[string]interface{}{
+	raw := map[string]any{
 		"blockHash":            "0x1",
 		"blockNumber":          "0x1",
 		"from":                 "0xfrom",
@@ -577,7 +577,7 @@ func Test_Transaction_EIP1559(t *testing.T) {
 		"maxPriorityFeePerGas": maxPriorityFeePerGas,
 		"chainId":              chainID,
 		"yParity":              yParity,
-		"accessList":           []interface{}{},
+		"accessList":           []any{},
 	}
 
 	tx := new(Transaction)
@@ -596,7 +596,7 @@ func Test_Transaction_EIP1559(t *testing.T) {
 }
 
 func Test_Receipt_L1Fields(t *testing.T) {
-	raw := map[string]interface{}{
+	raw := map[string]any{
 		"blockHash":         "0x1",
 		"blockNumber":       "0x1",
 		"transactionHash":   "0x2",
@@ -605,7 +605,7 @@ func Test_Receipt_L1Fields(t *testing.T) {
 		"to":                "0xto",
 		"gasUsed":           "0x5208",
 		"cumulativeGasUsed": "0x5208",
-		"logs":              []interface{}{},
+		"logs":              []any{},
 		"type":              "0x7e",
 		"effectiveGasPrice": "0x0",
 		"logsBloom":         "0x0",
@@ -629,7 +629,7 @@ func Test_Receipt_L1Fields(t *testing.T) {
 }
 
 func Test_Block_MilliTimestamp(t *testing.T) {
-	raw := map[string]interface{}{
+	raw := map[string]any{
 		"number":           "0x1",
 		"hash":             "0xhash",
 		"parentHash":       "0x0",
@@ -658,7 +658,7 @@ func Test_Block_MilliTimestamp(t *testing.T) {
 }
 
 func Test_Block_WithdrawalsAndUncles(t *testing.T) {
-	raw := map[string]interface{}{
+	raw := map[string]any{
 		"number":           "0x1",
 		"hash":             "0xhash",
 		"parentHash":       "0x0",
@@ -677,7 +677,7 @@ func Test_Block_WithdrawalsAndUncles(t *testing.T) {
 		"receiptsRoot":     "0x0",
 		"transactions":     []string{"0xtx1"},
 		"uncles":           []string{"0xuncle1"},
-		"withdrawals": []map[string]interface{}{
+		"withdrawals": []map[string]any{
 			{
 				"index":          "0x0",
 				"validatorIndex": "0x10",

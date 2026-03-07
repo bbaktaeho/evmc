@@ -27,7 +27,7 @@ func FormatNumber(number uint64) BlockAndTag {
 
 // ParseBlockAndTag returns the string form of a block tag or number.
 // If v is a BlockAndTag or string, it is returned as-is; otherwise "latest" is returned.
-func ParseBlockAndTag(v interface{}) string {
+func ParseBlockAndTag(v any) string {
 	switch val := v.(type) {
 	case BlockAndTag:
 		return val.String()
