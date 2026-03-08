@@ -19,6 +19,7 @@ var (
 	solBytes, _         = abi.NewType("bytes", "", nil)
 	solAddress, _       = abi.NewType("address", "", nil)
 	solUint64Arr, _     = abi.NewType("uint64[]", "", nil)
+	solUint256Arr, _    = abi.NewType("uint256[]", "", nil)
 	solFiexdBytesArr, _ = abi.NewType("bytes32[]", "", nil)
 	solAddressArr, _    = abi.NewType("address[]", "", nil)
 
@@ -29,6 +30,7 @@ var (
 	solFixedBytesArgs    = abi.Arguments{{Type: solFixedBytes}}
 	solAddressArgs       = abi.Arguments{{Type: solAddress}}
 	solUint64ArrArgs     = abi.Arguments{{Type: solUint64Arr}}
+	solUint256ArrArgs    = abi.Arguments{{Type: solUint256Arr}}
 	solFiexdBytesArrArgs = abi.Arguments{{Type: solFiexdBytesArr}}
 	solAddressArrArgs    = abi.Arguments{{Type: solAddressArr}}
 )
@@ -157,4 +159,64 @@ func ParseSolUintToDecimal(solReturn string) (decimal.Decimal, error) {
 	}
 	preRes := *abi.ConvertType(unpacked[0], new(*big.Int)).(**big.Int)
 	return decimal.NewFromBigInt(preRes, 0), nil
+}
+
+func ParseSolAddress(solReturn string) (string, error) {
+	b, err := hexutil.Decode(solReturn)
+	if err != nil {
+		return "", err
+	}
+	unpacked, err := solAddressArgs.Unpack(b)
+	if err != nil {
+		return "", err
+	}
+	addr := *abi.ConvertType(unpacked[0], new(common.Address)).(*common.Address)
+	return addr.Hex(), nil
+}
+
+func ParseSolUintArray(solReturn string) ([]decimal.Decimal, error) {
+	b, err := hexutil.Decode(solReturn)
+	if err != nil {
+		return nil, err
+	}
+	unpacked, err := solUint256ArrArgs.Unpack(b)
+	if err != nil {
+		return nil, err
+	}
+	arr := *abi.ConvertType(unpacked[0], new([]*big.Int)).(*[]*big.Int)
+	result := make([]decimal.Decimal, len(arr))
+	for i, v := range arr {
+		result[i] = decimal.NewFromBigInt(v, 0)
+	}
+	return result, nil
+}
+
+func Uint256Arr(values []decimal.Decimal) SolType {
+	arr := make([]*big.Int, len(values))
+	for i, v := range values {
+		arr[i] = v.BigInt()
+	}
+	res, err := solUint256ArrArgs.Pack(arr)
+	if err != nil {
+		panic(err)
+	}
+	return res
+}
+
+// PackBalanceOfBatch ABI-encodes the arguments for balanceOfBatch(address[],uint256[])
+// using proper multi-argument dynamic type encoding.
+func PackBalanceOfBatch(owners []string, ids []decimal.Decimal) ([]byte, error) {
+	addrs := make([]common.Address, len(owners))
+	for i, o := range owners {
+		addrs[i] = common.HexToAddress(o)
+	}
+	arr := make([]*big.Int, len(ids))
+	for i, v := range ids {
+		arr[i] = v.BigInt()
+	}
+	args := abi.Arguments{
+		{Type: solAddressArr},
+		{Type: solUint256Arr},
+	}
+	return args.Pack(addrs, arr)
 }

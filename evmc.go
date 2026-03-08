@@ -143,6 +143,8 @@ func newClient(ctx context.Context, url string, isWs bool, opts ...Options) (*Ev
 	evmc.kaia = &kaiaNamespace{c: evmc}
 	evmc.contract = &contract{c: evmc}
 	evmc.erc20 = &erc20Contract{info: evmc, c: evmc, ts: evmc}
+	evmc.erc721 = &erc721Contract{info: evmc, c: evmc, ts: evmc}
+	evmc.erc1155 = &erc1155Contract{info: evmc, c: evmc, ts: evmc}
 
 	return evmc, nil
 }
@@ -233,12 +235,12 @@ func (e *Evmc) ERC20() *erc20Contract {
 	return e.erc20
 }
 
-// ERC721 returns the ERC-721 NFT contract namespace (not fully implemented).
+// ERC721 returns the ERC-721 NFT contract namespace for standard NFT operations.
 func (e *Evmc) ERC721() *erc721Contract {
 	return e.erc721
 }
 
-// ERC1155 returns the ERC-1155 multi-token contract namespace (not fully implemented).
+// ERC1155 returns the ERC-1155 multi-token contract namespace for multi-token operations.
 func (e *Evmc) ERC1155() *erc1155Contract {
 	return e.erc1155
 }

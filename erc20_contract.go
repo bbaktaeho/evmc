@@ -186,8 +186,70 @@ func (e *erc20Contract) decimals(
 	return evmcsoltypes.ParseSolUintToDecimal(*result)
 }
 
-// TODO: implement
-func (e *erc20Contract) Approve(tx *Tx, wallet *Wallet, spender string, amount decimal.Decimal) {}
+func GenerateERC20Approve(spender string, amount decimal.Decimal) string {
+	input, _ := evmcutils.GenerateTxInput(
+		erc20FuncSigApprove,
+		evmcsoltypes.Address(spender),
+		evmcsoltypes.Uint256(amount),
+	)
+	return input
+}
+
+func GenerateERC20TransferFrom(from, to string, amount decimal.Decimal) string {
+	input, _ := evmcutils.GenerateTxInput(
+		erc20FuncSigTransferFrom,
+		evmcsoltypes.Address(from),
+		evmcsoltypes.Address(to),
+		evmcsoltypes.Uint256(amount),
+	)
+	return input
+}
+
+func (e *erc20Contract) Approve(tx *Tx, wallet *Wallet, spender string, amount decimal.Decimal) (string, error) {
+	return e.approve(context.Background(), tx, wallet, spender, amount)
+}
+
+func (e *erc20Contract) ApproveWithContext(
+	ctx context.Context,
+	tx *Tx,
+	wallet *Wallet,
+	spender string,
+	amount decimal.Decimal,
+) (string, error) {
+	return e.approve(ctx, tx, wallet, spender, amount)
+}
+
+func (e *erc20Contract) approve(
+	ctx context.Context,
+	tx *Tx,
+	wallet *Wallet,
+	spender string,
+	amount decimal.Decimal,
+) (string, error) {
+	if tx == nil {
+		return "", ErrTxRequired
+	}
+	if wallet == nil {
+		return "", ErrWalletRequired
+	}
+	if err := tx.valid(); err != nil {
+		return "", err
+	}
+	tx.Data = GenerateERC20Approve(spender, amount)
+	sendingTx, err := NewSendingTx(tx)
+	if err != nil {
+		return "", err
+	}
+	chainID, err := e.info.ChainID()
+	if err != nil {
+		return "", err
+	}
+	_, rawTx, err := wallet.SignTx(sendingTx, chainID)
+	if err != nil {
+		return "", err
+	}
+	return e.ts.sendRawTransaction(ctx, rawTx)
+}
 
 // TODO: check gas price and base fee
 func (e *erc20Contract) Transfer(tx *Tx, wallet *Wallet, recipient string, amount decimal.Decimal) (string, error) {
@@ -236,7 +298,59 @@ func (e *erc20Contract) transfer(
 	return e.ts.sendRawTransaction(ctx, rawTx)
 }
 
-func (e *erc20Contract) TransferFrom() {}
+func (e *erc20Contract) TransferFrom(
+	tx *Tx,
+	wallet *Wallet,
+	from string,
+	to string,
+	amount decimal.Decimal,
+) (string, error) {
+	return e.transferFrom(context.Background(), tx, wallet, from, to, amount)
+}
+
+func (e *erc20Contract) TransferFromWithContext(
+	ctx context.Context,
+	tx *Tx,
+	wallet *Wallet,
+	from string,
+	to string,
+	amount decimal.Decimal,
+) (string, error) {
+	return e.transferFrom(ctx, tx, wallet, from, to, amount)
+}
+
+func (e *erc20Contract) transferFrom(
+	ctx context.Context,
+	tx *Tx,
+	wallet *Wallet,
+	from string,
+	to string,
+	amount decimal.Decimal,
+) (string, error) {
+	if tx == nil {
+		return "", ErrTxRequired
+	}
+	if wallet == nil {
+		return "", ErrWalletRequired
+	}
+	if err := tx.valid(); err != nil {
+		return "", err
+	}
+	tx.Data = GenerateERC20TransferFrom(from, to, amount)
+	sendingTx, err := NewSendingTx(tx)
+	if err != nil {
+		return "", err
+	}
+	chainID, err := e.info.ChainID()
+	if err != nil {
+		return "", err
+	}
+	_, rawTx, err := wallet.SignTx(sendingTx, chainID)
+	if err != nil {
+		return "", err
+	}
+	return e.ts.sendRawTransaction(ctx, rawTx)
+}
 
 func (e *erc20Contract) BalanceOf(tokenAddress string, owner string, blockAndTag evmctypes.BlockAndTag) (decimal.Decimal, error) {
 	return e.balanceOf(context.Background(), tokenAddress, owner, blockAndTag)
