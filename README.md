@@ -1,4 +1,4 @@
-# evmc (WIP)
+# evmc
 
 evmc is an abbreviation of Ethereum Virtual Machine Client, and I wanted to express it as simply as a Go. But evmc is not simple.
 
